@@ -1,21 +1,27 @@
 # Dataset methodology
 
-**Created:** 2026-07-27 · **Status:** methodology defined; collection starts in milestone M2. Answers RQ3/RQ4/RQ11.
+**Created:** 2026-07-27 · **Updated:** 2026-07-27 (M2: final style set per DR-006) · Answers RQ3/RQ4/RQ11.
 
-## Style candidates (initial, ≥ 3 required)
+## Final style set (DR-006, approved by Kylian 2026-07-27)
 
-1. **Graffiti / street art** — bold lettering, spray textures, high saturation
-2. **Retro comic / punk poster** — halftone, limited palettes, grain, high contrast
-3. **Minimal geometric / abstract** — flat shapes, restrained palettes, negative space
+1. **Retro comic / punk poster** (`retro-comic`) — halftone, limited palettes, grain, high contrast, bold ink
+2. **Minimal geometric / abstract** (`minimal-geometric`) — flat shapes, restrained palettes, negative space
+3. **Ukiyo-e woodblock** (`ukiyo-e`) — Japanese woodblock prints; **replaces the Phase 0 graffiti candidate** because graffiti photography is generally artist-copyrighted while ukiyo-e has large explicit CC0/PD institutional supply (see `docs/decisions/DR-006-dataset-styles-and-sourcing.md`)
 
-Candidates may be revised during M2 if source availability or licensing forces it (change-log entry required).
+**Target size:** ≈50 items per style (40–60; ~150 total + holdout), approved 2026-07-27.
 
 ## Licensing policy
 
-- Preferred sources: original self-created work, public domain, CC0, and clearly licensed material whose licence permits ML training use.
-- **Forbidden:** blind scraping of commercial brands, named artists, or unknown-provenance sources.
+- Allowed licences: **public domain, CC0, project-original** (self-created; generator config + seed recorded). Nothing else enters the manifest.
+- Primary sources: open-access museum/archive collections with item-level licence statements (retro-comic, ukiyo-e); seeded programmatic self-generation (minimal-geometric). Stock-photo "free" sites, scraping, and AI-generated seed imagery are rejected (DR-006).
 - Every item's licence and permitted use is recorded **before** it may enter a training split.
-- Licences requiring attribution are honoured in the report and repository.
+- The concrete source registry (institution, URL, licence statement) requires explicit human approval before any download; borderline items are batched for review.
+
+## Inclusion, exclusion, and privacy rules
+
+- **Include only:** decodable PNG/JPG, short side ≥ 512 px, licence in the allowlist, provenance recorded, visually on-style.
+- **Exclude:** identifiable living persons, visible brands/logos/trademarks, NSFW content, contemporary artist-attributed works, watermarked images, near-duplicates.
+- **Privacy:** no personal data in filenames or metadata; historical artworks only from institutional PD collections.
 
 ## Manifest schema (`data/manifests/`)
 

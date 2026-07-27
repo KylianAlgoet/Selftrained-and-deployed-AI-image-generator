@@ -36,3 +36,4 @@ Rules: the **original plan (v1) below is never rewritten**. Adjustments are appe
 | Date | Change | Reason | Impact |
 |---|---|---|---|
 | 2026-07-27 | M1 completed 2026-07-27 instead of Jul 28–30, actual effort ~4 h vs 10 h estimated | Procedural-geometry approach (DR-005) removed model-sourcing/licensing work; scaffold and scene came together faster than estimated | Buffer of ~1.5 days gained for the critical path (M2 dataset work can start early); estimates for M7 viewer integration can be trimmed |
+| 2026-07-27 | M2 started 2026-07-27 (planned Jul 30); dataset style "graffiti/street art" replaced by "ukiyo-e woodblock" (DR-006, user-approved); target set at ~50 items/style | Early start uses the M1 buffer; graffiti photography is generally artist-copyrighted (licensing risk R3), ukiyo-e has large CC0/PD institutional supply | Reduced licensing risk; original style intent preserved in methodology history |
