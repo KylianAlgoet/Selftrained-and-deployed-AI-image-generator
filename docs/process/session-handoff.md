@@ -1,37 +1,40 @@
 # Session handoff
 
-**Last updated:** 2026-07-27 (Prototype 0 / M1 session)
+**Last updated:** 2026-07-27 (Dataset / M2 session; part under Opus 4.8 after Fable 5 became unavailable)
 
 ## Current state
 
-Phase 0 complete and pushed. Public planning live (project + issues #1–#12; M0 closed). **Prototype 0 (M1) implemented and validated**: interactive 3D deck viewer in `apps/web` (React 19 + Vite 6.4.3 + R3F), procedural deck geometry with documented UV convention (v=1 = nose), correct first-render orientation (honestly documented; labelled inverted-UV demonstration for the defect illustration), runtime decal swap, orbit/zoom/reset, 13 passing Vitest tests, evidence in `docs/evidence/prototype-0/`, DR-005 recorded.
+Phase 0, public planning (issues #1–#12), and **M1 (Prototype 0)** complete and pushed; issue #2 closed. **M2 (dataset) complete**: 148 licence-verified items (ukiyo-e 55 CC0 / retro-comic 41 public domain / minimal-geometric 52 project-original), splits train 124 / val 17 / holdout 7. Pipeline in `ml/dataset/` with 34 passing pytest tests. Manifest `data/manifests/dataset-v1.csv`; evidence in `docs/evidence/dataset-v1/` (statistics, 3 contact sheets, curation log). DR-006 recorded.
 
 ## Uncommitted changes
 
-None expected at handoff — verify with `git status`.
+None expected at handoff — verify with `git status`. (Process-docs commit closes the M2 sequence.)
 
-## Latest commits (M1 sequence, 2026-07-27)
+## Latest commits (M2 sequence, 2026-07-27)
 
 ```
-(docs process commit — see git log)
-2dba9d4 docs(prototypes): record prototype 0 results, evidence, and deck-source decision
-634ff59 feat(viewer): render interactive deck scene with swappable decal textures
-148a2c9 feat(viewer): raise nose kick above tail kick for physical orientation asymmetry
-b10608c feat(viewer): add procedural skateboard deck geometry with explicit UV mapping
-36150ef feat(web): scaffold React + Vite + TypeScript viewer app
+(process-docs commit — see git log)
+8b8e283 docs(data): record dataset v1 manifest, statistics, and contact sheets
+89f04ef feat(dataset): add approved-source collection and manifest build scripts
+d79330b feat(dataset): add seeded geometric decal generator with tests
+7034e8f feat(dataset): add captioning, splits, statistics, and contact sheets with tests
+22c36a0 feat(dataset): add validation, hashing, and duplicate detection with tests
+58c472f chore(ml): set up python 3.11 environment with pinned dataset tooling
+8be587c docs(dataset): record approved style set and sourcing decision
 ```
 
 ## Blockers
 
-- None technical. Awaiting Kylian's visual sign-off on the viewer (requested in the M1 milestone report) and approval to start M2.
+- None. Issue #3 to be closed at the end of the M2 push; board auto-moves M2 to Done.
 
 ## Facts a new session must know
 
-- Repo root: `C:\Expert Lab\Selftrained-and-deployed-AI-image-generator`; use `py -V:3.11` for ML (default 3.14 is PyTorch-incompatible); 8 GB VRAM constraint.
-- `apps/web`: `npm run dev` (port 5173), `npm run test`, `npm run build`. jsdom pinned to 26.x (jsdom 27 needs Node ≥20.19). Vitest default env is `node`; DOM tests opt in via docblock.
-- Deck UV convention: decal face u∈[0,1] across width, v=1 at nose; Three.js default flipY puts image top at the nose. Dev-only `window.__deckforge` render hook exists for evidence/E2E captures.
-- Issue #2 (M1) to be closed on sign-off; board auto-moves it to Done.
+- Repo root: `C:\Expert Lab\Selftrained-and-deployed-AI-image-generator`; 8 GB VRAM constraint.
+- **Python:** `.venv` at repo root is **Python 3.11** (`.venv/Scripts/python.exe`); pinned tooling in `ml/requirements.txt` (Pillow, imagehash, pytest — no torch yet). Run tests with `.venv/Scripts/python.exe -m pytest` (config in `pytest.ini`, testpaths=ml). Set `PYTHONIOENCODING=utf-8` when printing Japanese romanization.
+- **Dataset:** raw images in `data/raw/<style>/` are **git-ignored** (also `data/processed/`, `.venv/`, `data/raw/candidates.csv`). Only manifest + evidence are committed. To rebuild: `.venv/Scripts/python.exe scripts/collect_dataset_v1.py` then `scripts/build_dataset_v1.py` (downloads skip existing files; build is deterministic).
+- **Sources actually used** (2 approved sources were blocked): ukiyo-e = Met Open Access (AIC dropped, 403); retro-comic = Library of Congress WPA posters (Digital Comic Museum dropped, Cloudflare); minimal-geometric = `ml/dataset/generate_geometric.py`. All within the approved registry (conditions A/B).
+- `apps/web`: React 19 + Vite 6.4.3 + R3F viewer (M1); `npm run dev/test/build`.
 
 ## Next action
 
-M2 — dataset research and dataset pipeline (issue #3, planned Jul 30–Aug 3, can start early given the ~1.5-day buffer gained). Start in Plan mode: style definitions, licence-safe sources, manifest schema implementation, validation scripts.
+M3 — Prototype 1: local base-model benchmark (issue #4, planned Aug 2–4; can start early). Start in Plan mode. **This is the first milestone that installs torch/diffusers** — pin versions against the audited CUDA 13.3 / driver 610.74 / 8 GB VRAM, verify `torch.cuda.is_available()` before any run. No training in M3 (inference benchmark only).

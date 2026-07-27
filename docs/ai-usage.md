@@ -10,6 +10,14 @@ Honest record of how Claude Code (Anthropic) is used in this project, per sessio
 
 ## Session log
 
+### 2026-07-27 — Dataset pipeline (M2)
+
+**AI assistance:** Plan-mode M2 plan with weighted sourcing comparison; implementation of the `ml/dataset` pipeline modules and 34 pytest tests; the collection and build scripts; running collection from approved sources; visual review of contact sheets; documentation and atomic commits. Part of this milestone was executed under Claude Opus 4.8 after Claude Fable 5 became unavailable mid-session; the handoff was via the process log, session-handoff, and untracked-script review (no work repeated, no unreviewed scripts committed).
+
+**Student decisions:** chose the third style (ukiyo-e over graffiti) and the ~50/style target; approved the concrete source registry with conditions A–D before any download; set the exclusion/privacy/licence rules the pipeline enforces.
+
+**Verification status:** all counts, licences, and test results are from real runs (162 candidates → 148 accepted; 34 tests pass). Two approved sources were genuinely unavailable (Digital Comic Museum Cloudflare challenge; Art Institute of Chicago image CDN 403) and were handled by shifting to already-approved sources per conditions A/B — documented honestly in the process log and planning change log rather than papered over. One off-style item was removed by human-in-the-loop visual review and logged. No raw images are committed; provenance for every item is in the manifest.
+
 ### 2026-07-27 — Prototype 0 (M1)
 
 **AI assistance:** Plan-mode milestone plan with weighted alternatives; scaffolding `apps/web`; implementation of the deck geometry, viewer scene, controls, and self-authored SVG decals; Vitest suites; diagnosis of real tooling issues (jsdom 27 vs Node 20.18, stale background-tab canvas captures, Chrome multi-download blocking); browser-driven visual verification and evidence capture; documentation and atomic commits.
