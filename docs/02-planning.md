@@ -9,7 +9,7 @@ Rules: the **original plan (v1) below is never rewritten**. Adjustments are appe
 | # | Milestone | Key tasks | Dates | Priority | Depends on | Evidence | Est. effort | Actual effort | Completed | Status |
 |---|---|---|---|---|---|---|---|---|---|---|
 | M0 | Phase 0 foundation | Repo inspection, environment audit, architecture matrices + DRs, research plan, planning, risk register, skeleton, security, CLAUDE.md/rules, docs foundation, experiment registry, traceability, validation, atomic commits | Jul 27–28 | critical | — | This repo state + commits + milestone report | 6 h | | | in progress |
-| M1 | Prototype 0: 3D skateboard viewer | Deck model sourcing/licence, R3F scene, orbit/zoom/reset, test-texture swap, nose–tail orientation, evidence | Jul 28–30 | critical | M0 | `docs/prototypes/prototype-0.md`, screenshots, commits | 10 h | | | not started |
+| M1 | Prototype 0: 3D skateboard viewer | Deck model sourcing/licence, R3F scene, orbit/zoom/reset, test-texture swap, nose–tail orientation, evidence | Jul 28–30 | critical | M0 | `docs/prototypes/prototype-0.md`, screenshots, commits | 10 h | ~4 h | 2026-07-27 | done |
 | M2 | Dataset research + pipeline | Style definitions (3), source/licence audit, manifest schema, collection, validation/hash/dedupe/caption/split scripts, statistics, contact sheets | Jul 30 – Aug 3 | critical | M0 | `docs/04-dataset-methodology.md`, manifests, script tests | 16 h | | | not started |
 | M3 | Prototype 1: base-model benchmark | Python 3.11 venv, pinned installs, CUDA smoke test, SD 1.5 vs. SDXL inference benchmark (VRAM/speed/rubric), aspect-ratio test | Aug 2–4 | critical | M0 | EXP records, benchmark grids | 10 h | | | not started |
 | M4 | Prototype 2: text + reference conditioning | img2img vs. IP-Adapter (vs. ControlNet) comparison, strength sweeps, fixed-seed grids | Aug 4–6 | critical | M3 | EXP records, comparison grids | 10 h | | | not started |
@@ -35,4 +35,4 @@ Rules: the **original plan (v1) below is never rewritten**. Adjustments are appe
 
 | Date | Change | Reason | Impact |
 |---|---|---|---|
-| — | (none yet) | | |
+| 2026-07-27 | M1 completed 2026-07-27 instead of Jul 28–30, actual effort ~4 h vs 10 h estimated | Procedural-geometry approach (DR-005) removed model-sourcing/licensing work; scaffold and scene came together faster than estimated | Buffer of ~1.5 days gained for the critical path (M2 dataset work can start early); estimates for M7 viewer integration can be trimmed |

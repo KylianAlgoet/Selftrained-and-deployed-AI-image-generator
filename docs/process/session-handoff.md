@@ -1,38 +1,37 @@
 # Session handoff
 
-**Last updated:** 2026-07-27 (Phase 0 session)
+**Last updated:** 2026-07-27 (Prototype 0 / M1 session)
 
 ## Current state
 
-Phase 0 (research and repository foundation) is complete: environment audited, monorepo skeleton created, security foundation in place, CLAUDE.md + rules active, documentation foundation (docs 00–09, process docs, traceability, AI usage) written, research plan (RQ1–RQ12) and planning v1 (M0–M11) established, risk register R1–R10 open, architecture decisions DR-001…DR-004 recorded, experiment registry initialized.
+Phase 0 complete and pushed. Public planning live (project + issues #1–#12; M0 closed). **Prototype 0 (M1) implemented and validated**: interactive 3D deck viewer in `apps/web` (React 19 + Vite 6.4.3 + R3F), procedural deck geometry with documented UV convention (v=1 = nose), correct first-render orientation (honestly documented; labelled inverted-UV demonstration for the defect illustration), runtime decal swap, orbit/zoom/reset, 13 passing Vitest tests, evidence in `docs/evidence/prototype-0/`, DR-005 recorded.
 
 ## Uncommitted changes
 
-None expected at handoff — verify with `git status`. If files are uncommitted, they belong to the atomic sequence documented in the Phase 0 milestone report.
+None expected at handoff — verify with `git status`.
 
-## Latest commits (Phase 0 sequence, 2026-07-27)
+## Latest commits (M1 sequence, 2026-07-27)
 
 ```
-0323a19 chore(experiments): initialize experiment registry with mandated fields
-3965283 docs(project): add project brief, methodologies, and learning-outcome traceability
-aaa1118 docs(process): add planning, risk register, git workflow, and process log foundation
-dd5d882 docs(architecture): compare architecture alternatives with weighted decision matrices
-70b97d5 docs(research): define research plan, questions, and hypotheses
-86934a5 docs(technical): record real environment audit results
-af4891b chore(repo): initialize research-driven project structure (root commit)
+(docs process commit — see git log)
+2dba9d4 docs(prototypes): record prototype 0 results, evidence, and deck-source decision
+634ff59 feat(viewer): render interactive deck scene with swappable decal textures
+148a2c9 feat(viewer): raise nose kick above tail kick for physical orientation asymmetry
+b10608c feat(viewer): add procedural skateboard deck geometry with explicit UV mapping
+36150ef feat(web): scaffold React + Vite + TypeScript viewer app
 ```
 
 ## Blockers
 
-- None. Remote operations were approved on 2026-07-27; Phase 0 history is pushed to `origin/main` (https://github.com/KylianAlgoet/Selftrained-and-deployed-AI-image-generator). Validated milestone commits are pushed after each milestone (same security/size checks as local commits). The public planning requirement is fulfilled: **https://github.com/users/KylianAlgoet/projects/1** (public GitHub Project, milestones M0–M11 as issues #1–#12; M0 closed as completed).
+- None technical. Awaiting Kylian's visual sign-off on the viewer (requested in the M1 milestone report) and approval to start M2.
 
-## Environment facts a new session must know
+## Facts a new session must know
 
-- Repo root: `C:\Expert Lab\Selftrained-and-deployed-AI-image-generator` (verify before changes)
-- Use `py -V:3.11` for ML work (default 3.14 is PyTorch-incompatible); `python`/`pip` not on PATH
-- 8 GB VRAM (RTX 4060 Laptop) is the hard training constraint
-- No dependencies installed yet; pin versions at first install
+- Repo root: `C:\Expert Lab\Selftrained-and-deployed-AI-image-generator`; use `py -V:3.11` for ML (default 3.14 is PyTorch-incompatible); 8 GB VRAM constraint.
+- `apps/web`: `npm run dev` (port 5173), `npm run test`, `npm run build`. jsdom pinned to 26.x (jsdom 27 needs Node ≥20.19). Vitest default env is `node`; DOM tests opt in via docblock.
+- Deck UV convention: decal face u∈[0,1] across width, v=1 at nose; Three.js default flipY puts image top at the nose. Dev-only `window.__deckforge` render hook exists for evidence/E2E captures.
+- Issue #2 (M1) to be closed on sign-off; board auto-moves it to Done.
 
 ## Next action
 
-Prototype 0 — static interactive 3D skateboard viewer (M1, target Jul 28–30). Start in Plan mode: research question RQ9, deck-model sourcing with licence check, acceptance criteria, then await approval before editing files.
+M2 — dataset research and dataset pipeline (issue #3, planned Jul 30–Aug 3, can start early given the ~1.5-day buffer gained). Start in Plan mode: style definitions, licence-safe sources, manifest schema implementation, validation scripts.
