@@ -4,6 +4,20 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-07-27 — Remote operations approved; Phase 0 pushed
+
+**Objective:** publish the validated Phase 0 history to GitHub after explicit approval of remote operations.
+
+**Completed work:** pre-push checklist executed with real outputs — clean working tree, branch `main`, 8 commits reviewed (`af4891b`…`673e540`), secret-pattern scan clean, tracked files all text (largest 23.1 KB, no binaries/weights/datasets), remote confirmed empty via `git ls-remote` (branch-creating push, no history rewrite). Pushed `main` → `origin/main` with upstream tracking.
+
+**Real results:** `origin/main` = `673e5402fd3a20e2a35764b457705278484aa79e`; local and remote in sync.
+
+**Decisions:** ongoing policy per user instruction — validated milestone commits are pushed to origin after each milestone, subject to the same security and file-size checks. No force-pushes, history rewrites, or settings changes.
+
+**Next step:** unchanged — await Phase 0 review, then Prototype 0 plan. Public planning link (GitHub Project) still to be created.
+
+---
+
 ## 2026-07-27 — Phase 0: research and repository foundation
 
 **Objective:** establish the audited, documented, secure foundation required before any prototype work (Phase 0 of the master prompt).
