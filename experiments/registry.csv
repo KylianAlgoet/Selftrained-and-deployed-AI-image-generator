@@ -1,0 +1,1 @@
+id,date,prototype,research_question,hypothesis,dataset_version,model,config,rank,learning_rate,steps,batch_size,grad_accum,resolution,seed,gpu,peak_vram,duration,output_path,evaluation,conclusion,next_action,commit
