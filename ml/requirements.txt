@@ -1,0 +1,6 @@
+# Dataset tooling for milestone M2 (Python 3.11 venv at repo root: .venv).
+# Torch/diffusers are deliberately NOT installed yet — they arrive with
+# Prototype 1 (M3) after the architecture-gated version pinning.
+Pillow==11.3.0
+imagehash==4.3.2
+pytest==8.4.2
