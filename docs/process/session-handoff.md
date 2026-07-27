@@ -10,9 +10,17 @@ Phase 0 (research and repository foundation) is complete: environment audited, m
 
 None expected at handoff — verify with `git status`. If files are uncommitted, they belong to the atomic sequence documented in the Phase 0 milestone report.
 
-## Latest commits
+## Latest commits (Phase 0 sequence, 2026-07-27)
 
-Run `git log --oneline` — Phase 0 sequence starts at `chore(repo): initialize research-driven project structure`.
+```
+0323a19 chore(experiments): initialize experiment registry with mandated fields
+3965283 docs(project): add project brief, methodologies, and learning-outcome traceability
+aaa1118 docs(process): add planning, risk register, git workflow, and process log foundation
+dd5d882 docs(architecture): compare architecture alternatives with weighted decision matrices
+70b97d5 docs(research): define research plan, questions, and hypotheses
+86934a5 docs(technical): record real environment audit results
+af4891b chore(repo): initialize research-driven project structure (root commit)
+```
 
 ## Blockers
 
