@@ -5,7 +5,8 @@ import {
   DECK_LENGTH,
   DECK_WIDTH,
   DECK_THICKNESS,
-  KICKTAIL_RISE,
+  NOSE_KICK_RISE,
+  TAIL_KICK_RISE,
   CONCAVE_DEPTH,
 } from './deckGeometry'
 
@@ -63,9 +64,22 @@ describe('createDeckGeometry', () => {
       expect(Math.abs(pos.getZ(k))).toBeLessThanOrEqual(DECK_LENGTH / 2 + EPS)
       expect(pos.getY(k)).toBeGreaterThanOrEqual(-EPS)
       expect(pos.getY(k)).toBeLessThanOrEqual(
-        KICKTAIL_RISE + CONCAVE_DEPTH + DECK_THICKNESS + EPS,
+        NOSE_KICK_RISE + CONCAVE_DEPTH + DECK_THICKNESS + EPS,
       )
     }
+  })
+
+  it('raises the nose kick higher than the tail kick (physical asymmetry)', () => {
+    expect(NOSE_KICK_RISE).toBeGreaterThan(TAIL_KICK_RISE)
+    let noseMax = -Infinity
+    let tailMax = -Infinity
+    for (let k = 0; k < pos.count; k++) {
+      const z = pos.getZ(k)
+      const y = pos.getY(k)
+      if (z > DECK_LENGTH * 0.4) noseMax = Math.max(noseMax, y)
+      if (z < -DECK_LENGTH * 0.4) tailMax = Math.max(tailMax, y)
+    }
+    expect(noseMax).toBeGreaterThan(tailMax)
   })
 
   it('winds the first decal-face triangle to face downward (-Y)', () => {

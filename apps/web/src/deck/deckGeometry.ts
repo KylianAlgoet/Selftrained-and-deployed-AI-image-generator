@@ -19,7 +19,10 @@ export const DECK_LENGTH = 3.2
 export const DECK_WIDTH = 0.82
 export const DECK_THICKNESS = 0.045
 export const CONCAVE_DEPTH = 0.03
-export const KICKTAIL_RISE = 0.14
+/** The nose kick is higher than the tail kick (real-deck asymmetry), which
+ * ties nose/tail orientation to the physical geometry, not just convention. */
+export const NOSE_KICK_RISE = 0.17
+export const TAIL_KICK_RISE = 0.12
 const KICK_REGION = 0.18
 const TIP_ROUNDING = 0.12
 const MIN_TIP_PROFILE = 0.08
@@ -50,11 +53,13 @@ function surfaceHeight(u: number, v: number): number {
   const concave = CONCAVE_DEPTH * (2 * u - 1) ** 2
   let kick = 0
   if (v < KICK_REGION) {
+    // Tail end (v=0)
     const s = (KICK_REGION - v) / KICK_REGION
-    kick = KICKTAIL_RISE * s * s
+    kick = TAIL_KICK_RISE * s * s
   } else if (v > 1 - KICK_REGION) {
+    // Nose end (v=1)
     const s = (v - (1 - KICK_REGION)) / KICK_REGION
-    kick = KICKTAIL_RISE * s * s
+    kick = NOSE_KICK_RISE * s * s
   }
   return concave + kick
 }
