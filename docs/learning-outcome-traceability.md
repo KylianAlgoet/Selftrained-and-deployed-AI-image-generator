@@ -1,0 +1,13 @@
+# Learning-outcome traceability (D1–D7)
+
+Maps concrete evidence (files, experiments, commits) to the assessed learning outcomes. Updated as evidence is produced, never retroactively fabricated. **Phase 0 baseline below; every milestone appends.**
+
+| Outcome | Definition | Evidence so far (Phase 0, 2026-07-27) | Planned evidence |
+|---|---|---|---|
+| D1 — Independent applied research | Formulating and executing own research | `docs/01-research-plan.md` (primary RQ + RQ1–RQ12 with hypotheses/methods) | Executed experiments (EXP-###), prototype conclusions |
+| D2 — Independent professional functioning | Autonomous, structured, responsible work | Environment audit before decisions; risk register R1–R10; security foundation; `docs/ai-usage.md` boundary log | Milestone delivery against plan; blocker handling in process log |
+| D3 — Iterative planning and professional methodology | Planning, adjusting, and documenting method | Planning v1 (M0–M11) with preserved-original rule; process log; git workflow; atomic commit protocol | Planning change log entries with reasons; per-milestone process-log entries |
+| D4 — Comparison and application of multiple solution methods | Weighing alternatives with criteria | Weighted matrices D-A…D-D + DR-001…004; ML feasibility screening kept as hypothesis | Empirical method comparisons (RQ1, RQ5, RQ6) in Prototypes 1–4 |
+| D5 — Complex problem solving via prototypes and new technologies | Multi-prototype iterative build-up | Prototype ladder defined with acceptance criteria (`docs/06-prototype-overview.md`) | Prototypes 0–5 implemented with evidence |
+| D6 — Justified research conclusions | Conclusions traceable to evidence | Experiment methodology + rubric (`docs/05-experiment-methodology.md`); honesty rules | Registry-backed conclusions; failure records; report chapters |
+| D7 — Professional multimedia documentation and presentation | Professional English documentation and presentation | Complete Phase 0 documentation set; README; this traceability system | Research report PDF, presentation PDF, demo, jury preparation |
