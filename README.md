@@ -13,6 +13,11 @@ A customer of a skateboard manufacturer can:
 5. Preview the decal on an **interactive 3D skateboard deck** (rotate/zoom/reset, correct nose–tail orientation)
 6. Download the artwork
 
+## Public planning
+
+The public project planning (milestones M0–M11 with objectives, acceptance criteria, dates, priorities, dependencies, evidence, and live status) is maintained as a GitHub Project:
+**https://github.com/users/KylianAlgoet/projects/1** — backed by [repository issues #1–#12](https://github.com/KylianAlgoet/Selftrained-and-deployed-AI-image-generator/issues?q=is%3Aissue).
+
 ## Project status
 
 **Phase 0 — research and repository foundation** (started 2026-07-27). No application code exists yet; the research framework, planning, environment audit, and documentation system are being established first. See `docs/02-planning.md` for the roadmap to submission (2026-08-17).

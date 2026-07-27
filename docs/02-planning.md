@@ -23,7 +23,7 @@ Rules: the **original plan (v1) below is never rewritten**. Adjustments are appe
 
 **Total estimated effort:** ~132 focused hours over 21 days (~6.3 h/day average — feasible but with little slack; see risk R4).
 
-Public planning link: required deliverable; will be set up as a GitHub Project when remote operations are approved (see `docs/process/risk-register.md` R7).
+**Public planning link (live since 2026-07-27):** https://github.com/users/KylianAlgoet/projects/1 — a public GitHub Project mirroring milestones M0–M11 as repository issues #1–#12, each with objective, acceptance criteria, planned start/end dates, priority, dependencies, expected evidence, and current status. M0 is closed as completed; M1–M11 are open (Todo). New repository issues are auto-added to the project by workflow.
 
 ## Milestone overlap notes
 

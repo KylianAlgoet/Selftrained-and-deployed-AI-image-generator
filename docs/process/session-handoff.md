@@ -24,7 +24,7 @@ af4891b chore(repo): initialize research-driven project structure (root commit)
 
 ## Blockers
 
-- None. Remote operations were approved on 2026-07-27; Phase 0 history is pushed to `origin/main` (https://github.com/KylianAlgoet/Selftrained-and-deployed-AI-image-generator). Validated milestone commits are pushed after each milestone (same security/size checks as local commits). The public planning link (GitHub Project) is still to be set up.
+- None. Remote operations were approved on 2026-07-27; Phase 0 history is pushed to `origin/main` (https://github.com/KylianAlgoet/Selftrained-and-deployed-AI-image-generator). Validated milestone commits are pushed after each milestone (same security/size checks as local commits). The public planning requirement is fulfilled: **https://github.com/users/KylianAlgoet/projects/1** (public GitHub Project, milestones M0–M11 as issues #1–#12; M0 closed as completed).
 
 ## Environment facts a new session must know
 
