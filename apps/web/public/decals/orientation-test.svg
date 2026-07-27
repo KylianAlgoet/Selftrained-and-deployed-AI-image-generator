@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="2000" viewBox="0 0 512 2000">
+  <!-- Self-created orientation test decal for DeckForge AI Prototype 0.
+       Author: DeckForge AI project (Kylian Algoet), 2026. Licence: project-original asset.
+       Purpose: verify nose/tail orientation and left/right mirroring of the
+       decal UV mapping. Image top must render at the deck NOSE (v=1). -->
+  <rect width="512" height="2000" fill="#f5f0e6"/>
+  <rect x="0" y="0" width="40" height="2000" fill="#2e9e4f"/>
+  <rect x="472" y="0" width="40" height="2000" fill="#2b6fd4"/>
+  <text x="70" y="1010" font-family="Arial, sans-serif" font-size="34" fill="#2e9e4f" transform="rotate(-90 70 1010)">LEFT u=0</text>
+  <text x="452" y="990" font-family="Arial, sans-serif" font-size="34" fill="#2b6fd4" transform="rotate(90 452 990)">RIGHT u=1</text>
+  <text x="256" y="150" font-family="Arial, sans-serif" font-size="110" font-weight="bold" text-anchor="middle" fill="#c62828">NOSE</text>
+  <polygon points="256,190 356,340 156,340" fill="#c62828"/>
+  <rect x="216" y="340" width="80" height="360" fill="#c62828"/>
+  <circle cx="256" cy="1000" r="150" fill="none" stroke="#333333" stroke-width="14"/>
+  <circle cx="256" cy="1000" r="60" fill="#333333"/>
+  <rect x="216" y="1300" width="80" height="360" fill="#37474f"/>
+  <polygon points="256,1810 356,1660 156,1660" fill="#37474f"/>
+  <text x="256" y="1930" font-family="Arial, sans-serif" font-size="110" font-weight="bold" text-anchor="middle" fill="#37474f">TAIL</text>
+</svg>

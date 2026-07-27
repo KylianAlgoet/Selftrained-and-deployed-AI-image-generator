@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="2000" viewBox="0 0 512 2000">
+  <!-- Self-created geometric test decal for DeckForge AI Prototype 0.
+       Author: DeckForge AI project (Kylian Algoet), 2026. Licence: project-original asset.
+       Purpose: visually distinct second decal to demonstrate runtime texture swapping. -->
+  <rect width="512" height="2000" fill="#101828"/>
+  <circle cx="256" cy="320" r="190" fill="#ff5722"/>
+  <circle cx="256" cy="320" r="110" fill="#101828"/>
+  <rect x="66" y="640" width="380" height="120" fill="#ffc107" transform="skewX(-12)"/>
+  <rect x="96" y="860" width="380" height="120" fill="#00bcd4" transform="skewX(12)"/>
+  <rect x="66" y="1080" width="380" height="120" fill="#ffc107" transform="skewX(-12)"/>
+  <polygon points="256,1400 456,1780 56,1780" fill="#8e24aa"/>
+  <circle cx="256" cy="1660" r="70" fill="#101828"/>
+</svg>
