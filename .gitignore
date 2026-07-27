@@ -1,0 +1,63 @@
+# Secrets and environment
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+dist/
+build/
+.vite/
+coverage/
+
+# ML artifacts (large binaries stay out of Git by default)
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+*.bin
+*.onnx
+models/
+checkpoints/
+.cache/
+huggingface/
+wandb/
+
+# Dataset (raw data is not committed by default; manifests and samples are)
+data/raw/
+data/processed/
+data/uploads/
+!data/manifests/
+!data/samples/
+
+# Generated outputs and temporary files
+outputs/
+tmp/
+temp/
+*.log
+logs/
+
+# OS and editor junk
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Claude Code local settings
+.claude/settings.local.json
