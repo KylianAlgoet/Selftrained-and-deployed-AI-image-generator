@@ -1,0 +1,43 @@
+{
+  "strategy": "square-crop",
+  "explanation": "Generate 512x512 in-distribution, then take the centre vertical 1:3 strip. The usable resolution after cropping is the real cost of this strategy.",
+  "deck_ratio_target": 3.6,
+  "samples": [
+    {
+      "prompt_id": "P4-deck",
+      "seed": 42,
+      "generated": "512x512",
+      "usable_after_crop": "170x512"
+    },
+    {
+      "prompt_id": "P4-deck",
+      "seed": 1337,
+      "generated": "512x512",
+      "usable_after_crop": "170x512"
+    },
+    {
+      "prompt_id": "P4-deck",
+      "seed": 2026,
+      "generated": "512x512",
+      "usable_after_crop": "170x512"
+    },
+    {
+      "prompt_id": "P1-poster",
+      "seed": 42,
+      "generated": "512x512",
+      "usable_after_crop": "170x512"
+    },
+    {
+      "prompt_id": "P1-poster",
+      "seed": 1337,
+      "generated": "512x512",
+      "usable_after_crop": "170x512"
+    },
+    {
+      "prompt_id": "P1-poster",
+      "seed": 2026,
+      "generated": "512x512",
+      "usable_after_crop": "170x512"
+    }
+  ]
+}

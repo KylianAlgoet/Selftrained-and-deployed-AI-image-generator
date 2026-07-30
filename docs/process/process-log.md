@@ -4,6 +4,59 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-07-30 — Prototype 1: local base-model benchmark (M3) — measurements complete, awaiting scoring
+
+**Objective:** install the project's first ML runtime, verify the GPU, and produce the first measured evidence so the base-model choice for Prototypes 2–5 rests on numbers (RQ2, RQ8, RQ10).
+
+**Plan:** approved M3 plan — two-track benchmark (Track A all candidates at 512×512; Track B each at its designed resolution), pinned immutable model revisions, numbered memory tiers escalated only after a recorded failure, one candidate per fresh process, and a mandatory human-review gate before any conclusion.
+
+**Completed work:** `ml/requirements-inference.txt` (torch 2.13.0+cu126, torchvision 0.28.0+cu126, diffusers 0.39.0, transformers 5.14.1, accelerate 1.14.0, safetensors 0.8.0, huggingface_hub 1.25.1, psutil 7.2.2). CUDA smoke test (EXP-001), hash-locked frozen prompt kit, benchmark schema + runner, aspect-ratio experiment, two orchestrators, and the blank scoring-form generator. **66 pytest tests pass, all CPU-only.** Registry rows EXP-001…EXP-005 written; `docs/prototypes/prototype-1.md` records the full prototype.
+
+**Real results** (all at memory tier 0; no escalation needed anywhere):
+
+```
+EXP-001 gate: torch 2.13.0+cu126, bundled CUDA runtime 12.6, driver 610.88,
+  RTX 4060 Laptop GPU sm_89, 8187.5 MiB VRAM. Relative error 6.32e-07 fp32,
+  5.22e-04 fp16, 4.28e-03 bf16. VERDICT: PASS
+
+EXP-002 SD 1.5 @ 451f4fe1   30/30 ok
+  512x512  median  4.069s  alloc 2675 / reserved 3246 / device 4360 MiB
+  512x768  median  6.811s  alloc 2979 / reserved 3864 / device 4978 MiB
+
+EXP-004 SDXL base @ 46216598  30/30 ok
+  512x512   median  16.512s  alloc  7859 / reserved  9030 / device 8188 MiB
+  1024x1024 median 118.733s  alloc 10738 / reserved 14510 / device 8188 MiB, RSS 6807 MiB
+
+EXP-005 aspect ratio (SD 1.5), one geometry per fresh process, 24/24 ok
+  512x512   median  4.111s (spread 0.08)  alloc 2675 MiB
+  512x1024  median  8.962s (spread 0.09)  alloc 3284 MiB
+  512x1536  median 15.244s (spread 0.20)  alloc 3892 MiB
+  square-crop -> 170x512 usable, median 4.281s, alloc 2675 MiB
+```
+
+**Key finding — "30/30 ok" is misleading for SDXL.** SDXL reported zero failures at every resolution, but at 1024×1024 peak allocated (10738 MiB) and reserved (14510 MiB) both **exceed the 8187.5 MiB of physical VRAM**. Windows WDDM spilled silently into shared host memory rather than raising a CUDA OOM, so no exception existed for the tier-escalation logic to catch: the model degraded quietly instead of failing loudly. About 29× SD 1.5's cost per 512 px image. Only recording three VRAM figures instead of one made this visible.
+
+**RQ8 hypothesis refuted on memory/reliability.** Direct 1:3 generation reached 512×1536 in 3892 MiB — under half the budget — with no failures, while `square-crop`'s real cost is resolution: a 1:3 strip from 512×512 leaves only 170×512 usable pixels. 1:3 is a stated approximation of ~1:3.6 (dimensions must be multiples of 64). Composition quality remains Kylian's to judge.
+
+**Failures and corrections (first-class results):**
+- **EXP-003 BLOCKED:** `stabilityai/stable-diffusion-2-1-base` returns HTTP 401, as do `-2-1` and `-2-base`, while SDXL from the same org returns 200 → repository gating, not an outage. Per the approved plan Kylian was **asked** rather than authenticating or substituting a model, and chose to proceed with two candidates. Three declined alternatives recorded, including an ungated community mirror rejected because its fidelity cannot be verified while the original is gated.
+- **Instrumentation bug caught by the mandated smoke test:** the resource sampler stored its stop flag as `self._stop`, shadowing `threading.Thread._stop()`, so every `join()` raised `'Event' object is not callable` and destroyed the result row of a run that had already succeeded. Found on the first one-image run, before ~90 min of GPU time was committed. Fixed, hardened, four regression tests added.
+- **Measurement-methodology correction with a refuted hypothesis:** EXP-005's first run put all four geometries in one process, contaminating the reserved/device VRAM figures and inflating `square-crop` to 7.96 s for provably identical work. Thermal throttling was **tested and ruled out** — a hotter, more throttled card ran the same work *faster* (4.10 s). Cause was in-process caching-allocator state; one process per strategy cut timing spread ~20×. Documented in `docs/evidence/EXP-005/measurement-methodology-correction.md`.
+
+**Audit corrections:** driver is 610.88, not the 610.74 recorded 2026-07-27 (updated in between). `nvidia-smi`'s CUDA 13.3 is the driver's maximum supported API, not a toolkit PyTorch must match — a CUDA 12.6 wheel runs correctly on it. Also: the venv shipped pip 22.3, which could not resolve torch at all; upgrading to pip 26.2 was a prerequisite.
+
+**Factual observation for the gate (not a quality judgement):** both candidates read "skateboard decal artwork" literally, producing photographs of physical decks and stickers in scenes rather than flat printable artwork, consistently across models, prompts, and seeds.
+
+**Unfinished work — deliberately gated:** DR-007 (base-model selection), planning/traceability finalisation, issue #4 closure, board move, and the milestone push all wait for Kylian's rubric scores and visual approval. **No winner has been chosen and no quality score has been assigned by the assistant.**
+
+**Evidence:** `docs/evidence/EXP-001…EXP-005/`, `docs/evidence/prototype-1/` (Track A and Track B cross-model sheets, combined CSV, unscored summary), `docs/evidence/EXP-006-scoring/` (blank rubric + form), `experiments/registry.csv`, `docs/prototypes/prototype-1.md`. 84 full-resolution PNGs in git-ignored `outputs/`.
+
+**Commits:** e5684f1 style relabel · 37650b6 pinned deps · 1d51ccc CUDA smoke test · f646ee9 frozen kit · eae6e41 benchmark runner · e25f1e0 orchestrator + scoring form · 8829664 benchmark measurements · (aspect-ratio + prototype doc commit follows).
+
+**Blockers:** none technical. **Next step:** Kylian scores the contact sheets using `docs/evidence/EXP-006-scoring/`, then DR-007, issue #4, and the validated milestone push.
+
+---
+
 ## 2026-07-30 — M3 pre-check: dataset style relabelled `retro-comic` → `retro-poster`
 
 **Objective:** before starting Prototype 1, verify that the M2 dataset's style identifiers actually describe the collected material, and correct them if not.
