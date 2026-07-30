@@ -4,6 +4,51 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-07-30 — M3 pre-check: dataset style relabelled `retro-comic` → `retro-poster`
+
+**Objective:** before starting Prototype 1, verify that the M2 dataset's style identifiers actually describe the collected material, and correct them if not.
+
+**Plan:** approved M3 plan, step 0 (hard gate before any runtime work): inspect the evidence, choose an accurate stable English identifier, rename it consistently across manifest, schema, captions, tests, scripts, evidence, and documentation, verify that nothing but the label changed, and document the correction without reopening M2.
+
+**Completed work:** Kylian flagged that the `retro-comic` label conflicted with the evidence, which describes WPA posters. Re-inspection of the contact sheet and all 41 manifest rows confirmed the material is **Library of Congress WPA / Federal Theatre Project silkscreen theatre posters** (Carmen, Alien Corn, The Chocolate Soldier, Counsellor at Law, Dracula, Day Is Darkness) with flat silkscreen colour fields, Art Deco/Moderne figures, and dominant display typography — and **no halftone, comic panels, speech balloons, or sequential art whatsoever**. The label was wrong.
+
+Renamed the identifier to **`retro-poster`** and the caption phrase from `"retro comic poster style"` to `"retro silkscreen poster style"` across: `ml/dataset/manifest.py` (`ALLOWED_STYLES`), `ml/dataset/captions.py` (`STYLE_PHRASES`), `ml/dataset/tests/` (captions, manifest, stats), `scripts/collect_dataset_v1.py`, git-ignored `data/raw/candidates.csv` and the `data/raw/retro-comic/` → `data/raw/retro-poster/` directory, `data/manifests/dataset-v1.csv`, regenerated `docs/evidence/dataset-v1/` (statistics, contact sheet renamed to `contact-sheet-retro-poster.jpg`, curation log), `docs/04-dataset-methodology.md`, and this log. Added two regression tests asserting `retro-comic` is gone from `ALLOWED_STYLES` and `STYLE_PHRASES`.
+
+**Why this mattered beyond naming:** the inaccurate label had already propagated into the draft M3 benchmark prompt kit, which asked for *"halftone shading and bold ink outlines"*. Freezing that kit would have prompted for a style absent from the training data and invalidated every later LoRA comparison built on it as a pre-training baseline. Hence the hard gate before any experiment.
+
+**Commands/tests and real results:**
+
+```
+> .venv/Scripts/python.exe scripts/build_dataset_v1.py
+candidates: 162 / after validation: 148 / after dedupe: 148
+manifest written: data\manifests\dataset-v1.csv (148 rows)
+contact sheet: contact-sheet-minimal-geometric.jpg (80 KB, 52 items)
+contact sheet: contact-sheet-retro-poster.jpg (151 KB, 41 items)
+contact sheet: contact-sheet-ukiyo-e.jpg (177 KB, 55 items)
+curation log: 14 rejections recorded
+splits: {'train': 124, 'val': 17, 'holdout': 7}
+
+> manifest before/after diff check
+columns that changed: {'style': 41, 'caption': 41}
+UNEXPECTED column changes: {}   id mismatches: 0
+sha256 identical: True   split identical: True   filename identical: True
+validate_manifest errors: 0
+VERDICT: PASS - only style+caption changed
+
+> .venv/Scripts/python.exe -m pytest
+36 passed in 1.09s
+```
+
+**Decisions:** `retro-poster` chosen over `wpa-poster` (style-descriptive and UI-safe; precise provenance belongs in the manifest and DR text). No image was altered, re-collected, or removed to fit either name. **M2 not reopened** — its acceptance criteria are intact (three styles still defined, licence-verified, deduplicated, split); only the label was imprecise, so issue #3 gets a traceability comment and stays closed. Recorded as a dated correction section in DR-006 with the original decision text preserved.
+
+**Two dataset findings recorded, not silently fixed** (see `docs/04-dataset-methodology.md`, to be resolved with evidence in M4): most `retro-poster` items are **framed/matted scans**, which a LoRA could learn as style; and the material is **text-dominated**, which risks teaching garbled pseudo-lettering since diffusion models render text poorly.
+
+**Evidence:** DR-006 correction section, `data/manifests/dataset-v1.csv`, regenerated `docs/evidence/dataset-v1/`, the diff-check output above.
+
+**Blockers:** none. **Next step:** M3 step 1 — pin the PyTorch/Diffusers inference dependencies (resolved from the official index at execution time), then the CUDA smoke-test hard gate.
+
+---
+
 ## 2026-07-27 — Dataset research and dataset pipeline (M2)
 
 **Objective:** build the mandatory custom training dataset (≥3 distinct styles, documented provenance/licences) and its validation pipeline (RQ3; prep RQ4; part RQ11).

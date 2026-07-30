@@ -1,7 +1,7 @@
 # Dataset v1 curation log
 
 Candidates collected: 162
-Accepted into manifest: 148 ({'minimal-geometric': 52, 'retro-comic': 41, 'ukiyo-e': 55})
+Accepted into manifest: 148 ({'minimal-geometric': 52, 'retro-poster': 41, 'ukiyo-e': 55})
 Rejected: 14
 
 ## Rejections

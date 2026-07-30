@@ -4,7 +4,7 @@
 
 ## Current state
 
-Phase 0, public planning (issues #1–#12), and **M1 (Prototype 0)** complete and pushed; issue #2 closed. **M2 (dataset) complete**: 148 licence-verified items (ukiyo-e 55 CC0 / retro-comic 41 public domain / minimal-geometric 52 project-original), splits train 124 / val 17 / holdout 7. Pipeline in `ml/dataset/` with 34 passing pytest tests. Manifest `data/manifests/dataset-v1.csv`; evidence in `docs/evidence/dataset-v1/` (statistics, 3 contact sheets, curation log). DR-006 recorded.
+Phase 0, public planning (issues #1–#12), and **M1 (Prototype 0)** complete and pushed; issue #2 closed. **M2 (dataset) complete**: 148 licence-verified items (ukiyo-e 55 CC0 / retro-poster 41 public domain / minimal-geometric 52 project-original), splits train 124 / val 17 / holdout 7. Pipeline in `ml/dataset/` with 34 passing pytest tests. Manifest `data/manifests/dataset-v1.csv`; evidence in `docs/evidence/dataset-v1/` (statistics, 3 contact sheets, curation log). DR-006 recorded.
 
 ## Uncommitted changes
 
@@ -32,7 +32,8 @@ d79330b feat(dataset): add seeded geometric decal generator with tests
 - Repo root: `C:\Expert Lab\Selftrained-and-deployed-AI-image-generator`; 8 GB VRAM constraint.
 - **Python:** `.venv` at repo root is **Python 3.11** (`.venv/Scripts/python.exe`); pinned tooling in `ml/requirements.txt` (Pillow, imagehash, pytest — no torch yet). Run tests with `.venv/Scripts/python.exe -m pytest` (config in `pytest.ini`, testpaths=ml). Set `PYTHONIOENCODING=utf-8` when printing Japanese romanization.
 - **Dataset:** raw images in `data/raw/<style>/` are **git-ignored** (also `data/processed/`, `.venv/`, `data/raw/candidates.csv`). Only manifest + evidence are committed. To rebuild: `.venv/Scripts/python.exe scripts/collect_dataset_v1.py` then `scripts/build_dataset_v1.py` (downloads skip existing files; build is deterministic).
-- **Sources actually used** (2 approved sources were blocked): ukiyo-e = Met Open Access (AIC dropped, 403); retro-comic = Library of Congress WPA posters (Digital Comic Museum dropped, Cloudflare); minimal-geometric = `ml/dataset/generate_geometric.py`. All within the approved registry (conditions A/B).
+- **Sources actually used** (2 approved sources were blocked): ukiyo-e = Met Open Access (AIC dropped, 403); retro-poster = Library of Congress WPA posters (Digital Comic Museum dropped, Cloudflare); minimal-geometric = `ml/dataset/generate_geometric.py`. All within the approved registry (conditions A/B).
+- **Style identifiers** are `retro-poster`, `minimal-geometric`, `ukiyo-e`. `retro-poster` was renamed from `retro-comic` on 2026-07-30 (M3 step 0) because the material is WPA silkscreen posters, not comics — see the DR-006 correction section. Never reintroduce `retro-comic`; two pytest regression guards enforce this.
 - `apps/web`: React 19 + Vite 6.4.3 + R3F viewer (M1); `npm run dev/test/build`.
 
 ## Next action

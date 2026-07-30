@@ -3,7 +3,7 @@
 Approved sources only (DR-006 + in-chat approval with conditions A-D):
   - Library of Congress WPA posters (public domain, "no known restrictions")
   - Digital Comic Museum (conditional; Cloudflare-gated at collection time ->
-    condition B fallback: its retro-comic share shifted to more LOC)
+    condition B fallback: its retro-poster share shifted to more LOC)
   - Met Museum Open Access API (CC0)
   - Art Institute of Chicago API (approved, but its image CDN returned HTTP 403
     for all programmatic fetches at collection time -> its ukiyo-e share shifted
@@ -145,7 +145,11 @@ def collect_aic(target: int) -> list[dict]:
 
 
 def collect_loc(target: int) -> list[dict]:
-    """WPA posters, Library of Congress ('no known restrictions' -> public domain)."""
+    """WPA posters, Library of Congress ('no known restrictions' -> public domain).
+
+    Feeds the `retro-poster` style (renamed from `retro-comic` on 2026-07-30 to
+    match the actual material: WPA / Federal Theatre Project silkscreen posters).
+    """
     print(f"[loc] searching (target {target})")
     rows: list[dict] = []
     page = 1
@@ -166,12 +170,12 @@ def collect_loc(target: int) -> list[dict]:
             time.sleep(PAUSE_SECONDS)
             filename = f"loc-{item_id}.jpg"
             # Last entry in image_url is the largest rendition LOC offers here.
-            if not download(image_urls[-1], RAW / "retro-comic" / filename):
+            if not download(image_urls[-1], RAW / "retro-poster" / filename):
                 continue
             rows.append(
                 {
                     "filename": filename,
-                    "style": "retro-comic",
+                    "style": "retro-poster",
                     "content_phrase": clean_phrase(item.get("title") or "vintage poster"),
                     "source": item.get("url") or f"https://www.loc.gov/item/{item_id}/",
                     "author": "",
@@ -217,7 +221,7 @@ def main() -> None:
     # to the already-approved Met source rather than adding any new source.
     # collect_aic() is retained above for transparency of the attempt.
     candidates += collect_met(target=56)
-    # Retro-comic: LOC only (Digital Comic Museum was Cloudflare-gated at
+    # Retro-poster: LOC only (Digital Comic Museum was Cloudflare-gated at
     # collection time -> condition B fallback to additional LOC public-domain
     # posters; no new source added).
     candidates += collect_loc(target=54)

@@ -7,7 +7,7 @@
 | value | count |
 |---|---|
 | minimal-geometric | 52 |
-| retro-comic | 41 |
+| retro-poster | 41 |
 | ukiyo-e | 55 |
 
 ## Licences

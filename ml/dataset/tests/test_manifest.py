@@ -1,5 +1,12 @@
-from ml.dataset.manifest import load_manifest, save_manifest, validate_manifest
+from ml.dataset.manifest import ALLOWED_STYLES, load_manifest, save_manifest, validate_manifest
 from ml.dataset.tests.conftest import valid_row
+
+
+def test_retro_poster_replaced_retro_comic_in_allowlist():
+    """Regression guard for the 2026-07-30 terminology correction."""
+    assert "retro-poster" in ALLOWED_STYLES
+    assert "retro-comic" not in ALLOWED_STYLES
+    assert validate_manifest([valid_row(style="retro-comic")])
 
 
 def test_valid_rows_pass():

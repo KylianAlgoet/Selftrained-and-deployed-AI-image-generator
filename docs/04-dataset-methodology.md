@@ -1,10 +1,10 @@
 # Dataset methodology
 
-**Created:** 2026-07-27 · **Updated:** 2026-07-27 (M2: final style set per DR-006) · Answers RQ3/RQ4/RQ11.
+**Created:** 2026-07-27 · **Updated:** 2026-07-30 (M3 pre-check: `retro-comic` renamed to `retro-poster`; see DR-006 correction) · Answers RQ3/RQ4/RQ11.
 
-## Final style set (DR-006, approved by Kylian 2026-07-27)
+## Final style set (DR-006, approved by Kylian 2026-07-27; style 1 relabelled 2026-07-30)
 
-1. **Retro comic / punk poster** (`retro-comic`) — halftone, limited palettes, grain, high contrast, bold ink
+1. **Retro silkscreen poster** (`retro-poster`) — flat silkscreen colour fields, limited palettes, Art Deco/Moderne figures, bold display typography. **Renamed from `retro-comic` on 2026-07-30**: the collected material is Library of Congress WPA / Federal Theatre Project silkscreen posters and contains no halftone, comic panels, speech balloons, or sequential art, so the original label misdescribed the data (DR-006 correction section).
 2. **Minimal geometric / abstract** (`minimal-geometric`) — flat shapes, restrained palettes, negative space
 3. **Ukiyo-e woodblock** (`ukiyo-e`) — Japanese woodblock prints; **replaces the Phase 0 graffiti candidate** because graffiti photography is generally artist-copyrighted while ukiyo-e has large explicit CC0/PD institutional supply (see `docs/decisions/DR-006-dataset-styles-and-sourcing.md`)
 
@@ -13,7 +13,7 @@
 ## Licensing policy
 
 - Allowed licences: **public domain, CC0, project-original** (self-created; generator config + seed recorded). Nothing else enters the manifest.
-- Primary sources: open-access museum/archive collections with item-level licence statements (retro-comic, ukiyo-e); seeded programmatic self-generation (minimal-geometric). Stock-photo "free" sites, scraping, and AI-generated seed imagery are rejected (DR-006).
+- Primary sources: open-access museum/archive collections with item-level licence statements (retro-poster, ukiyo-e); seeded programmatic self-generation (minimal-geometric). Stock-photo "free" sites, scraping, and AI-generated seed imagery are rejected (DR-006).
 - Every item's licence and permitted use is recorded **before** it may enter a training split.
 - The concrete source registry (institution, URL, licence statement) requires explicit human approval before any download; borderline items are batched for review.
 
@@ -46,3 +46,10 @@ Raw dataset is **not committed** (`data/raw/` ignored). Committed: manifests, st
 ## Bias and ethics checks (RQ11)
 
 Per style: document source diversity, obvious cultural or representational biases in the collected material, and any content exclusions. Findings and limitations go into the report's ethics chapter — honestly, including unresolved issues.
+
+## Open dataset findings (recorded 2026-07-30, to be resolved in M4)
+
+Observed while re-inspecting the `retro-poster` contact sheet during the M3 pre-check. Both are recorded as honest findings rather than silently patched, because the mitigation choice needs training evidence:
+
+1. **Framed/matted scans.** Most `retro-poster` items are photographed or scanned with visible black frames and cream mats. A style LoRA could learn the frame as part of the style. Options for M4: a crop pass over the raw material, or accept it and rely on negative prompting — decided with evidence in Prototype 4, not assumed now.
+2. **Text-dominated source material.** Display typography is a defining feature of WPA posters, and diffusion models render text poorly. Training on this style therefore risks producing garbled pseudo-lettering. This is a genuine threat to the RQ4/RQ5 style-learning results and must be reported honestly whatever the outcome.

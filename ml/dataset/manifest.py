@@ -25,7 +25,7 @@ REQUIRED_FIELDS = [
 ]
 
 ALLOWED_LICENCES = {"public domain", "CC0", "project-original"}
-ALLOWED_STYLES = {"retro-comic", "minimal-geometric", "ukiyo-e"}
+ALLOWED_STYLES = {"retro-poster", "minimal-geometric", "ukiyo-e"}
 ALLOWED_SPLITS = {"train", "val", "holdout"}
 # `author` and `notes` may legitimately be empty (unknown author etc.).
 OPTIONAL_EMPTY_FIELDS = {"author", "notes"}

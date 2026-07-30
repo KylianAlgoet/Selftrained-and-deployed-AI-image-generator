@@ -9,12 +9,12 @@ from ml.dataset.tests.conftest import make_image, valid_row
 def test_compute_stats_counts():
     rows = [
         valid_row(),
-        valid_row(id="DS-0002", sha256="b" * 64, style="retro-comic", licence="public domain", split="val"),
-        valid_row(id="DS-0003", sha256="c" * 64, style="retro-comic"),
+        valid_row(id="DS-0002", sha256="b" * 64, style="retro-poster", licence="public domain", split="val"),
+        valid_row(id="DS-0003", sha256="c" * 64, style="retro-poster"),
     ]
     stats = compute_stats(rows)
     assert stats["total"] == 3
-    assert stats["styles"] == {"ukiyo-e": 1, "retro-comic": 2}
+    assert stats["styles"] == {"ukiyo-e": 1, "retro-poster": 2}
     assert stats["licences"] == {"CC0": 2, "public domain": 1}
     assert stats["splits"] == {"train": 2, "val": 1}
     assert stats["min_short_side"] == 600

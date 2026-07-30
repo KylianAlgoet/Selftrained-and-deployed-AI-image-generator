@@ -6,7 +6,11 @@ these templates are the M2 baseline and are manually reviewed per item.
 """
 
 STYLE_PHRASES = {
-    "retro-comic": "retro comic poster style",
+    # `retro-poster` was renamed from `retro-comic` on 2026-07-30: the collected
+    # material is WPA / Federal Theatre Project silkscreen posters with flat
+    # colour fields and display typography - no halftone, panels, or comic
+    # figures. See the DR-006 correction section.
+    "retro-poster": "retro silkscreen poster style",
     "minimal-geometric": "minimal geometric abstract style",
     "ukiyo-e": "ukiyo-e woodblock print style",
 }
