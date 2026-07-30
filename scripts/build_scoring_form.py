@@ -47,12 +47,12 @@ NOT_APPLICABLE_IN_P1 = {"reference_influence"}
 
 
 def load_rows() -> list[dict]:
-    combined = COMBINED / "results-all-candidates.csv"
-    if combined.exists():
-        with open(combined, newline="", encoding="utf-8") as fh:
-            return list(csv.DictReader(fh))
+    """Per-experiment JSONL files are the source of truth. The combined CSV only
+    covers the model comparison, so reading it alone would silently drop the
+    aspect-ratio units - and composition is precisely the dimension RQ8 needs
+    scored."""
     rows: list[dict] = []
-    for exp_dir in sorted(EVIDENCE.glob("EXP-00*")):
+    for exp_dir in sorted(EVIDENCE.glob("EXP-0*")):
         for jsonl in sorted(exp_dir.glob("results-*.jsonl")):
             rows += read_jsonl(jsonl)
     return rows
