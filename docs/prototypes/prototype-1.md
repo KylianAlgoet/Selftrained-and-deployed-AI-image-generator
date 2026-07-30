@@ -1,11 +1,23 @@
 # Prototype 1 — Local base-model benchmark (M3)
 
-**Status:** measurements complete; **awaiting Kylian's rubric scores and visual approval before DR-007.**
+**Status:** **COMPLETE.** Reviewed and scored by Kylian 2026-07-30; base model selected in DR-007.
 **Date:** 2026-07-30 · **Research questions:** RQ2 (base-model feasibility on 8 GB), RQ8 (deck aspect ratio), RQ10 (applied)
 
-This document records what was measured. It deliberately **does not name a winning base model** —
-that conclusion requires the student's qualitative scores, which are collected at the human-review
-gate (`docs/evidence/EXP-006-scoring/`).
+## Outcome
+
+| | |
+|---|---|
+| **Selected base model (Prototypes 2–5)** | **Stable Diffusion 1.5** @ `451f4fe1` — practical feasibility winner |
+| **Visual-quality winner** | **SDXL base 1.0 at native 1024×1024** — retained as a quality benchmark, not the production model |
+| **Selected deck-format strategy** | **Direct 1:3 generation at 512×1536** |
+| **Rejected deck strategy** | square-crop (~170×512 usable, far below deck-print resolution) |
+| **Blocked third candidate** | SD 2.1 base — HTTP 401 gating (EXP-003) |
+
+Decision record: `docs/decisions/DR-007-base-model-selection.md`.
+Kylian's scores: `docs/evidence/EXP-006-scoring/human-scores.md`.
+
+The measurements below were produced **before** any conclusion was drawn; the assistant stopped at a
+human-review gate and assigned no quality score of its own.
 
 ## Research questions and hypotheses
 
@@ -170,15 +182,45 @@ versions, or Diffusers versions.
 
 Reproducibility caveat: candidate B cannot be obtained today without authenticating to Hugging Face.
 
-## Conclusion (measurements only)
+## Human evaluation (Kylian, 2026-07-30)
 
-RQ2 is answered on feasibility: **SD 1.5 runs with large headroom on 8 GB; SDXL does not fit at its
-native resolution and only appears to work via silent host-memory spill.** RQ8's hypothesis is
-refuted on memory and reliability grounds; direct tall generation is cheap and reliable, while
-generate-then-crop pays a severe resolution penalty.
+Scored at **aggregate model/track level** from complete contact-sheet rows, not per unit. Per-unit
+cells in the scoring form read "not individually scored"; the aggregates were deliberately **not**
+copied down into them. `reference_influence` is **N/A** (no reference image until Prototype 2) and
+`diversity_across_seeds` was **not scored** because the review sheets showed only the fixed seed-42
+comparison. No value was invented for either. → `docs/evidence/EXP-006-scoring/human-scores.md`
 
-**The base-model selection (DR-007) is deliberately not made here.** It requires the rubric scores,
-which are the student's own research judgement. See the gate materials.
+| Dimension | SD 1.5 (A, 512) | SDXL (A, 512) | SD 1.5 (B, native 512) | SDXL (B, native 1024) |
+|---|---|---|---|---|
+| prompt_adherence | 3 | 3 | 3 | **4** |
+| style_consistency | 3 | 3 | 3 | **5** |
+| visual_quality | 4 | 4 | 4 | **5** |
+| decal_suitability | 3 | 3 | 3 | **4** |
+| composition | 3 | 3 | 3 | **4** |
+| artefacts | 4 | 4 | 4 | 4 |
+| originality | 3 | 3 | 3 | 3 |
+
+**The Track A row is what made the decision clear-cut:** at the same resolution the student scored the
+two candidates **identically**, so SDXL's real quality advantage exists only at a resolution this GPU
+cannot physically hold.
+
+Aspect-ratio scores (visual_quality / decal_suitability / composition): `direct-1x1` 4/**2**/3 · `direct-1x2` 4/4/4 · **`direct-1x3` 4/5/4 (selected)** · `square-crop` 3/**2**/3 (rejected).
+
+## Conclusion
+
+**RQ2 answered.** SD 1.5 runs with large headroom on 8 GB (2675 MiB, 4.07 s); SDXL does not fit at its
+native resolution and only appears to work via silent host-memory spill. **Selected: SD 1.5.** SDXL is
+the measured visual-quality winner at 1024 and is retained as a benchmark, but that advantage does not
+outweigh a 29× latency cost and a memory overflow on an interactive local application.
+
+**RQ8 answered, hypothesis refuted.** Direct tall generation is cheap and reliable (512×1536 in
+3892 MiB, 24/24 ok) while generate-then-crop pays a severe resolution penalty (~170×512 usable).
+**Selected: direct 1:3 at 512×1536.** Some repetition or vertical stretching remains possible and must
+be addressed in later prompt, reference-conditioning, and LoRA experiments.
+
+**Limitation stated plainly:** this decision rests on **two** measured candidates, not three, because
+SD 2.1 base is gated (HTTP 401). Anyone re-running the benchmark today cannot obtain candidate B
+without authenticating.
 
 ## Impact on the next iteration
 

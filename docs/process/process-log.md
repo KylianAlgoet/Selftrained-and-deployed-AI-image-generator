@@ -4,6 +4,34 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-07-30 — M3 closed: human review passed, SD 1.5 selected (DR-007)
+
+**Objective:** complete M3 after the human-review gate by recording Kylian's scores, deciding the base model, and finalising the milestone.
+
+**Completed work:** Kylian manually inspected the three contact sheets, approved the evidence as visually usable, and supplied rubric scores. Scores recorded **at the granularity actually used** — aggregate per model/track — in `docs/evidence/EXP-006-scoring/human-scores.md` and `.csv`. On his explicit instruction, the per-unit cells in `scoring-form.md`/`.csv` now read **"not individually scored"** rather than being back-filled with the aggregates, since presenting one aggregate judgement as 28 independent judgements would misrepresent the review. `reference_influence` is **N/A** (no reference image until Prototype 2) and `diversity_across_seeds` is recorded as **not manually scored**, because the supplied sheets showed the fixed seed-42 comparison rather than a multi-seed comparison — **no value was invented for either**.
+
+**Human scores (1–5):**
+
+```
+Track A (both @512x512)   SD 1.5  3/3/4/3/3/4/3      SDXL  3/3/4/3/3/4/3   <- IDENTICAL
+Track B (native)          SD 1.5  3/3/4/3/3/4/3      SDXL  4/5/5/4/4/4/3   <- SDXL wins
+  (prompt_adherence / style_consistency / visual_quality / decal_suitability /
+   composition / artefacts / originality)
+
+Aspect ratio (visual_quality / decal_suitability / composition)
+  direct-1x1  4/2/3   direct-1x2  4/4/4   direct-1x3  4/5/4 SELECTED   square-crop  3/2/3 REJECTED
+```
+
+**Decision — DR-007:** **Stable Diffusion 1.5 selected as the base model for Prototypes 2–5** (pinned `451f4fe1`). SDXL is the **visual-quality winner at native 1024×1024** and is retained as a benchmark, not as the production model. **Deck format: direct 1:3 at 512×1536**; square-crop rejected. The Track A result is what made this clear-cut: at the same resolution the student scored both candidates identically, so SDXL's quality advantage exists only at a resolution this 8 GB GPU cannot hold, and its native inference only completed because Windows WDDM silently spilled into shared host RAM. **"30/30 successful" is explicitly not described as SDXL fitting comfortably on this hardware.**
+
+**Limitations stated, not hidden:** the decision rests on **two** measured candidates because SD 2.1 base is gated (HTTP 401, EXP-003); candidate B cannot be reproduced today without authenticating. EXP-005's contaminated first run is retained as a **documented failed measurement design**, with its refuted thermal hypothesis, rather than deleted.
+
+**Docs updated:** DR-007 (new); `experiments/registry.csv` (evaluation + next_action for EXP-002/004/005); `docs/prototypes/prototype-1.md` (status → complete, human scores, conclusion); `docs/03-architecture.md` (**new section D-E**, the first weighted matrix populated with measured hardware data); `docs/06-prototype-overview.md`; `docs/02-planning.md` + change log (~8 h actual vs 10 h est); `docs/process/risk-register.md` (R1 → mitigating, R5 → closed, R10 → closed, **R11 added** for third-party hosting availability); `docs/07-testing-strategy.md` (six principles added from Prototype 1 experience); `docs/learning-outcome-traceability.md` (D1/D2/D4/D5/D6); `docs/ai-usage.md`; this log; session handoff.
+
+**Blockers:** none. **Next step:** issue #4 closure, board → Done, validated push, M3 milestone report. Then stop before M4.
+
+---
+
 ## 2026-07-30 — Prototype 1: local base-model benchmark (M3) — measurements complete, awaiting scoring
 
 **Objective:** install the project's first ML runtime, verify the GPU, and produce the first measured evidence so the base-model choice for Prototypes 2–5 rests on numbers (RQ2, RQ8, RQ10).
