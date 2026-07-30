@@ -6,9 +6,9 @@
 
 Phase 0, public planning (issues #1–#12), **M1 (Prototype 0)**, and **M2 (dataset)** complete and pushed.
 
-**M3 (Prototype 1 — base-model benchmark): measurements COMPLETE, milestone deliberately PAUSED at the mandatory human-review gate.** All code, tests, experiments, and evidence are committed locally. Nothing is pushed.
+**M3 (Prototype 1 — base-model benchmark): COMPLETE.** Human review passed 2026-07-30; issue #4 closed as completed; board shows M3 Done.
 
-**Awaiting Kylian:** rubric scores + visual approval. Until those arrive, do **not** write DR-007's conclusion, choose a base model, close issue #4, mark M3 Done, or push. This is a standing instruction from the approved M3 plan, not a temporary state.
+**Decision (DR-007):** **SD 1.5 selected** as the base model for Prototypes 2–5 (pinned `451f4fe1`). SDXL base 1.0 is the **visual-quality winner at native 1024×1024** but is retained as a benchmark, not the production model. **Deck format: direct 1:3 at 512×1536**; square-crop rejected. Third candidate SD 2.1 base **blocked** (HTTP 401), so the comparison rests on **two** measured candidates — a limitation that must be stated in the report.
 
 ## Uncommitted changes
 
@@ -17,7 +17,12 @@ None expected at handoff — verify with `git status`.
 ## Latest commits (M3 sequence, 2026-07-30)
 
 ```
-(aspect-ratio + prototype-1 doc commit — see git log)
+5bf0f40 docs(process): close prototype 1 across planning, risks, testing, and traceability
+67ca695 docs(decisions): select stable diffusion 1.5 as the base model for prototypes 2-5
+34b05d8 docs(experiments): record human rubric scores at the granularity actually used
+3765c5c docs(experiments): correct the literal-decal observation as resolution-dependent
+5994305 docs(experiments): record aspect-ratio findings and prototype 1 evidence
+bffb813 feat(benchmark): add deck aspect-ratio comparison with per-strategy isolation
 8829664 docs(experiments): record base-model benchmark measurements for prototype 1
 e25f1e0 feat(benchmark): add benchmark orchestrator and blank rubric scoring form
 eae6e41 feat(benchmark): add base-model benchmark runner with vram and timing measurement
@@ -27,14 +32,15 @@ f646ee9 feat(evaluation): add frozen prompt and seed kit with hash-locked tests
 e5684f1 fix(dataset): rename retro-comic style to retro-poster to match wpa poster evidence
 ```
 
-## What Kylian needs to do to unblock M3
+## Human scores (Kylian, 2026-07-30) — read before re-scoring anything
 
-1. Open `docs/evidence/prototype-1/cross-model-track-A-seed42.jpg` (controlled, all candidates at 512×512) and `cross-model-track-B-seed42.jpg` (each candidate at its native resolution).
-2. Open `docs/evidence/EXP-005/aspect-ratio-comparison-seed42.jpg` for the deck-geometry comparison.
-3. Read `docs/evidence/EXP-006-scoring/rubric.md`, then fill in `scoring-form.md` (or the `.csv`). **28 scoring units, all cells blank by design.**
-4. Confirm visual approval. Then DR-007, issue #4, board move, and push follow.
+Recorded at **aggregate model/track level**, not per unit. `docs/evidence/EXP-006-scoring/human-scores.md` is authoritative; per-unit cells in `scoring-form.md` read "not individually scored" **on purpose** — do not back-fill them with the aggregates.
 
-## Measured results so far (no quality verdict assigned)
+- Track A (both @512): SD 1.5 and SDXL scored **identically** 3/3/4/3/3/4/3.
+- Track B native: SD 1.5 3/3/4/3/3/4/3 · SDXL **4/5/5/4/4/4/3**.
+- `reference_influence` = **N/A** until Prototype 2. `diversity_across_seeds` = **not scored**, because the review sheets showed only the fixed seed-42 comparison. **Do not invent a value** — a multi-seed sheet is needed first.
+
+## Measured results (all at tier 0; no escalation needed)
 
 All at memory tier 0; no tier escalation was needed anywhere.
 
@@ -64,8 +70,16 @@ All at memory tier 0; no tier escalation was needed anywhere.
 
 ## Blockers
 
-- **M3 is gated on Kylian's rubric scores and visual approval.** Nothing technical is blocking.
+- None. M3 is closed.
 
 ## Next action
 
-Collect Kylian's scores from `docs/evidence/EXP-006-scoring/scoring-form.md`, then: record the scores, write **DR-007** (base-model selection, reporting Track A and Track B separately and explaining the trade-off, plus the two-candidate limitation), finalise planning/traceability/prototype-overview, update issue #4 and close it, verify the board shows M3 Done, run the pre-push checks, and push the validated milestone. Then the M3 milestone report, and stop before M4.
+**M4 — Prototype 2: text + reference-image conditioning** (issue #5, planned Aug 4–6; can start early — roughly four days of critical-path buffer exist). Start in **Plan mode**, per the project's milestone rule.
+
+Scope reminders for M4:
+- Target **SD 1.5** per DR-007, with ~5.5 GB VRAM headroom at 512×512.
+- Compare **img2img vs IP-Adapter** (ControlNet if relevant) on a fixed prompt + reference kit; strength sweeps with fixed seeds (RQ6, RQ7).
+- Prototype 2 is where `reference_influence` becomes scoreable for the first time.
+- Reuse the **frozen kit** (`c40749bc…`) so results stay comparable to the Prototype 1 baselines; extend it with reference images rather than editing it, and expect the hash-lock test to require a deliberate, documented update if the kit itself changes.
+- Two open items inherited from M3: build a **multi-seed contact sheet** so `diversity_across_seeds` can finally be scored, and address the possible **repetition/vertical stretching** at 512×1536 that Kylian flagged.
+- Two M2 dataset findings still awaiting M4 decisions: framed/matted scans in `retro-poster`, and the text-dominated source material (see `docs/04-dataset-methodology.md`).
