@@ -104,14 +104,27 @@ below what a deck print needs (recorded in `square-crop-resolution-cost.json`).
 1:3 is a **stated approximation** of the true ~1:3.6 deck ratio, because latent dimensions must be
 multiples of 64. Composition quality itself is Kylian's to judge at the gate.
 
-### Factual observation for review (not a quality judgement)
+### Factual observation for review (not a quality judgement) — and it is resolution-dependent
 
-Both candidates interpret the prompt phrase "skateboard decal artwork" **literally**, producing
-photographs of physical decks and stickers in scenes — wooden floors, brick walls, a potted plant —
-rather than flat printable artwork. This is consistent across models, prompts, and seeds. It matters
-because the same phrasing comes from the dataset caption template, so it is also the pre-training
-baseline that Prototypes 3–4 will measure LoRA effect against. Whether it is a problem is for the
-student to decide; that it happens is measured.
+The prompt phrase "skateboard decal artwork" is often interpreted **literally**, producing an image
+*of a physical deck* rather than the flat artwork that would be printed on one. But this is **not
+uniform across candidates**, and an earlier draft of this document overstated it as universal before
+the Track B sheet was inspected. What the images actually show:
+
+| Condition | Observed output |
+|---|---|
+| SD 1.5 @ 512×512 (native) | Predominantly photographic product mockups — decks on concrete, on wooden floors, mounted on doors, a sticker on a wall beside a potted plant |
+| SDXL @ 512×512 (out of native) | Deck-shaped panels and vertical strips — literal, but graphic rather than photographic |
+| **SDXL @ 1024×1024 (native)** | **Flat artwork with no mockup framing** — a wolf-head medallion, a flat geometric composition, a Great Wave print, tiled skull patterns |
+
+So the literal-mockup reading is strongest at 512 px and largely disappears when SDXL runs at the
+resolution it was trained for. **This is exactly the distinction the two-track design existed to
+expose:** judging both candidates only at 512×512 would have produced a materially wrong description
+of SDXL's behaviour.
+
+It matters beyond this milestone because the same phrasing comes from the dataset caption template, so
+these are also the pre-training baselines that Prototypes 3–4 will measure LoRA effect against.
+Whether any of it is a problem is for the student to decide; that it happens is measured.
 
 ## Failures and corrections (first-class results)
 
