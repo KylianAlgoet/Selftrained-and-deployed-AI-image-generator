@@ -4,6 +4,8 @@
 
 Scoring: each criterion weighted 1–5; each alternative scored 1–5; weighted totals justify (not replace) the reasoned decision. Scores are the student/agent's documented judgement given the environment audit (`docs/technical/environment-audit.md`) and the 19-day timeline — hardware-dependent ML scores will be **revised with measured data** after Prototypes 1 and 3.
 
+**Update 2026-07-30:** section D-E below is the first matrix populated with **measured** hardware data rather than reasoned judgement (Prototype 1 / DR-007). Sections D-A…D-D remain reasoned judgements; D-D's ML-method screening is still awaiting Prototype 3.
+
 ---
 
 ## D-A: Repository structure — DECIDED (DR-001)
@@ -71,7 +73,31 @@ Requirements: local LoRA training on 8 GB VRAM, scriptable/reproducible (no GUI-
 | Community-validated LoRA quality (3) | 4 | 5 | 4 |
 | **Weighted total (max 105)** | **98** | **83** | **54** |
 
-**Decision:** Hugging Face Diffusers + PEFT + Accelerate (+ Transformers, Safetensors) as the toolchain. kohya-ss remains the documented fallback if Diffusers LoRA training underperforms on VRAM in Prototype 3. **The fine-tuning method itself (LoRA vs. alternatives) and the base model are NOT decided here** — see feasibility screening below. → `docs/decisions/DR-004-ml-toolchain.md`
+**Decision:** Hugging Face Diffusers + PEFT + Accelerate (+ Transformers, Safetensors) as the toolchain. kohya-ss remains the documented fallback if Diffusers LoRA training underperforms on VRAM in Prototype 3. **The fine-tuning method itself (LoRA vs. alternatives) is still NOT decided here** — see feasibility screening below. **The base model WAS decided on 2026-07-30 with measured data → DR-007, section D-E below.** → `docs/decisions/DR-004-ml-toolchain.md`
+
+---
+
+## D-E: Base model — DECIDED with measured data (DR-007)
+
+Phase 0 deliberately left this open, recording "SD 1.5-class at 512 px runs and trains; SDXL inference works but training is marginal" as a **hypothesis**. Prototype 1 replaced that hypothesis with measurements on the audited RTX 4060 Laptop GPU (8187.5 MiB VRAM). All figures below are **measured**, at memory tier 0, with no tier escalation needed.
+
+| Criterion (weight) | SD 1.5 | SDXL base 1.0 | SD 2.1 base |
+|---|---|---|---|
+| Fits in 8 GB VRAM at its native resolution (5) | 5 — 2675 MiB allocated | **1 — 10738 MiB allocated vs 8188 MiB physical; only completes via silent WDDM host-memory spill** | not measured (blocked) |
+| Interactive latency for a local app (5) | 5 — 4.07 s @512 | 1 — 16.51 s @512, 118.73 s @1024 | not measured (blocked) |
+| Headroom left for IP-Adapter + LoRA (Prototypes 2–4) (5) | 5 — ~5.5 GB free @512 | 1 — saturates the device even at 512 | not measured (blocked) |
+| Native-resolution visual quality (human scores) (4) | 3 — style_consistency 3, visual_quality 4 | **5 — style_consistency 5, visual_quality 5** | not measured (blocked) |
+| Quality under the controlled 512×512 condition (4) | 4 — 3/3/4/3/3/4/3 | 4 — **identical** 3/3/4/3/3/4/3 | not measured (blocked) |
+| Adapter/LoRA ecosystem maturity (4) | 5 | 4 | 3 |
+| Availability and reproducibility (4) | 5 — ungated, pinned `451f4fe1` | 5 — ungated, pinned `46216598` | **1 — HTTP 401, gated (EXP-003)** |
+| Deadline and reliability risk (4) | 5 | 2 | 1 |
+| **Weighted total (max 175)** | **166** | **83** | not scoreable |
+
+**Decision:** **Stable Diffusion 1.5** for Prototypes 2–5, pinned at `451f4fe16113bff5a5d2269ed5ad43b0592e9a14`. SDXL base 1.0 is retained as the **visual-quality benchmark**, not the production model.
+
+The decisive point is the Track A row: at the *same* 512×512 resolution the student scored the two models **identically**, so SDXL's genuine quality advantage exists only at a resolution this GPU cannot physically hold. Full reasoning, both tracks reported separately, the WDDM spill finding, and the two-candidate limitation: → `docs/decisions/DR-007-base-model-selection.md`
+
+**Deck format (RQ8):** direct 1:3 generation at **512×1536** (3892 MiB, reliable); square-crop rejected because a 1:3 strip from 512×512 leaves only ~170×512 usable pixels. The Phase 0 hypothesis that direct tall generation would degrade was **refuted**.
 
 ---
 
