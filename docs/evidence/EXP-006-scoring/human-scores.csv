@@ -1,0 +1,9 @@
+scope,subject,track,resolution,prompt_adherence,style_consistency,reference_influence,visual_quality,decal_suitability,composition,artefacts,originality,diversity_across_seeds,scoring_granularity
+model,sd15,A,512x512,3,3,N/A,4,3,3,4,3,not scored,aggregate over complete contact-sheet row
+model,sdxl-base,A,512x512,3,3,N/A,4,3,3,4,3,not scored,aggregate over complete contact-sheet row
+model,sd15,B,512x512,3,3,N/A,4,3,3,4,3,not scored,aggregate over complete contact-sheet row
+model,sdxl-base,B,1024x1024,4,5,N/A,5,4,4,4,3,not scored,aggregate over complete contact-sheet row
+aspect-ratio,direct-1x1,n/a,512x512,not scored,not scored,N/A,4,2,3,not scored,not scored,not scored,aggregate over strategy row
+aspect-ratio,direct-1x2,n/a,512x1024,not scored,not scored,N/A,4,4,4,not scored,not scored,not scored,aggregate over strategy row
+aspect-ratio,direct-1x3,n/a,512x1536,not scored,not scored,N/A,4,5,4,not scored,not scored,not scored,aggregate over strategy row
+aspect-ratio,square-crop,n/a,170x512 usable,not scored,not scored,N/A,3,2,3,not scored,not scored,not scored,aggregate over strategy row

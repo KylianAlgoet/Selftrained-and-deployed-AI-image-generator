@@ -1,75 +1,82 @@
-# Prototype 1 scoring form (BLANK - to be filled in by Kylian)
+# Prototype 1 scoring form (per-unit cells NOT individually scored)
 
 Frozen kit fingerprint: `c40749bc100deea5cc5854e40ba34928dcf3fdda31ff3c41840dafdfba1f5228`
 
-Every score cell is intentionally empty. See `rubric.md` for the 1-5 anchors and
-the recommended order of review. `reference_influence` is omitted: there is no
-reference image until Prototype 2.
+**The authoritative scores are in [`human-scores.md`](human-scores.md).** Kylian scored at
+aggregate model/track level from the complete contact-sheet rows, not unit by unit, so every
+per-unit cell below reads *not individually scored*.
 
-Scale: 1 = worst, 5 = best. Leave a cell blank if you cannot judge it.
+The aggregate scores are deliberately **not** copied into these rows. Doing so would present
+one aggregate judgement as 28 independent judgements and misrepresent the review.
+
+`reference_influence` is omitted (no reference image until Prototype 2).
+`diversity_across_seeds` was not scored at all, because the sheets supplied for review showed
+the fixed seed-42 comparison rather than a multi-seed comparison.
+
+This table remains useful as the inventory of what exists and could be scored per unit later.
 
 ## Track A
 
 | model | resolution | prompt | tier | seeds | prompt_adherence | style_consistency | visual_quality | decal_suitability | composition | artefacts | originality | diversity_across_seeds | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| sdxl-base | 512x512 | P1-poster | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
-| sdxl-base | 512x512 | P2-geo | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
-| sdxl-base | 512x512 | P3-ukiyo | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
-| sdxl-base | 512x512 | P4-deck | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
-| sdxl-base | 512x512 | P5-control | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
-| sd15 | 512x512 | P1-poster | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
-| sd15 | 512x512 | P2-geo | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
-| sd15 | 512x512 | P3-ukiyo | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
-| sd15 | 512x512 | P4-deck | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
-| sd15 | 512x512 | P5-control | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
+| sdxl-base | 512x512 | P1-poster | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
+| sdxl-base | 512x512 | P2-geo | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
+| sdxl-base | 512x512 | P3-ukiyo | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
+| sdxl-base | 512x512 | P4-deck | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
+| sdxl-base | 512x512 | P5-control | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
+| sd15 | 512x512 | P1-poster | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
+| sd15 | 512x512 | P2-geo | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
+| sd15 | 512x512 | P3-ukiyo | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
+| sd15 | 512x512 | P4-deck | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
+| sd15 | 512x512 | P5-control | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
 
 ## Track B
 
 | model | resolution | prompt | tier | seeds | prompt_adherence | style_consistency | visual_quality | decal_suitability | composition | artefacts | originality | diversity_across_seeds | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| sdxl-base | 1024x1024 | P1-poster | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
-| sdxl-base | 1024x1024 | P2-geo | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
-| sdxl-base | 1024x1024 | P3-ukiyo | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
-| sdxl-base | 1024x1024 | P4-deck | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
-| sdxl-base | 1024x1024 | P5-control | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
+| sdxl-base | 1024x1024 | P1-poster | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
+| sdxl-base | 1024x1024 | P2-geo | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
+| sdxl-base | 1024x1024 | P3-ukiyo | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
+| sdxl-base | 1024x1024 | P4-deck | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
+| sdxl-base | 1024x1024 | P5-control | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
 
 ## Track direct-1x1
 
 | model | resolution | prompt | tier | seeds | prompt_adherence | style_consistency | visual_quality | decal_suitability | composition | artefacts | originality | diversity_across_seeds | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| sd15 | 512x512 | P1-poster | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
-| sd15 | 512x512 | P4-deck | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
+| sd15 | 512x512 | P1-poster | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
+| sd15 | 512x512 | P4-deck | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
 
 ## Track direct-1x2
 
 | model | resolution | prompt | tier | seeds | prompt_adherence | style_consistency | visual_quality | decal_suitability | composition | artefacts | originality | diversity_across_seeds | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| sd15 | 512x1024 | P1-poster | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
-| sd15 | 512x1024 | P4-deck | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
+| sd15 | 512x1024 | P1-poster | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
+| sd15 | 512x1024 | P4-deck | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
 
 ## Track direct-1x3
 
 | model | resolution | prompt | tier | seeds | prompt_adherence | style_consistency | visual_quality | decal_suitability | composition | artefacts | originality | diversity_across_seeds | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| sd15 | 512x1536 | P1-poster | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
-| sd15 | 512x1536 | P4-deck | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
+| sd15 | 512x1536 | P1-poster | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
+| sd15 | 512x1536 | P4-deck | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
 
 ## Track probe
 
 | model | resolution | prompt | tier | seeds | prompt_adherence | style_consistency | visual_quality | decal_suitability | composition | artefacts | originality | diversity_across_seeds | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| sd15 | 512x768 | P1-poster | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
-| sd15 | 512x768 | P2-geo | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
-| sd15 | 512x768 | P3-ukiyo | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
-| sd15 | 512x768 | P4-deck | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
-| sd15 | 512x768 | P5-control | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
+| sd15 | 512x768 | P1-poster | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
+| sd15 | 512x768 | P2-geo | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
+| sd15 | 512x768 | P3-ukiyo | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
+| sd15 | 512x768 | P4-deck | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
+| sd15 | 512x768 | P5-control | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
 
 ## Track square-crop
 
 | model | resolution | prompt | tier | seeds | prompt_adherence | style_consistency | visual_quality | decal_suitability | composition | artefacts | originality | diversity_across_seeds | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| sd15 | 170x512 | P1-poster | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
-| sd15 | 170x512 | P4-deck | 0 | 42,1337,2026 |  |  |  |  |  |  |  |  |  |
+| sd15 | 170x512 | P1-poster | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
+| sd15 | 170x512 | P4-deck | 0 | 42,1337,2026 | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored | not individually scored |  |
 
 ## Image locations
 

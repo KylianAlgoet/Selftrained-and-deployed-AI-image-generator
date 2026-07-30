@@ -1,8 +1,18 @@
-"""Build the blank rubric scoring form for the Prototype 1 human-review gate.
+"""Build the rubric scoring form for the Prototype 1 human-review gate.
 
 Qualitative evaluation is the student's own research judgement (learning
-outcomes D1/D4/D6), so this script deliberately produces an EMPTY form. It
-never writes, estimates, or suggests a score, and it never names a winner.
+outcomes D1/D4/D6), so this script never writes, estimates, or suggests a score,
+and it never names a winner.
+
+Two states:
+
+  * Before review - every score cell is EMPTY, ready to be filled in.
+  * After review - if `human-scores.md` exists, the student has scored at
+    aggregate model/track level rather than per unit. Per-unit cells are then
+    written as "not individually scored" and the form points at the authoritative
+    aggregate record. The aggregates are deliberately NOT copied down into every
+    row: presenting one aggregate judgement as 28 independent judgements would
+    misrepresent how the review was actually done.
 
 Emits, into docs/evidence/EXP-006-scoring/:
   - scoring-form.md   human-friendly tables, one row per (model, track, prompt)
@@ -135,6 +145,13 @@ def write_forms(units: list[dict]) -> tuple[Path, Path]:
     active = [name for name, _, _ in DIMENSIONS if name not in NOT_APPLICABLE_IN_P1]
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
+    # Once the student has recorded aggregate scores, per-unit cells must say so
+    # rather than sit blank (implying "still to do") or be back-filled with the
+    # aggregate (implying per-unit review that did not happen).
+    aggregate_record = OUT_DIR / "human-scores.md"
+    reviewed = aggregate_record.exists()
+    cell = "not individually scored" if reviewed else ""
+
     csv_path = OUT_DIR / "scoring-form.csv"
     fieldnames = ["model", "track", "resolution", "prompt_id", "memory_tier", "seeds", *active, "notes"]
     with open(csv_path, "w", newline="", encoding="utf-8") as fh:
@@ -149,23 +166,44 @@ def write_forms(units: list[dict]) -> tuple[Path, Path]:
                     "prompt_id": unit["prompt_id"],
                     "memory_tier": unit["memory_tier"],
                     "seeds": unit["seeds"],
-                    **{name: "" for name in active},
+                    **{name: cell for name in active},
                     "notes": "",
                 }
             )
 
-    lines = [
-        "# Prototype 1 scoring form (BLANK - to be filled in by Kylian)",
-        "",
-        f"Frozen kit fingerprint: `{prompt_kit.kit_fingerprint()}`",
-        "",
-        "Every score cell is intentionally empty. See `rubric.md` for the 1-5 anchors and",
-        "the recommended order of review. `reference_influence` is omitted: there is no",
-        "reference image until Prototype 2.",
-        "",
-        "Scale: 1 = worst, 5 = best. Leave a cell blank if you cannot judge it.",
-        "",
-    ]
+    if reviewed:
+        lines = [
+            "# Prototype 1 scoring form (per-unit cells NOT individually scored)",
+            "",
+            f"Frozen kit fingerprint: `{prompt_kit.kit_fingerprint()}`",
+            "",
+            "**The authoritative scores are in [`human-scores.md`](human-scores.md).** Kylian scored at",
+            "aggregate model/track level from the complete contact-sheet rows, not unit by unit, so every",
+            "per-unit cell below reads *not individually scored*.",
+            "",
+            "The aggregate scores are deliberately **not** copied into these rows. Doing so would present",
+            "one aggregate judgement as 28 independent judgements and misrepresent the review.",
+            "",
+            "`reference_influence` is omitted (no reference image until Prototype 2).",
+            "`diversity_across_seeds` was not scored at all, because the sheets supplied for review showed",
+            "the fixed seed-42 comparison rather than a multi-seed comparison.",
+            "",
+            "This table remains useful as the inventory of what exists and could be scored per unit later.",
+            "",
+        ]
+    else:
+        lines = [
+            "# Prototype 1 scoring form (BLANK - to be filled in by Kylian)",
+            "",
+            f"Frozen kit fingerprint: `{prompt_kit.kit_fingerprint()}`",
+            "",
+            "Every score cell is intentionally empty. See `rubric.md` for the 1-5 anchors and",
+            "the recommended order of review. `reference_influence` is omitted: there is no",
+            "reference image until Prototype 2.",
+            "",
+            "Scale: 1 = worst, 5 = best. Leave a cell blank if you cannot judge it.",
+            "",
+        ]
     for track in sorted({unit["track"] for unit in units}):
         lines += [f"## Track {track}", ""]
         header = "| model | resolution | prompt | tier | seeds | " + " | ".join(active) + " | notes |"
@@ -174,8 +212,8 @@ def write_forms(units: list[dict]) -> tuple[Path, Path]:
         for unit in [u for u in units if u["track"] == track]:
             lines.append(
                 f"| {slug_for(unit['model_repo_id'])} | {unit['resolution']} | {unit['prompt_id']} | "
-                f"{unit['memory_tier']} | {unit['seeds']} | " + " | " * 0
-                + " | ".join("" for _ in active)
+                f"{unit['memory_tier']} | {unit['seeds']} | "
+                + " | ".join(cell for _ in active)
                 + " |  |"
             )
         lines.append("")
@@ -216,7 +254,11 @@ def main() -> int:
     print(f"scoring form .. {md_path}")
     print(f"scoring csv ... {csv_path}")
     print(f"{len(units)} scoring units across {len({u['model_repo_id'] for u in units})} candidates")
-    print("\nAll score cells are blank by design. Scores are the student's judgement.")
+    if (OUT_DIR / "human-scores.md").exists():
+        print("\nReviewed: aggregate scores live in human-scores.md; per-unit cells read")
+        print("'not individually scored'. Aggregates are NOT copied into per-unit rows.")
+    else:
+        print("\nAll score cells are blank by design. Scores are the student's judgement.")
     return 0
 
 
