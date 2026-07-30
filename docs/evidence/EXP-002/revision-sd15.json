@@ -1,0 +1,7 @@
+{
+  "repo_id": "stable-diffusion-v1-5/stable-diffusion-v1-5",
+  "revision_sha": "451f4fe16113bff5a5d2269ed5ad43b0592e9a14",
+  "licence": "CreativeML OpenRAIL-M",
+  "note": "conservative anchor; native 512; richest LoRA/IP-Adapter ecosystem",
+  "kit_fingerprint": "c40749bc100deea5cc5854e40ba34928dcf3fdda31ff3c41840dafdfba1f5228"
+}

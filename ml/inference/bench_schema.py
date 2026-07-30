@@ -45,6 +45,11 @@ MODELS: dict[str, ModelSpec] = {
         note="conservative anchor; native 512; richest LoRA/IP-Adapter ecosystem",
         probe_resolutions=((512, 768),),
     ),
+    # BLOCKED 2026-07-30: this repo (and the whole stabilityai/stable-diffusion-2-*
+    # family) now returns HTTP 401 - it is gated. Kept in the registry so the
+    # attempt is visible rather than silently absent; see
+    # docs/evidence/EXP-003/blocked-gated-repository.md. Kylian decided to proceed
+    # with two candidates rather than authenticate or substitute a model.
     "sd21base": ModelSpec(
         key="sd21base",
         repo_id="stabilityai/stable-diffusion-2-1-base",

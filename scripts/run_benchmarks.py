@@ -95,14 +95,30 @@ def build_cross_model_sheets(rows: list[dict], model_keys: list[str]) -> list[Pa
         paths: list[Path] = []
         for key in model_keys:
             spec = MODELS[key]
+            # A candidate whose native resolution IS the Track A resolution has no
+            # separate Track B run. Its Track A images *are* its native-resolution
+            # images, so they belong in the Track B sheet - otherwise the sheet
+            # shows only the larger models and defeats the purpose of Track B,
+            # which exists precisely so each model is judged at its own size.
+            source_track = track
+            expected_resolution: tuple[int, int] | None = None
+            if track == "B":
+                expected_resolution = spec.track_b_resolution
+                if spec.track_b_resolution == prompt_kit.TRACK_A_RESOLUTION:
+                    source_track = "A"
+
             for prompt_id in prompt_order:
                 match = [
                     r for r in rows
                     if r["status"] == STATUS_OK
                     and r["model_repo_id"] == spec.repo_id
-                    and r["track"] == track
+                    and r["track"] == source_track
                     and r["prompt_id"] == prompt_id
                     and int(r["seed"]) == fixed_seed
+                    and (
+                        expected_resolution is None
+                        or (int(r["width"]), int(r["height"])) == expected_resolution
+                    )
                 ]
                 if match:
                     candidate = REPO / match[0]["output_path"]
