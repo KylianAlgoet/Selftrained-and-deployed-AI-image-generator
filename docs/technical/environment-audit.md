@@ -131,10 +131,39 @@ Docker version 29.1.3, build f52814d
 (no output — MSVC compiler not on PATH)
 ```
 
-### Not yet verifiable
+### Not yet verifiable (as of the 2026-07-27 audit)
 
-- **PyTorch CUDA availability:** PyTorch is not installed (no dependencies are installed in Phase 0). `torch.cuda.is_available()` will be verified immediately after the pinned install, before any training, as part of the Prototype 1 smoke test.
-- **Peak VRAM under load:** will be measured with `nvidia-smi` during Prototype 1/3 runs and recorded in `experiments/registry.csv`.
+- **PyTorch CUDA availability:** PyTorch is not installed (no dependencies are installed in Phase 0). `torch.cuda.is_available()` will be verified immediately after the pinned install, before any training, as part of the Prototype 1 smoke test. → **Resolved 2026-07-30, see update below.**
+- **Peak VRAM under load:** will be measured with `nvidia-smi` during Prototype 1/3 runs and recorded in `experiments/registry.csv`. → Still open; measured during the Prototype 1 benchmark runs.
+
+## Update 2026-07-30 (M3 / Prototype 1): PyTorch CUDA verified
+
+The Phase 0 open item is closed. Verbatim output of `.venv/Scripts/python.exe -m ml.inference.gpu_smoke_test` (EXP-001, exit code 0):
+
+```
+torch import ......... True
+torch version ........ 2.13.0+cu126
+bundled CUDA runtime . 12.6  (wheel-provided)
+driver version ....... 610.88  (driver max CUDA API, not a toolkit match)
+cuda_available ....... True
+GPU .................. NVIDIA GeForce RTX 4060 Laptop GPU (sm_89)
+total VRAM ........... 8187.5 MiB (8.0 GiB)
+expected model match . True
+float32   matmul .... OK (relative error 6.32e-07)
+float16   matmul .... OK (relative error 5.22e-04)
+bfloat16  matmul .... OK (relative error 4.28e-03)
+
+VERDICT: PASS
+```
+
+Structured evidence: `docs/evidence/EXP-001/cuda-smoke-test.json`, `pip-freeze.txt`, `nvidia-smi.txt`.
+
+**Corrections and findings from this verification:**
+
+1. **The driver has changed since the audit.** `nvidia-smi` now reports **610.88** (KMD 610.88), not the 610.74 recorded on 2026-07-27. The driver was updated on this machine between the two dates. VRAM is unchanged (8187.5 MiB via torch, 8188 MiB via `nvidia-smi`).
+2. **The audit's phrasing "CUDA UMD 13.3 → supports current PyTorch CUDA builds" was right for the wrong reason, and is corrected here.** The CUDA version `nvidia-smi` prints is the **driver's maximum supported CUDA API version**, not a toolkit version PyTorch must match. PyTorch wheels bundle their own CUDA runtime — this install runs a **CUDA 12.6** runtime on a driver advertising 13.3, which is correct and expected via CUDA minor-version compatibility. No CUDA toolkit (`nvcc`) is needed, as the audit already noted.
+3. **bfloat16 works** on this Ada (sm_89) GPU, so bf16 is available as a documented fallback if fp16 misbehaves in a pipeline.
+4. **pip had to be upgraded before PyTorch would install.** The venv shipped pip 22.3 (Python 3.11.0, Oct 2022), which rejects wheels whose metadata name is normalized with underscores and failed to resolve `torch` at all (`expected 'typing-extensions', but metadata has 'typing_extensions'`). Upgraded to pip 26.2; the install then succeeded. Recorded in `ml/requirements-inference.txt`.
 
 ## Version-conflict notes
 
