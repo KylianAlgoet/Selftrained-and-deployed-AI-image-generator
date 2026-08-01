@@ -101,6 +101,49 @@ The decisive point is the Track A row: at the *same* 512×512 resolution the stu
 
 ---
 
+## D-F: Reference-conditioning method — DECIDED with measured data (DR-008)
+
+**Selected: standard IP-Adapter** (`h94/IP-Adapter`, `ip-adapter_sd15.safetensors` @ `018e402774`),
+default scale **0.55**, user-adjustable range **0.40–0.60**. Answers RQ6 and part of RQ7.
+
+The second weighted matrix populated with real hardware figures. Every number was measured on the
+audited RTX 4060 Laptop GPU across 299 generations with zero failures, at memory tier 0 throughout.
+
+| Criterion | text-only (control) | **img2img** | **IP-Adapter** ✅ | IP-Adapter-Plus | ControlNet |
+|---|---|---|---|---|---|
+| Extra VRAM @512×512 | — | **+0.00 MiB** | +1248.69 MiB | +1303.49 MiB | not measured |
+| Extra VRAM @512×1536 | — | **+0.00 MiB** | +1248.68 MiB | not measured | not measured |
+| Peak device @512×1536 | 6583.5 MiB | 5761.5 MiB | **7965.5 of 8187.5 MiB** ⚠️ | not measured | not measured |
+| Median latency @512×512 | 3.248 s | 1.208–3.021 s (step-count artefact) | 3.35–3.47 s | 3.436 s | not measured |
+| Bounded below (scale→baseline) | n/a | n/a | **12/12 byte-identical** | not tested | not measured |
+| Monotone influence | n/a | 6/6 conditions | 6/6 conditions | not applicable (1 level) | not measured |
+| Usable mid-range (ref ≥3 & prompt ≥3) | n/a | yes (0.6–0.65) | yes (0.4–0.6) | yes (0.55) | not measured |
+| Human `originality` mean @512×512 | 4.00 (n=1) | **3.12 (n=8)** | **4.11 (n=9)** | 4.00 (n=1) | not measured |
+| Human `copy_or_overfitting_risk` | not scored | **3.12 (n=8)** | **4.33 (n=9)** | 4.00 (n=1) | not measured |
+| Near-copy flags (dHash ≤ 6) | n/a | **6, all @512×1536** | **0** | 0 | not measured |
+| Output geometry coupling | none | **reference forced into output resolution** | independent (224 px CLIP crop) | independent | needs a control map |
+| New dependency | none | none | none | none | opencv (~700 MiB) |
+
+**The decisive row is the near-copy count.** Both methods are genuinely controllable — all four
+controllability conditions met by each — so the choice is about cost, not capability. img2img is
+free in VRAM but produced **every** near-copy flag in the milestone, three at dHash 0–1
+(perceptually indistinguishable from the reference), **at the deck geometry the product ships**,
+because it forces the reference into the output resolution and nothing is cropped when the aspect
+already matches.
+
+⚠️ **IP-Adapter at 512×1536 is feasible but memory-critical: ~222 MiB spare.** This is never to be
+described as comfortable headroom, and **a combined SD 1.5 + LoRA + IP-Adapter smoke test at
+512×1536 is a mandatory gate** before Prototypes 3–4 rely on the stack (risk R12).
+
+**img2img is retained as a documented zero-extra-VRAM fallback**, not the default path.
+**ControlNet was compared on criteria only and never measured** — it conditions on structural edges
+rather than on an artwork reference's style and content; deferred, not rejected, for Prototype 5.
+
+Full reasoning, with objective measurements and human scores reported in separate sections:
+→ `docs/decisions/DR-008-reference-conditioning-method.md`
+
+---
+
 ## ML method feasibility screening — HYPOTHESIS ONLY
 
 Screening of the assignment-mandated alternatives against the audited constraint (8 GB VRAM, ~19 days). This narrows what gets empirical testing; it decides nothing final.

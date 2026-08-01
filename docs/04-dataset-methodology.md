@@ -47,9 +47,44 @@ Raw dataset is **not committed** (`data/raw/` ignored). Committed: manifests, st
 
 Per style: document source diversity, obvious cultural or representational biases in the collected material, and any content exclusions. Findings and limitations go into the report's ethics chapter — honestly, including unresolved issues.
 
-## Open dataset findings (recorded 2026-07-30, to be resolved in M4)
+## Open dataset findings (recorded 2026-07-30; **evidence gathered in M4, mitigation decided in Prototype 4 / M6**)
+
+The original heading read "to be resolved in M4", which was imprecise and is corrected here. **M4
+produced the *evidence* on frame and pseudo-text transfer; the dataset *mitigation decision* (a crop
+pass versus negative prompting) stays in Prototype 4 (M6), where training evidence will exist.** The
+body of finding 1 always said this; the heading did not match it.
 
 Observed while re-inspecting the `retro-poster` contact sheet during the M3 pre-check. Both are recorded as honest findings rather than silently patched, because the mitigation choice needs training evidence:
 
 1. **Framed/matted scans.** Most `retro-poster` items are photographed or scanned with visible black frames and cream mats. A style LoRA could learn the frame as part of the style. Options for M4: a crop pass over the raw material, or accept it and rely on negative prompting — decided with evidence in Prototype 4, not assumed now.
 2. **Text-dominated source material.** Display typography is a defining feature of WPA posters, and diffusion models render text poorly. Training on this style therefore risks producing garbled pseudo-lettering. This is a genuine threat to the RQ4/RQ5 style-learning results and must be reported honestly whatever the outcome.
+
+### M4 evidence on both findings (2026-08-01, Prototype 2)
+
+Conditioning is not training, so this bounds the concern rather than settling it — but it is the
+first direct evidence, and it is not encouraging for either finding.
+
+Condition **C6** paired **R5** (`DS-0088`, a landscape WPA poster photographed in a dark frame with
+large display lettering) with prompt `P1-poster`. Kylian's failure-mode observations:
+
+| method | level | `unwanted_frame` | `pseudo_text` | `background_transfer` |
+|---|---|---|---|---|
+| img2img | weak | not observed | not observed | not observed |
+| img2img | medium / strong | **worse** | **worse** | **worse** |
+| ip-adapter | weak | not observed | **worse** | not observed |
+| ip-adapter | medium / strong | **worse** | **worse** | **worse** |
+
+**Both frame transfer and pseudo-lettering are confirmed, for both conditioning methods, at medium
+influence and above.** Only the weakest settings avoid them, and IP-Adapter already shows pseudo-text
+at weak.
+
+A correction to how these findings were framed: **R1 (`DS-0077`) is also a framed, text-dominated
+poster scan**, verified by opening the image. R5 is the harder case because it adds landscape
+orientation — the one orientation the deck format cannot accommodate — not because it is the only
+framed or text-bearing item. The problem is therefore more widespread in `retro-poster` than the
+original wording implied, which strengthens the case for a crop pass rather than weakening it.
+
+**The mitigation decision still belongs to Prototype 4 (M6)**, where LoRA training evidence will
+show whether a style LoRA actually learns the frame, and whether negative prompting suppresses it.
+Evidence: `docs/evidence/EXP-011/`, `docs/evidence/prototype-2/difficult-reference-artefacts.jpg`,
+`docs/evidence/EXP-015-scoring/failure-mode-probe.md`.
