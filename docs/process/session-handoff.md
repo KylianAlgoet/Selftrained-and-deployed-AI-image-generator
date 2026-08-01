@@ -2,131 +2,85 @@
 
 **Last updated:** 2026-08-01 (M4 / Prototype 2 execution session, under Opus 5)
 
-## M4 (Prototype 2 — text + reference-image conditioning): 🛑 AT THE HUMAN-REVIEW GATE
+## M4 (Prototype 2 — text + reference-image conditioning): COMPLETE
 
-**All autonomous M4 work is complete. Stopped for Kylian's visual review and rubric scores.**
+**Human review passed 2026-08-01; conditioning method selected in DR-008.** Issue #5 closure, board
+move to Done, and the push to `origin/main` follow this commit — verify their real state with
+`gh issue view 5` and `git status -sb` rather than trusting this line.
 
-👉 **Start here: `docs/evidence/prototype-2/HUMAN-REVIEW-GATE.md`** — it lists every sheet to
-open in order, the unscored technical summary, the rubric, and the blank forms.
+**Decision (DR-008):** **standard IP-Adapter selected** as the primary reference-conditioning
+method for Prototypes 3–5 (`h94/IP-Adapter`, `ip-adapter_sd15.safetensors` @ `018e402774`).
+**Default scale 0.55**, user-adjustable **0.40–0.60**; higher values only with an explicit warning
+that prompt authority falls and pseudo-text / source-like composition increase. **img2img is a
+documented zero-extra-VRAM fallback, not the default path.** IP-Adapter-Plus not selected.
+ControlNet stays criteria-only, deferred to Prototype 5 for layout control.
 
-Nothing is scored, no method is selected, DR-008 is unwritten, `experiments/registry.csv` is
-not yet updated (its `evaluation`/`conclusion` fields need the scores), issue #5 is open, M4 is
-not Done, and **nothing has been pushed**.
+### ⚠️ Two things the next session must not soften
 
-**EXP-007 adapter gate: PASSED** (hard gate — nothing downstream ran until it was green).
-IP-Adapter and its CLIP image encoder both load at the pinned revision
-`018e402774aeeddd60609b4ecdb7e298259dc729`; **16 of 32** UNet attention processors are
-`IPAdapterAttnProcessor2_0`, read back from the live UNet. Measured cost against bare
-SD 1.5, each in its own process: **+1248.69 MiB peak allocated** (2675.38 → 3924.07),
-latency +0.164 s. Peak device used 5695.5 MiB of 8187.5 MiB physical, tier 0, no overflow.
+1. **R12 (open, high/high) — the combined stack may not fit.** IP-Adapter alone at 512×1536 peaks
+   at **7965.5 MiB of 8187.5 MiB physical, about 222 MiB spare.** **Never describe this as
+   comfortable headroom.** A **combined SD 1.5 + selected LoRA + IP-Adapter smoke test at 512×1536
+   is a mandatory acceptance item for M5** — it is in the M5 planning row as scope, dependency and
+   required evidence. If it fails, record the failure as its own result row and test the approved
+   memory tiers in separate runs. **Never silently reduce geometry to make it pass.**
+2. **R13 (occurred, mitigated) — img2img reproduces the reference at the deck format.** All six
+   copy-risk flags in M4 (dHash ≤ 6) are img2img at 512×1536, three at **dHash 0–1**. Median dHash
+   for img2img at medium is 27 @512×512 but **5 @512×1536**. Keep the dHash ≤ 6 flag and the
+   copy-risk sheet in every future evaluation. Prototype 5 must not expose an img2img mode at the
+   deck format without this warning.
 
-**The eight M4 Phase-1 commits (local only, never pushed):**
+### Measured results (299 generations, zero failures, tier 0 throughout)
 
-```
-dd80659 feat(evaluation): add prototype 2 scoring form with aggregate-level rows
-1985d8d docs(experiments): record offline similarity indicators and the process-isolation check
-aaa0e06 feat(evaluation): add offline similarity indicators for reference conditioning
-d15dc17 docs(experiments): record conflicting-reference and deck-format conditioning measurements
-331c6aa docs(experiments): record reference-strength sweep measurements for both methods
-9053c71 docs(experiments): record the ip-adapter environment gate for prototype 2
-9f0d664 feat(inference): add reference-conditioning runner for img2img and ip-adapter
-ce681b7 feat(inference): add reference-image registry and conditioning schema for prototype 2
-```
-
-**Interruption to be aware of.** A first orchestrator run was killed mid-EXP-009 by a
-usage-limit cutoff. Stages 1–4 (EXP-008, EXP-008b) had completed; EXP-009's partial file
-was **rewritten from scratch** on resume, because each runner deletes its own results file
-at start rather than appending twice. `--start-at N` was added to
-`scripts/run_reference_conditioning.py` for exactly this. Nothing was recovered by hand and
-no partial data was kept.
-
-**Measured: 299 generation rows, EXP-007 → EXP-013. Zero failures, zero timeouts, memory
-tier 0 throughout, no escalation anywhere.** 16 fresh OS processes.
-
-**VRAM — peak allocated per run (fp16, tier 0):**
-
-| geometry | text-only | img2img | IP-Adapter | IP-Adapter-Plus |
+| geometry | text-only | img2img | IP-Adapter | Plus |
 |---|---|---|---|---|
-| 512×512 | 2675.38 MiB | **2675.38 (+0.00)** | 3924.07 (+1248.69) | 3978.87 (+1303.49) |
+| 512×512 | 2675.38 MiB | **2675.38 (+0.00)** | 3924.07 (+1248.69) | 3978.87 |
 | 512×1536 | 3892.01 MiB | **3892.01 (+0.00)** | 5140.69 (+1248.68) | not measured |
 
-**img2img costs exactly zero extra VRAM** at both geometries. **IP-Adapter's overhead is the
-same fixed ~1248.7 MiB at both**, consistent with its scale acting on attention rather than on
-output size.
+- **img2img costs exactly zero extra VRAM**; IP-Adapter's ~1249 MiB overhead is **identical at both
+  geometries**, because its scale acts on attention rather than on output size.
+- **Latency trap:** img2img wall-clock *falls* as influence rises (3.021 s → 1.208 s) because
+  diffusers runs `int(steps × strength)` steps. Per-effective-step cost is flat at 0.112–0.134.
+  **Fewer steps, not faster ones** — never quote img2img as intrinsically faster.
+- **Process isolation accepted in full:** 6/6 spot-check pairs at +0.000 % against a 2 % tolerance
+  pre-declared in code.
+- **Lower bound met exactly:** 12/12 IP-Adapter runs at `scale=0.0` byte-identical to the text-only
+  baseline; 12/12 M4 baselines byte-identical to Prototype 1's EXP-002, so **M3 and M4 figures are
+  directly comparable**.
+- **Monotone in 6/6 conditions for both methods.** IP-Adapter-Plus is *not applicable* (one level
+  by design), never "failed".
 
-⚠️ **Deck-format headroom:** IP-Adapter at 512×1536 reached **7965.5 MiB peak device used of
-8187.5 MiB physical — about 222 MiB spare.** All 9 runs succeeded and no overflow flag fired,
-but this is not headroom to call comfortable, and **a LoRA stacked on top in Prototypes 3–4
-cannot be assumed to fit.** Plan M5/M6 with that in mind.
+### Human scores (Kylian, 2026-08-01) — read before re-scoring anything
 
-**Latency (median s):** 512×512 — text-only 3.248 · img2img 3.021 (s=0.90) → 1.208 (s=0.30) ·
-IP-Adapter ~3.35–3.47 · Plus 3.436. 512×1536 — text-only 11.837 · img2img 7.980 · IP-Adapter 12.022.
+Recorded at **aggregate (method × level × resolution)**, which is exactly the form's row granularity,
+so unlike M3 they are entered directly rather than marked "not individually scored".
+`docs/evidence/EXP-015-scoring/human-scores.csv` is authoritative; the form and probe are generated
+from it.
 
-**The img2img latency trap is confirmed, not assumed:** wall-clock *falls* as influence *rises*,
-purely because diffusers runs `int(steps × strength)` steps. Seconds-per-effective-step stays
-flat at 0.112–0.134, so the speed advantage is **fewer steps, not faster ones**.
+**29 cells are NOT SCORED. A blank is never a zero and must never be back-filled.** They are
+excluded from every mean and the surviving `n` is printed beside each figure.
 
-**Process isolation ACCEPTED in full:** 6/6 clean-process spot-check pairs at **+0.000 %**
-against a 2 % tolerance pre-declared in code before any measurement.
+- `reference_influence` / `copy_or_overfitting_risk` blank for **text-only** — it uses no reference.
+- `diversity_across_seeds` has **n=1 per method** — not load-bearing, do not lean on it.
+- **`text-only` at 512×1536 is entirely unscored. Do not substitute an M3 value** — the M3 review
+  used different sheets and answered a different question.
 
-**EXP-010 lower bound — both comparisons maximally positive:** **12/12** IP-Adapter runs at
-`scale=0.0` are byte-identical to the text-only baseline, and **12/12** M4 baselines are
-byte-identical to Prototype 1's EXP-002 hashes (cross-milestone repeatability; the M4 baseline
-provably *is* the M3 baseline).
-
-**Monotonicity (EXP-014, CPU, 297 images in 393 s):** median overall reference-image similarity
-rises with influence level in **6/6 conditions for img2img and 6/6 for IP-Adapter** — both clear
-the ≥3-of-4 bar. IP-Adapter-Plus is *not applicable* (medium level only by design), not a failure.
-
-⚠️ **Copy risk — the finding to look at:** all **6** flagged outputs (dHash ≤ 6) are **img2img
-at 512×1536** on the two references that are natively 512×1536 (R2, R4), three of them at
-**dHash 0–1, i.e. perceptually indistinguishable from the reference.** Median dHash for img2img
-at medium is **27 at 512×512 but 5 at 512×1536**. Mechanism: img2img forces the reference into
-the output resolution, so when the aspect already matches, nothing is cropped and denoising at
-`strength=0.65` starts from an essentially intact copy. **This is the production geometry.**
-See `copy-risk.md` and `copy-risk-pairs.jpg`; judge under `originality` /
-`copy_or_overfitting_risk`.
-
-**Verified separation of measurement from evaluation:** `image_encoder_revision_sha` is
-**empty on every text-only and img2img row** — positive evidence from the data that no CLIP
-encoder was resident in those measured processes. Pytests guard the boundary in both directions.
-
-### Correction carried against the approved plan
-
-The plan describes C5's reference as *"cresting wave"*. That is the wording of prompt
-**P3-ukiyo**, not the content of **R3** (`DS-0103`), which is a landscape ukiyo-e print of a
-seated figure at a low desk in an interior. The C5 conflict is real and unchanged; only the
-description was wrong. A pytest guards the old label from returning. Recorded also: **R1 is
-also a framed, text-dominated poster scan** — R5 is the harder case because it adds landscape
-orientation, not because it is the only framed reference.
+Means at 512×512 (blanks excluded): originality **img2img 3.12 (n=8) vs ip-adapter 4.11 (n=9)**;
+copy risk **3.12 vs 4.33**. At the deck format img2img scored originality 1 / copy risk 1;
+IP-Adapter 4 / 4.
 
 ### M4 facts a new session must know
 
-- `.venv/Scripts/python.exe -m pytest` → **123 tests**, frozen-kit fingerprint `c40749bc…` unchanged.
-- **No linter is installed** (`ruff` absent). pytest is the validation gate; do not claim a lint step ran.
-- Adapter cache: `h94/IP-Adapter` **2453.8 MiB** downloaded once (2411.2 encoder + 42.6 adapter), outside the repo.
-- `scripts/run_reference_conditioning.py --dry-run` prints the 16-stage process plan without running it.
-- EXP-008/EXP-009 run the **named levels alongside the sweep in one shared process**, a documented
-  extension of the plan's run counts: the sweep values and named levels are different numbers, so
-  without this the clean-process spot checks would have had no counterpart to compare against.
-- Regenerate any artefact with: `scripts/build_reference_kit.py` · `scripts/run_reference_conditioning.py`
-  (`--dry-run`, `--only`, `--start-at`) · `scripts/evaluate_similarity.py` ·
-  `scripts/build_p2_analysis.py` · `scripts/build_p2_contact_sheets.py` · `scripts/build_p2_scoring_form.py`.
-
-### After Kylian's scores arrive — the post-approval order
-
-Record the scores at the granularity actually used → **DR-008** with its conclusion and the
-ControlNet screen-out reason → `docs/prototypes/prototype-2.md` → finalise
-`experiments/registry.csv` (EXP-007…EXP-014) → planning + change log, risk register (R1 gains the
-adapter VRAM figure, R8 its first conditioning evidence), testing strategy (new principle:
-measurement instrumentation must not enter the workload it measures), traceability (D1, **D4**,
-D5, D6), `docs/ai-usage.md`, and the `docs/04-dataset-methodology.md` M4/M6 wording correction →
-close issue #5 → board Done → push → M4 milestone report. **Then stop before M5.**
-
-If the outcome is negative — neither method giving visible, monotone, usable control — that is a
-legitimate RQ6 answer and gets recorded as one, with Prototype 5 planning for text-only + LoRA.
-
----
+- `.venv/Scripts/python.exe -m pytest` → **123 tests**; frozen-kit fingerprint `c40749bc…` unchanged.
+- **No linter is installed** (`ruff` absent). pytest is the validation gate — never claim a lint step ran.
+- Adapter cache: `h94/IP-Adapter` **2453.8 MiB**, outside the repo. Both adapter and image encoder are
+  pinned to `018e402774…`; **diffusers 0.39.0 does not forward `revision` to the image encoder**, so
+  the runner registers a pinned encoder itself before `load_ip_adapter`. Do not remove that workaround.
+- **Measurement instrumentation must never enter the workload it measures.** Phase 1 (generation) and
+  Phase 2 (similarity) are separate processes; pytests enforce the import boundary in both directions.
+- Regenerate anything with `scripts/`: `build_reference_kit.py` · `run_reference_conditioning.py`
+  (`--dry-run`, `--only`, `--start-at`) · `evaluate_similarity.py` · `build_p2_analysis.py` ·
+  `build_p2_contact_sheets.py` · `build_p2_scoring_form.py` · `summarise_p2_human_scores.py`.
+- `deliverables/` is **git-ignored** — a derived upload package duplicating tracked evidence.
 
 ## Prior state (M3, completed 2026-07-30)
 

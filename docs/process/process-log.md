@@ -4,6 +4,45 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-01 — M4 closed: human review passed, standard IP-Adapter selected (DR-008)
+
+**Objective:** complete M4 after the human-review gate by recording Kylian's scores, deciding the reference-conditioning method, and finalising the milestone.
+
+**Completed work:** Kylian inspected the eight contact sheets, approved the evidence, and supplied aggregate rubric scores plus failure-mode observations. Scores recorded **at the granularity actually used** — aggregate per (method × influence level × resolution), which is exactly the granularity of the form's own rows, so unlike M3 they are entered directly rather than marked "not individually scored". `human-scores.csv` is authoritative; the form and probe are generated from it by joining onto the inventory of what was actually generated, and the generator warns on any approved row matching no generated unit. All 22 rows matched with no orphans.
+
+**Blanks preserved as not scored — 29 cells.** A blank is never a zero and is never back-filled: blanks are excluded from every mean and the surviving `n` is printed beside each figure. `reference_influence` and `copy_or_overfitting_risk` are blank for text-only, which uses no reference. `diversity_across_seeds` carries **n=1 per method** and is flagged as not load-bearing. **`text-only` at 512×1536 is entirely unscored** — it was not visually rescored from the M4 sheets, and **no M3 value was substituted**, because the M3 review used different sheets and answered a different question.
+
+**Decision — DR-008:** **standard IP-Adapter selected** as the primary reference-conditioning method for Prototypes 3–5 (`h94/IP-Adapter`, `ip-adapter_sd15.safetensors` @ `018e402774`), **default scale 0.55**, user-adjustable **0.40–0.60**, higher values only with an explicit warning that prompt authority falls and pseudo-text / source-like composition increase. **img2img is retained as a documented zero-extra-VRAM fallback, not the default path.** IP-Adapter-Plus not selected (no decisive advantage, slightly more VRAM). ControlNet stays criteria-only and screened out for M4 — a scope decision, not a quality judgement, deferred to Prototype 5 for layout control.
+
+**Human scores (aggregate means at 512×512, blanks excluded, n stated):**
+
+```
+                     prompt style ref  quality decal comp artef orig  divers copy
+text-only            3.00   3.00  n/s  4.00    2.00  3.00 4.00  4.00  4.00   n/s   (n=1)
+img2img              3.00   4.12  3.75 4.00    3.75  4.00 3.38  3.12  3.00   3.12  (n=8)
+ip-adapter           3.11   4.44  3.44 4.00    3.56  3.89 3.44  4.11  4.00   4.33  (n=9)
+ip-adapter-plus      3.00   5.00  4.00 4.00    4.00  4.00 3.00  4.00  4.00   4.00  (n=1)
+
+Deck format 512x1536:  img2img 0.65  originality 1, copy risk 1  -> REJECTED as primary
+                       ip-adapter 0.55 originality 4, copy risk 4
+                       text-only      NOT SCORED (deliberately)
+```
+
+**Why the decision went this way.** Both measured methods met all four controllability conditions, so RQ6 has a **positive** answer and the choice is about cost, not capability. The decisive evidence is the near-copy count: **all six copy-risk flags in the milestone (dHash ≤ 6) are img2img at 512×1536**, three at **dHash 0–1** — perceptually indistinguishable from the reference — at the very geometry the product ships. IP-Adapter produced **zero** near-copy flags at any scale or geometry, and scored higher on originality (4.11 vs 3.12) and copy risk (4.33 vs 3.12).
+
+**Two risks stated prominently rather than softened:**
+
+- **R13 (occurred, mitigated by method selection):** img2img reproduces the reference at the deck format. Mechanism is mechanical — img2img forces the reference into the output resolution, so when the aspect already matches nothing is cropped and denoising at `strength=0.65` starts from an essentially intact copy. Median dHash for img2img at medium is 27 @512×512 but **5 @512×1536**.
+- **R12 (open, high/high):** **IP-Adapter at 512×1536 peaks at 7965.5 MiB of 8187.5 MiB physical — about 222 MiB spare.** Never to be described as comfortable headroom. **A combined SD 1.5 + LoRA + IP-Adapter smoke test at 512×1536 is now a mandatory acceptance item for M5**, added to the planning row and the risk register. If it fails, the failure is recorded as its own result row and approved memory tiers are tested in separate runs — **geometry is never silently reduced to make it pass**.
+
+**Objective measurements and human scores are reported in separate sections** in DR-008, `prototype-2.md` and `human-scores.md`, and are never blended into a single number.
+
+**Docs updated:** DR-008 (new); `experiments/registry.csv` (**EXP-007…EXP-014**, all mandated fields, unmeasured written as "not measured"); `docs/prototypes/prototype-2.md` (new); `docs/03-architecture.md` (**new section D-F**, the second weighted matrix populated with measured hardware data); `docs/06-prototype-overview.md`; `docs/02-planning.md` + change log (~9 h actual vs 10 h estimated) and the M5 acceptance item; `docs/process/risk-register.md` (**R12 and R13 added**; R1 gains the adapter figure, R8 its first conditioning evidence); `docs/07-testing-strategy.md` (**seven principles from Prototype 2**, headed by "measurement instrumentation must never enter the workload it measures"); `docs/04-dataset-methodology.md` (the imprecise "to be resolved in M4" heading corrected — M4 produced *evidence*, the mitigation decision stays in Prototype 4/M6 — plus the C6 frame/pseudo-text evidence table); `docs/learning-outcome-traceability.md` (D1, D4, D5, D6); `docs/ai-usage.md`; this log; session handoff.
+
+**Blockers:** none. **Next step:** issue #5 closure, board → Done, validated push, M4 milestone report. **Then stop before M5.**
+
+---
+
 ## 2026-08-01 — M4 Phase-1 measurements: EXP-007 to EXP-013 complete, 299 runs, zero failures
 
 **Objective:** produce the measured evidence for RQ6 — how text and reference conditioning combine, and what each method costs — up to the mandatory human-review gate.
