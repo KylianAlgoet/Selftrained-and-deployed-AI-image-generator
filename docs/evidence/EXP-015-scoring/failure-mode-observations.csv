@@ -1,0 +1,13 @@
+section,method,unit,repeated_elements,vertical_stretching,physical_deck_mockup,unwanted_frame,pseudo_text,background_transfer,note
+C6,img2img,weak,not observed,not observed,not observed,not observed,not observed,not observed,prompt-led wolf graphic with little visible transfer.
+C6,img2img,medium,not observed,not observed,not observed,worse,worse,worse,
+C6,img2img,strong,not observed,not observed,not observed,worse,worse,worse,
+C6,ip-adapter,weak,worse,not observed,not observed,not observed,worse,not observed,
+C6,ip-adapter,medium,not observed,not observed,not observed,worse,worse,worse,
+C6,ip-adapter,strong,not observed,not observed,not observed,worse,worse,worse,
+EXP-013,img2img,C1,worse,not observed,not observed,worse,worse,worse,
+EXP-013,img2img,C2,not observed,not observed,not observed,not observed,not observed,worse,near-copy / wholesale layout preservation.
+EXP-013,img2img,C4,not observed,not observed,not observed,not observed,not observed,worse,near-copy of the project-original reference.
+EXP-013,ip-adapter,C1,worse,unchanged,not observed,not observed,worse,not observed,
+EXP-013,ip-adapter,C2,not observed,not observed,not observed,not observed,not observed,reduced,
+EXP-013,ip-adapter,C4,not observed,worse,not observed,not observed,not observed,reduced,

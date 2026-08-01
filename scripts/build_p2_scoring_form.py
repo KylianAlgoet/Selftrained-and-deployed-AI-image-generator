@@ -77,6 +77,41 @@ FAILURE_PROBES: list[tuple[str, str]] = [
 ]
 
 
+def load_approved_scores() -> dict[tuple, dict]:
+    """Kylian's approved aggregate scores, keyed to the form's own row identity.
+
+    `human-scores.csv` is the authoritative record. This script only joins it onto
+    the inventory of what was actually generated; it never derives, averages, or
+    infers a score. An empty cell there means NOT SCORED and stays empty here -
+    it is never back-filled from another row, another resolution, or another
+    milestone.
+    """
+    path = OUT_DIR / "human-scores.csv"
+    if not path.exists():
+        return {}
+    approved: dict[tuple, dict] = {}
+    with open(path, encoding="utf-8", newline="") as fh:
+        for row in csv.DictReader(fh):
+            key = (row["method"], row["influence_level"],
+                   row["strength_value"].strip(), row["resolution"])
+            approved[key] = row
+    return approved
+
+
+def unit_key(unit: dict) -> tuple:
+    return (unit["method"], unit["influence_level"],
+            str(unit["strength_value"]).strip(), unit["resolution"])
+
+
+def load_failure_observations() -> list[dict]:
+    """Kylian's approved failure-mode observations, recorded verbatim."""
+    path = OUT_DIR / "failure-mode-observations.csv"
+    if not path.exists():
+        return []
+    with open(path, encoding="utf-8", newline="") as fh:
+        return list(csv.DictReader(fh))
+
+
 def load_rows() -> list[dict]:
     rows: list[dict] = []
     for exp_id in SOURCE_EXPERIMENTS:
@@ -196,8 +231,16 @@ def write_rubric() -> Path:
 def write_forms(units: list[dict]) -> tuple[Path, Path]:
     names = [name for name, _, _ in DIMENSIONS]
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    reviewed = (OUT_DIR / "human-scores.md").exists()
-    cell = "not individually scored" if reviewed else ""
+    approved = load_approved_scores()
+    reviewed = bool(approved)
+
+    def cells_for(unit: dict) -> tuple[dict[str, str], str]:
+        """Scores for one row. Absent row or empty cell -> empty string, always."""
+        record = approved.get(unit_key(unit))
+        if record is None:
+            return {name: "" for name in names}, ""
+        return ({name: (record.get(name) or "").strip() for name in names},
+                (record.get("note") or "").strip())
 
     csv_path = OUT_DIR / "scoring-form.csv"
     fieldnames = ["method", "influence_level", "strength_param", "strength_value",
@@ -206,31 +249,61 @@ def write_forms(units: list[dict]) -> tuple[Path, Path]:
         writer = csv.DictWriter(fh, fieldnames=fieldnames)
         writer.writeheader()
         for unit in units:
+            scores, note = cells_for(unit)
             writer.writerow({
                 **{k: unit[k] for k in ("method", "influence_level", "strength_param",
                                         "strength_value", "resolution", "conditions",
                                         "seeds", "experiments", "images")},
-                **{name: cell for name in names},
-                "notes": "",
+                **scores,
+                "notes": note,
             })
 
-    header_state = ("BLANK - to be filled in by Kylian" if not reviewed
-                    else "per-unit cells NOT individually scored")
-    lines = [
-        f"# Prototype 2 scoring form ({header_state})",
-        "",
-        f"Frozen kit fingerprint: `{prompt_kit.kit_fingerprint()}`",
-        "",
-        "Rows are at **aggregate (method x influence level x resolution)** granularity, which",
-        "is how the M3 review was actually performed. Scale: 1 = worst, 5 = best.",
-        "",
-        "Every score cell is intentionally empty. See [`rubric.md`](rubric.md) for the 1-5",
-        "anchors and the recommended order of review, and",
-        "[`failure-mode-probe.md`](failure-mode-probe.md) for the checklist that goes with it.",
-        "",
-        "`reference_influence` is scoreable here for the first time in the project.",
-        "",
-    ]
+    unscored = sum(
+        1 for unit in units for value in cells_for(unit)[0].values() if value == ""
+    )
+
+    if reviewed:
+        lines = [
+            "# Prototype 2 scoring form (SCORED by Kylian, 2026-08-01)",
+            "",
+            f"Frozen kit fingerprint: `{prompt_kit.kit_fingerprint()}`",
+            "",
+            "Rows are at **aggregate (method x influence level x resolution)** granularity, which",
+            "is the granularity the review was actually performed at. Scale: 1 = worst, 5 = best.",
+            "",
+            "The authoritative record is [`human-scores.csv`](human-scores.csv); this table is",
+            "generated from it and joined onto the inventory of what was actually generated. No",
+            "score here is derived, averaged, or inferred.",
+            "",
+            f"**An empty cell means NOT SCORED and is never back-filled** ({unscored} such cells).",
+            "It is not a zero, and it is never carried over from another row, another resolution,",
+            "or another milestone. In particular:",
+            "",
+            "- `diversity_across_seeds` was scored only where the multi-seed sheet supported it.",
+            "- `reference_influence` and `copy_or_overfitting_risk` are blank for **text-only**,",
+            "  which uses no reference image at all.",
+            "- **text-only at 512x1536 is entirely unscored:** it was not visually rescored from",
+            "  the M4 contact sheets, and no M3 value has been substituted for it.",
+            "",
+            "`reference_influence` is scored here for the first time in the project.",
+            "",
+        ]
+    else:
+        lines = [
+            "# Prototype 2 scoring form (BLANK - to be filled in by Kylian)",
+            "",
+            f"Frozen kit fingerprint: `{prompt_kit.kit_fingerprint()}`",
+            "",
+            "Rows are at **aggregate (method x influence level x resolution)** granularity, which",
+            "is how the M3 review was actually performed. Scale: 1 = worst, 5 = best.",
+            "",
+            "Every score cell is intentionally empty. See [`rubric.md`](rubric.md) for the 1-5",
+            "anchors and the recommended order of review, and",
+            "[`failure-mode-probe.md`](failure-mode-probe.md) for the checklist that goes with it.",
+            "",
+            "`reference_influence` is scoreable here for the first time in the project.",
+            "",
+        ]
 
     for resolution in sorted({u["resolution"] for u in units}, key=lambda r: (len(r), r)):
         lines += [f"## {resolution}", ""]
@@ -238,11 +311,12 @@ def write_forms(units: list[dict]) -> tuple[Path, Path]:
                      + " | ".join(names) + " | notes |")
         lines.append("|" + "---|" * (len(names) + 8))
         for unit in [u for u in units if u["resolution"] == resolution]:
+            scores, note = cells_for(unit)
             lines.append(
                 f"| {unit['method']} | {unit['influence_level']} | {unit['strength_param'] or '-'} | "
                 f"{unit['strength_value'] if unit['strength_value'] != '' else '-'} | "
                 f"{unit['conditions']} | {unit['seeds']} | {unit['images']} | "
-                + " | ".join(cell for _ in names) + " |  |"
+                + " | ".join(scores[name] for name in names) + f" | {note} |"
             )
         lines.append("")
 
@@ -285,16 +359,38 @@ def write_forms(units: list[dict]) -> tuple[Path, Path]:
 
 
 def write_failure_probe() -> Path:
+    observations = load_failure_observations()
+    scored = bool(observations)
+    probe_names = [name for name, _ in FAILURE_PROBES]
+
+    def cells(section: str, method: str, unit: str) -> tuple[list[str], str]:
+        for row in observations:
+            if (row["section"], row["method"], row["unit"]) == (section, method, unit):
+                return ([(row.get(name) or "").strip() for name in probe_names],
+                        (row.get("note") or "").strip())
+        return (["" for _ in probe_names], "")
+
+    title = ("# Prototype 2 failure-mode probe (OBSERVED by Kylian, 2026-08-01)" if scored
+             else "# Prototype 2 failure-mode probe (BLANK - to be filled in by Kylian)")
     lines = [
-        "# Prototype 2 failure-mode probe (BLANK - to be filled in by Kylian)",
+        title,
         "",
         "Carried over from M3 and M2. For each method and level, does reference conditioning",
-        "**reduce**, **leave unchanged**, or **worsen** each failure mode? Enter one of",
-        "`reduced` / `unchanged` / `worse` / `not observed`, or leave blank if you cannot judge.",
+        "**reduce**, **leave unchanged**, or **worsen** each failure mode? One of",
+        "`reduced` / `unchanged` / `worse` / `not observed`; a blank means it could not be judged.",
         "",
         "This is a separate instrument from the rubric on purpose: these are presence/absence",
         "observations about specific artefacts, not quality judgements on a 1-5 scale.",
         "",
+    ]
+    if scored:
+        lines += [
+            "Recorded verbatim from the approved review. The authoritative record is",
+            "[`failure-mode-observations.csv`](failure-mode-observations.csv); nothing here is",
+            "inferred, and `not observed` is recorded as itself rather than as `reduced`.",
+            "",
+        ]
+    lines += [
         "## What each probe means",
         "",
     ]
@@ -310,12 +406,13 @@ def write_failure_probe() -> Path:
         "harder case because it adds landscape orientation, not because it is the only framed",
         "or text-bearing reference.",
         "",
-        "| method | level | " + " | ".join(name for name, _ in FAILURE_PROBES) + " | notes |",
+        "| method | level | " + " | ".join(probe_names) + " | notes |",
         "|" + "---|" * (len(FAILURE_PROBES) + 3),
     ]
     for method in ("img2img", "ip-adapter"):
         for level in ("weak", "medium", "strong"):
-            lines.append(f"| {method} | {level} | " + " | ".join("" for _ in FAILURE_PROBES) + " |  |")
+            values, note = cells("C6", method, level)
+            lines.append(f"| {method} | {level} | " + " | ".join(values) + f" | {note} |")
 
     lines += [
         "",
@@ -324,12 +421,13 @@ def write_failure_probe() -> Path:
         "`repeated_elements` and `vertical_stretching` are the open M3 observation at 512x1536;",
         "this is the first evidence bearing on whether reference conditioning affects them.",
         "",
-        "| method | condition | " + " | ".join(name for name, _ in FAILURE_PROBES) + " | notes |",
+        "| method | condition | " + " | ".join(probe_names) + " | notes |",
         "|" + "---|" * (len(FAILURE_PROBES) + 3),
     ]
     for method in ("img2img", "ip-adapter"):
         for condition in ("C1", "C2", "C4"):
-            lines.append(f"| {method} | {condition} | " + " | ".join("" for _ in FAILURE_PROBES) + " |  |")
+            values, note = cells("EXP-013", method, condition)
+            lines.append(f"| {method} | {condition} | " + " | ".join(values) + f" | {note} |")
 
     lines += [
         "",
@@ -366,8 +464,19 @@ def main() -> int:
     print(f"scoring csv ....... {csv_path}")
     print(f"failure probe ..... {probe}")
     print(f"\n{len(units)} aggregate scoring units over {sum(u['images'] for u in units)} images")
-    print("All score cells are blank by design. Scores are the student's judgement,")
-    print("and no method is named until they are supplied.")
+    approved = load_approved_scores()
+    if approved:
+        matched = sum(1 for u in units if unit_key(u) in approved)
+        print(f"approved score rows joined: {matched}/{len(units)}")
+        unmatched = [unit_key(u) for u in units if unit_key(u) not in approved]
+        for key in unmatched:
+            print(f"  NOT SCORED (left blank): {key}")
+        orphans = set(approved) - {unit_key(u) for u in units}
+        for key in sorted(orphans):
+            print(f"  WARNING approved row matches no generated unit: {key}")
+    else:
+        print("All score cells are blank by design. Scores are the student's judgement,")
+        print("and no method is named until they are supplied.")
     return 0
 
 

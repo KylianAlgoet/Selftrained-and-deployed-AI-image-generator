@@ -1,0 +1,23 @@
+method,influence_level,strength_value,resolution,prompt_adherence,style_consistency,reference_influence,visual_quality,decal_suitability,composition,artefacts,originality,diversity_across_seeds,copy_or_overfitting_risk,note
+img2img,medium,0.6,512x512,3,4,4,4,4,4,3,3,,3,Balanced but reference begins to dominate C3/C4; some pseudo-text and reduced originality.
+img2img,medium,0.65,512x512,3,4,4,4,4,4,3,3,3,3,"Usable mid-range at 512; controllable, but C5/C6 show prompt loss and frame/text transfer."
+img2img,medium,0.65,512x1536,2,5,5,4,4,4,3,1,,1,Reject as primary production mode: C2/C4 are near-copies (dHash 0-5); some repetition/cropping in C1.
+img2img,strong,0.3,512x512,2,5,5,4,4,4,3,1,,1,Strongest reference level; outputs frequently approach source reconstruction.
+img2img,strong,0.4,512x512,2,4,5,4,4,4,3,2,,2,Strong reference influence with obvious prompt loss in conflict/difficult cases.
+img2img,strong,0.45,512x512,2,4,5,4,4,4,3,2,,2,Strong reference influence; good coherence but low originality and higher copy risk.
+img2img,weak,0.75,512x512,4,4,3,4,4,4,4,4,,4,Good prompt/reference balance; reference influence visible without major copying.
+img2img,weak,0.85,512x512,4,4,2,4,3,4,4,5,,5,Prompt-led and original; reference influence is limited.
+img2img,weak,0.9,512x512,4,4,2,4,3,4,4,5,,5,Weakest reference influence; close to prompt-led generation.
+ip-adapter,medium,0.55,512x512,3,5,4,4,4,4,3,4,4,4,"Best overall balance in the supplied sheets; controllable influence, strong diversity, no near-copy flags."
+ip-adapter,medium,0.55,512x1536,3,4,4,4,4,4,3,4,,4,"Visually usable and original at deck geometry, but repeated motifs/vertical elongation remain; only ~222 MiB physical GPU headroom."
+ip-adapter,medium,0.6,512x512,3,5,4,4,4,4,3,4,,4,Strong mid-range reference control with good originality; some pseudo-text/content takeover.
+ip-adapter,none,0.0,512x512,3,3,1,4,2,3,4,4,,5,Byte-identical to text-only baseline; reference influence intentionally absent.
+ip-adapter,strong,0.8,512x512,3,5,5,4,4,4,3,4,,4,"Strong reference control without direct copying, but prompt authority declines."
+ip-adapter,strong,0.85,512x512,2,5,5,4,4,4,3,4,,4,Strong reference control; conflict case is reference-led and pseudo-text increases.
+ip-adapter,strong,1.0,512x512,2,5,5,4,4,4,3,3,,4,Maximum reference influence; coherent but prompt loss and source-like composition are obvious.
+ip-adapter,weak,0.2,512x512,4,4,2,4,3,4,4,5,,5,"Prompt-led, diverse and original; reference influence is subtle."
+ip-adapter,weak,0.25,512x512,4,4,2,4,3,4,4,5,,5,Weak level preserves prompt well; some physical/mockup behavior remains.
+ip-adapter,weak,0.4,512x512,4,4,3,4,4,4,4,4,,4,Good early balance: visible reference influence with strong prompt adherence.
+ip-adapter-plus,medium,0.55,512x512,3,5,4,4,4,4,3,4,4,4,"Strong quality and diversity, but no decisive advantage over standard IP-Adapter and slightly higher VRAM."
+text-only,none,,512x512,3,3,,4,2,3,4,4,4,,Baseline only; frequent physical-skateboard/mockup outputs reduce decal suitability.
+text-only,none,,512x1536,,,,,,,,,,,Not visually scored from the supplied M4 contact sheets; retain as not scored or reuse separately approved M3 evidence.

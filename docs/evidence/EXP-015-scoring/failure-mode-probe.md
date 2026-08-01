@@ -1,11 +1,15 @@
-# Prototype 2 failure-mode probe (BLANK - to be filled in by Kylian)
+# Prototype 2 failure-mode probe (OBSERVED by Kylian, 2026-08-01)
 
 Carried over from M3 and M2. For each method and level, does reference conditioning
-**reduce**, **leave unchanged**, or **worsen** each failure mode? Enter one of
-`reduced` / `unchanged` / `worse` / `not observed`, or leave blank if you cannot judge.
+**reduce**, **leave unchanged**, or **worsen** each failure mode? One of
+`reduced` / `unchanged` / `worse` / `not observed`; a blank means it could not be judged.
 
 This is a separate instrument from the rubric on purpose: these are presence/absence
 observations about specific artefacts, not quality judgements on a 1-5 scale.
+
+Recorded verbatim from the approved review. The authoritative record is
+[`failure-mode-observations.csv`](failure-mode-observations.csv); nothing here is
+inferred, and `not observed` is recorded as itself rather than as `reduced`.
 
 ## What each probe means
 
@@ -25,12 +29,12 @@ or text-bearing reference.
 
 | method | level | repeated_elements | vertical_stretching | physical_deck_mockup | unwanted_frame | pseudo_text | background_transfer | notes |
 |---|---|---|---|---|---|---|---|---|
-| img2img | weak |  |  |  |  |  |  |  |
-| img2img | medium |  |  |  |  |  |  |  |
-| img2img | strong |  |  |  |  |  |  |  |
-| ip-adapter | weak |  |  |  |  |  |  |  |
-| ip-adapter | medium |  |  |  |  |  |  |  |
-| ip-adapter | strong |  |  |  |  |  |  |  |
+| img2img | weak | not observed | not observed | not observed | not observed | not observed | not observed | prompt-led wolf graphic with little visible transfer. |
+| img2img | medium | not observed | not observed | not observed | worse | worse | worse |  |
+| img2img | strong | not observed | not observed | not observed | worse | worse | worse |  |
+| ip-adapter | weak | worse | not observed | not observed | not observed | worse | not observed |  |
+| ip-adapter | medium | not observed | not observed | not observed | worse | worse | worse |  |
+| ip-adapter | strong | not observed | not observed | not observed | worse | worse | worse |  |
 
 ## EXP-013, the deck format (`deck-format-512x1536.jpg`)
 
@@ -39,12 +43,12 @@ this is the first evidence bearing on whether reference conditioning affects the
 
 | method | condition | repeated_elements | vertical_stretching | physical_deck_mockup | unwanted_frame | pseudo_text | background_transfer | notes |
 |---|---|---|---|---|---|---|---|---|
-| img2img | C1 |  |  |  |  |  |  |  |
-| img2img | C2 |  |  |  |  |  |  |  |
-| img2img | C4 |  |  |  |  |  |  |  |
-| ip-adapter | C1 |  |  |  |  |  |  |  |
-| ip-adapter | C2 |  |  |  |  |  |  |  |
-| ip-adapter | C4 |  |  |  |  |  |  |  |
+| img2img | C1 | worse | not observed | not observed | worse | worse | worse |  |
+| img2img | C2 | not observed | not observed | not observed | not observed | not observed | worse | near-copy / wholesale layout preservation. |
+| img2img | C4 | not observed | not observed | not observed | not observed | not observed | worse | near-copy of the project-original reference. |
+| ip-adapter | C1 | worse | unchanged | not observed | not observed | worse | not observed |  |
+| ip-adapter | C2 | not observed | not observed | not observed | not observed | not observed | reduced |  |
+| ip-adapter | C4 | not observed | worse | not observed | not observed | not observed | reduced |  |
 
 ## Relation to the open dataset findings
 
