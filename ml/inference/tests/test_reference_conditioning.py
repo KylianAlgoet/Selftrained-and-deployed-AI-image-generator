@@ -56,6 +56,32 @@ def test_an_unknown_level_name_fails_loudly_rather_than_silently_running_somethi
         rc.resolve_levels("img2img", "none")
 
 
+def test_sweep_and_named_levels_can_share_one_process_for_the_spot_check():
+    """The clean-process spot check re-runs the NAMED levels, but the sweep uses
+    different numbers (img2img sweeps 0.90..0.30 while its named levels are
+    0.85/0.65/0.40). Without both in the shared process there would be no
+    shared-process counterpart to compare the clean run against, and the 2 %
+    tolerance test in EXP-008b/009b would be meaningless."""
+    combined = rc.resolve_levels("img2img", "sweep,weak,medium,strong")
+    values = [value for _, value in combined]
+
+    assert values[:5] == list(rs.SWEEP_VALUES["img2img"])
+    for named in ("weak", "medium", "strong"):
+        assert rs.influence_value("img2img", named) in values, (
+            f"named level {named} has no shared-process run to spot-check against"
+        )
+    assert len(values) == len(set(values)), "a repeated value would be measured twice for nothing"
+
+
+def test_a_named_level_already_present_in_the_sweep_is_not_run_twice():
+    """IP-Adapter's sweep contains no named-level value, but the de-duplication
+    must hold regardless of which numbers the tables carry."""
+    combined = rc.resolve_levels("ip-adapter", "sweep,weak,medium,strong,strong")
+    values = [value for _, value in combined]
+    assert len(values) == len(set(values))
+    assert set(rs.SWEEP_VALUES["ip-adapter"]).issubset(set(values))
+
+
 # --- reference preprocessing geometry ----------------------------------------
 
 

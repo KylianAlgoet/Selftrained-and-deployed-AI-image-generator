@@ -1,0 +1,68 @@
+{
+  "experiment": "EXP-001",
+  "purpose": "verify PyTorch CUDA availability on the audited RTX 4060 Laptop GPU",
+  "timestamp_utc": "2026-07-31T00:02:16+00:00",
+  "host": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python_version": "3.11.0",
+    "python_executable": "C:\\Expert Lab\\Selftrained-and-deployed-AI-image-generator\\.venv\\Scripts\\python.exe"
+  },
+  "nvidia_smi": {
+    "available": true,
+    "driver_version": "610.88",
+    "gpu_name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "memory_total": "8188 MiB",
+    "raw": "610.88, NVIDIA GeForce RTX 4060 Laptop GPU, 8188 MiB"
+  },
+  "torch_import": {
+    "ok": true
+  },
+  "torch": {
+    "version": "2.13.0+cu126",
+    "bundled_cuda_runtime": "12.6",
+    "cudnn_version": 91002,
+    "cuda_available": true,
+    "device_count": 1
+  },
+  "gpu": {
+    "name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "compute_capability": "8.9",
+    "total_vram_bytes": 8585216000,
+    "total_vram_mib": 8187.5,
+    "total_vram_gib": 8.0,
+    "multi_processor_count": 24,
+    "matches_expected_model": true
+  },
+  "dtype_checks": [
+    {
+      "dtype": "float32",
+      "ok": true,
+      "matrix_size": 256,
+      "max_abs_diff": 4.1961669921875e-05,
+      "relative_error": 6.322441529198586e-07,
+      "tolerance": 0.0001
+    },
+    {
+      "dtype": "float16",
+      "ok": true,
+      "matrix_size": 256,
+      "max_abs_diff": 0.03464508056640625,
+      "relative_error": 0.0005220037633471052,
+      "tolerance": 0.02
+    },
+    {
+      "dtype": "bfloat16",
+      "ok": true,
+      "matrix_size": 256,
+      "max_abs_diff": 0.2840003967285156,
+      "relative_error": 0.004279085903702778,
+      "tolerance": 0.05
+    }
+  ],
+  "memory_after_checks": {
+    "allocated_mib": 8.12,
+    "reserved_mib": 22.0,
+    "max_reserved_mib": 22.0
+  },
+  "verdict": "PASS"
+}

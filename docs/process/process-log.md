@@ -4,6 +4,62 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-01 — M4 foundation: Prototype 2 reference-conditioning schema, kit and Phase-1 runner
+
+**Objective:** build and validate the reference-conditioning foundation for Prototype 2 (RQ6, RQ7) before spending any GPU time — the data model, the frozen reference kit, and the Phase-1 generation runner.
+
+**Plan:** approved M4 plan (`docs/prompts/` planning session, 2026-07-31), steps 1–3 of its safe execution order. Measured arms: text-only baseline, img2img, IP-Adapter, IP-Adapter-Plus at medium only. ControlNet compared on criteria but **not implemented**. No LoRA training, no dataset modification, no edit to the frozen prompt kit.
+
+**Completed work:**
+
+- `ml/inference/reference_schema.py` — pure data model (no torch/diffusers import): method registry, reference registry R1–R5, condition table C1–C6, the shared influence-level mapping, `effective_steps`, `retained_area_fraction`, `process_config_key`, the Phase-1 `ReferenceResultRow` and the **separate** Phase-2 `SimilarityRow`, aggregation and the unscored summary renderer.
+- `scripts/build_reference_kit.py` — verifies every dataset-derived reference against `data/manifests/dataset-v1.csv` (holdout membership, dimensions, licence, SHA-256 of the file on disk), regenerates R4 from seed 9001, copies the two project-original references into `data/references/` with a byte-identity check, computes retained-area fractions, and writes the registry plus a contact sheet.
+- `ml/inference/reference_conditioning.py` — Phase-1 runner. Imports **no** similarity or metric code. Reuses Prototype 1's `load_pipeline`, `ResourceSampler`, `resolve_revision` and `sha256_bytes` unchanged, derives the img2img pipeline through `AutoPipelineForImage2Image.from_pipe` so both SD 1.5-native arms provably share identical weights, and works around the diffusers 0.39.0 pinning gap by loading and registering the CLIP image encoder itself at the pinned revision before calling `load_ip_adapter`.
+- Tests: `test_reference_schema.py` (schema, level mapping, arithmetic, registry integrity, process boundary, similarity join, monotonicity, unscored summary) and `test_reference_conditioning.py` (run plan, preprocessing geometry, failure recording).
+
+**Measurement-validity correction preserved from the plan:** generation measurement is separated from similarity evaluation. A pytest parses the runner with `ast` and asserts it never imports `ml.evaluation.similarity`, so the 2.35 GiB CLIP metric encoder can never be resident in a process whose VRAM figure describes a generation method — the same class of error as the EXP-005 allocator contamination.
+
+**Correction made against the approved plan, after inspecting the actual images:** the plan describes condition **C5** as "reference says cresting wave, prompt says minimal geometric". *Cresting wave* is the wording of prompt **P3-ukiyo**, not the content of **R3** (`DS-0103`, `met-37129.jpg`), which is a landscape ukiyo-e print of a seated figure at a low desk in an interior. The conflict C5 tests is real and unchanged — a figurative ukiyo-e scene against a minimal-geometric prompt — but it is now described accurately, C3 is relabelled *style-matched on style, subject-mismatched*, and a pytest guards against the old label reappearing. Recorded also: **R1 is likewise a framed, text-dominated poster scan**; R5 is the harder case because it adds landscape orientation, not because it is the only framed reference.
+
+**Defects found and fixed while validating the resumed working tree** (three real, one test-side):
+
+1. `resolve_levels("text-only", "sweep")` raised `KeyError` — the control arm owns no sweep values. EXP-010 runs the baseline through that entry point, so it would have failed at launch. It now returns the single `none` level.
+2. Failure handlers used `str(err).splitlines()[0]`, which raises `IndexError` on an exception with an empty message — destroying the very failure row the honesty rules require. Replaced with `_first_line`, which never returns empty.
+3. The `--gate` JSON did not record the UNet attention-processor evidence its own docstring promised. It now records the IP-Adapter processor names, the adapter/total processor counts read back from the live UNet, and post-load VRAM.
+4. The Phase-1/Phase-2 import guard forbade the whole `ml.evaluation` package, which would have banned the frozen prompt kit. Narrowed to fully-qualified names so `from ml.evaluation import similarity` is still caught, plus a positive assertion that the frozen kit *is* imported.
+
+**Unfinished work:** EXP-007…EXP-014 (all GPU runs), the Phase-2 similarity evaluator, the orchestrator, contact sheets, and the scoring form.
+
+**Blockers:** none.
+
+**Commands/tests (real output):**
+
+```
+.venv\Scripts\python.exe -m pytest
+113 passed in 0.99s
+
+.venv\Scripts\python.exe -c "from ml.evaluation import prompt_kit; print(prompt_kit.kit_fingerprint())"
+c40749bc100deea5cc5854e40ba34928dcf3fdda31ff3c41840dafdfba1f5228
+
+.venv\Scripts\python.exe scripts\build_reference_kit.py
+  R1: OK - DS-0077 holdout, SHA-256 matches manifest and file on disk
+  R2: OK - DS-0048 holdout, SHA-256 matches manifest and file on disk
+  R3: OK - DS-0103 holdout, SHA-256 matches manifest and file on disk
+  R4: n/a - generated from seed, not a manifest item
+  R5: OK - DS-0088 holdout, SHA-256 matches manifest and file on disk
+  5 references verified against the manifest and materialised.
+```
+
+66 pre-existing tests plus 47 new ones pass, and the frozen prompt-kit fingerprint is **unchanged**. No linter is installed in this environment (`ruff` absent), so pytest is the validation gate; this is stated rather than a lint step being claimed.
+
+**Real results:** the reference kit is frozen and provenance-verified; no GPU measurement has been taken yet, and none is claimed.
+
+**Evidence:** `docs/evidence/prototype-2/reference-kit.md`, `reference-kit.csv`, `reference-kit-sheet.jpg`; `docs/evidence/EXP-007/cuda-gate-recheck.json` and `pip-freeze.txt`.
+
+**Next step:** EXP-007, the IP-Adapter environment gate — a hard gate. Nothing downstream runs until the adapter loads at the pinned revision with its attention processors verifiably present in the UNet.
+
+---
+
 ## 2026-07-30 — M3 closed: human review passed, SD 1.5 selected (DR-007)
 
 **Objective:** complete M3 after the human-review gate by recording Kylian's scores, deciding the base model, and finalising the milestone.

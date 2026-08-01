@@ -1,0 +1,27 @@
+{
+  "experiment": "EXP-007",
+  "method": "ip-adapter",
+  "adapter_repo_id": "h94/IP-Adapter",
+  "adapter_weight_name": "ip-adapter_sd15.safetensors",
+  "adapter_revision_sha": "018e402774aeeddd60609b4ecdb7e298259dc729",
+  "image_encoder_subfolder": "models/image_encoder",
+  "image_encoder_revision_sha": "018e402774aeeddd60609b4ecdb7e298259dc729",
+  "adapter_attention_processors": [
+    "IPAdapterAttnProcessor2_0"
+  ],
+  "adapter_attention_processor_count": 16,
+  "unet_attention_processor_count": 32,
+  "post_load_vram_allocated_mb": 3305.29,
+  "post_load_vram_reserved_mb": 3436.0,
+  "sd15_repo_id": "stable-diffusion-v1-5/stable-diffusion-v1-5",
+  "sd15_revision_sha": "451f4fe16113bff5a5d2269ed5ad43b0592e9a14",
+  "kit_fingerprint": "c40749bc100deea5cc5854e40ba34928dcf3fdda31ff3c41840dafdfba1f5228",
+  "runs_ok": 1,
+  "runs_total": 1,
+  "peak_vram_allocated_mb": 3924.07,
+  "peak_vram_reserved_mb": 4582.0,
+  "peak_device_used_mb": 5695.5,
+  "load_seconds": 104.145,
+  "generate_seconds": 3.446,
+  "process_config_key": "ip-adapter@512x512@tier0"
+}

@@ -317,11 +317,20 @@ def generate_once(
 
 
 def resolve_levels(method_key: str, spec: str) -> list[tuple[str, float | None]]:
-    """`spec` is 'sweep', or a comma-separated list of shared level names.
+    """`spec` is a comma-separated list of shared level names, in which the token
+    `sweep` expands to that method's full sweep values.
 
-    Returns (influence_level, native_value) pairs. For the sweep the level label
-    is derived from the value through the SAME table the named levels use, so a
-    chart can never be read against the wrong direction.
+    Returns (influence_level, native_value) pairs, de-duplicated on the native
+    value and in the order requested. For sweep points the level label is derived
+    through the SAME table the named levels use, so a chart can never be read
+    against the wrong direction.
+
+    Mixing the two matters for the clean-process spot check. The sweep values and
+    the named levels are deliberately different numbers (img2img sweeps
+    0.90...0.30 but its named levels are 0.85/0.65/0.40), so a spot check run at
+    the named levels would have NO shared-process counterpart to be compared
+    against. `--levels sweep,weak,medium,strong` puts both in the one shared
+    process, which is exactly what EXP-008b and EXP-009b then re-run cleanly.
     """
     # The text-only control has no reference-strength parameter at all, so it has
     # exactly one level whatever is requested - including 'sweep', which would
@@ -329,17 +338,29 @@ def resolve_levels(method_key: str, spec: str) -> list[tuple[str, float | None]]
     if method_key == "text-only":
         return [("none", None)]
 
-    if spec == "sweep":
-        return [(level_for_value(method_key, value), value) for value in SWEEP_VALUES[method_key]]
-
+    table = LEVEL_VALUES[method_key]
     pairs: list[tuple[str, float | None]] = []
+    seen: set[float] = set()
+
     for name in [part.strip() for part in spec.split(",") if part.strip()]:
-        table = LEVEL_VALUES[method_key]
-        if name not in table:
+        if name == "sweep":
+            candidates = [
+                (level_for_value(method_key, value), value) for value in SWEEP_VALUES[method_key]
+            ]
+        elif name in table:
+            candidates = [(name, table[name])]
+        else:
             raise SystemExit(
-                f"method {method_key!r} has no {name!r} level; available: {sorted(table)}"
+                f"method {method_key!r} has no {name!r} level; available: {sorted(table)} or 'sweep'"
             )
-        pairs.append((name, table[name]))
+        for level, value in candidates:
+            if value in seen:
+                continue
+            seen.add(value)
+            pairs.append((level, value))
+
+    if not pairs:
+        raise SystemExit(f"no levels resolved from {spec!r} for method {method_key!r}")
     return pairs
 
 
