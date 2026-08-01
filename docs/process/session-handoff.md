@@ -2,12 +2,16 @@
 
 **Last updated:** 2026-08-01 (M4 / Prototype 2 execution session, under Opus 5)
 
-## M4 (Prototype 2 — text + reference-image conditioning): IN PROGRESS
+## M4 (Prototype 2 — text + reference-image conditioning): 🛑 AT THE HUMAN-REVIEW GATE
 
-Executing the approved M4 plan
-(`C:\Users\kylia\.claude\plans\read-the-complete-file-stateful-lightning.md`)
-autonomously up to the **mandatory human-review gate**. Nothing is scored, no method is
-selected, DR-008 is unwritten, issue #5 is open, nothing is pushed.
+**All autonomous M4 work is complete. Stopped for Kylian's visual review and rubric scores.**
+
+👉 **Start here: `docs/evidence/prototype-2/HUMAN-REVIEW-GATE.md`** — it lists every sheet to
+open in order, the unscored technical summary, the rubric, and the blank forms.
+
+Nothing is scored, no method is selected, DR-008 is unwritten, `experiments/registry.csv` is
+not yet updated (its `evaluation`/`conclusion` fields need the scores), issue #5 is open, M4 is
+not Done, and **nothing has been pushed**.
 
 **EXP-007 adapter gate: PASSED** (hard gate — nothing downstream ran until it was green).
 IP-Adapter and its CLIP image encoder both load at the pinned revision
@@ -16,9 +20,14 @@ IP-Adapter and its CLIP image encoder both load at the pinned revision
 SD 1.5, each in its own process: **+1248.69 MiB peak allocated** (2675.38 → 3924.07),
 latency +0.164 s. Peak device used 5695.5 MiB of 8187.5 MiB physical, tier 0, no overflow.
 
-**Committed so far (local only, never pushed):**
+**The eight M4 Phase-1 commits (local only, never pushed):**
 
 ```
+dd80659 feat(evaluation): add prototype 2 scoring form with aggregate-level rows
+1985d8d docs(experiments): record offline similarity indicators and the process-isolation check
+aaa0e06 feat(evaluation): add offline similarity indicators for reference conditioning
+d15dc17 docs(experiments): record conflicting-reference and deck-format conditioning measurements
+331c6aa docs(experiments): record reference-strength sweep measurements for both methods
 9053c71 docs(experiments): record the ip-adapter environment gate for prototype 2
 9f0d664 feat(inference): add reference-conditioning runner for img2img and ip-adapter
 ce681b7 feat(inference): add reference-image registry and conditioning schema for prototype 2
@@ -31,29 +40,56 @@ at start rather than appending twice. `--start-at N` was added to
 `scripts/run_reference_conditioning.py` for exactly this. Nothing was recovered by hand and
 no partial data was kept.
 
-**Measured so far (all tier 0, no escalation, no failures):**
+**Measured: 299 generation rows, EXP-007 → EXP-013. Zero failures, zero timeouts, memory
+tier 0 throughout, no escalation anywhere.** 16 fresh OS processes.
 
-| | result |
-|---|---|
-| EXP-008 img2img sweep, 512×512 | **96/96 ok.** Peak allocated **2675.38 MiB at every level — identical to bare SD 1.5, i.e. genuinely zero extra VRAM.** |
-| EXP-008b img2img clean-process spot check | **3/3 within tolerance at +0.000 %** — shared-process comparison accepted for img2img |
-| EXP-009 IP-Adapter sweep | re-running after the interruption |
+**VRAM — peak allocated per run (fp16, tier 0):**
 
-**The img2img latency trap is confirmed, not assumed:** strength 0.90 → 3.021 s but
-strength 0.30 → 1.208 s, i.e. *a stronger reference is faster*, while seconds-per-effective-step
-stays flat at 0.112–0.134. Raw wall-clock across strengths is therefore meaningless and every
-row carries `effective_steps`.
+| geometry | text-only | img2img | IP-Adapter | IP-Adapter-Plus |
+|---|---|---|---|---|
+| 512×512 | 2675.38 MiB | **2675.38 (+0.00)** | 3924.07 (+1248.69) | 3978.87 (+1303.49) |
+| 512×1536 | 3892.01 MiB | **3892.01 (+0.00)** | 5140.69 (+1248.68) | not measured |
+
+**img2img costs exactly zero extra VRAM** at both geometries. **IP-Adapter's overhead is the
+same fixed ~1248.7 MiB at both**, consistent with its scale acting on attention rather than on
+output size.
+
+⚠️ **Deck-format headroom:** IP-Adapter at 512×1536 reached **7965.5 MiB peak device used of
+8187.5 MiB physical — about 222 MiB spare.** All 9 runs succeeded and no overflow flag fired,
+but this is not headroom to call comfortable, and **a LoRA stacked on top in Prototypes 3–4
+cannot be assumed to fit.** Plan M5/M6 with that in mind.
+
+**Latency (median s):** 512×512 — text-only 3.248 · img2img 3.021 (s=0.90) → 1.208 (s=0.30) ·
+IP-Adapter ~3.35–3.47 · Plus 3.436. 512×1536 — text-only 11.837 · img2img 7.980 · IP-Adapter 12.022.
+
+**The img2img latency trap is confirmed, not assumed:** wall-clock *falls* as influence *rises*,
+purely because diffusers runs `int(steps × strength)` steps. Seconds-per-effective-step stays
+flat at 0.112–0.134, so the speed advantage is **fewer steps, not faster ones**.
+
+**Process isolation ACCEPTED in full:** 6/6 clean-process spot-check pairs at **+0.000 %**
+against a 2 % tolerance pre-declared in code before any measurement.
+
+**EXP-010 lower bound — both comparisons maximally positive:** **12/12** IP-Adapter runs at
+`scale=0.0` are byte-identical to the text-only baseline, and **12/12** M4 baselines are
+byte-identical to Prototype 1's EXP-002 hashes (cross-milestone repeatability; the M4 baseline
+provably *is* the M3 baseline).
+
+**Monotonicity (EXP-014, CPU, 297 images in 393 s):** median overall reference-image similarity
+rises with influence level in **6/6 conditions for img2img and 6/6 for IP-Adapter** — both clear
+the ≥3-of-4 bar. IP-Adapter-Plus is *not applicable* (medium level only by design), not a failure.
+
+⚠️ **Copy risk — the finding to look at:** all **6** flagged outputs (dHash ≤ 6) are **img2img
+at 512×1536** on the two references that are natively 512×1536 (R2, R4), three of them at
+**dHash 0–1, i.e. perceptually indistinguishable from the reference.** Median dHash for img2img
+at medium is **27 at 512×512 but 5 at 512×1536**. Mechanism: img2img forces the reference into
+the output resolution, so when the aspect already matches, nothing is cropped and denoising at
+`strength=0.65` starts from an essentially intact copy. **This is the production geometry.**
+See `copy-risk.md` and `copy-risk-pairs.jpg`; judge under `originality` /
+`copy_or_overfitting_risk`.
 
 **Verified separation of measurement from evaluation:** `image_encoder_revision_sha` is
-**empty on every text-only and img2img row**, which is positive evidence that no CLIP encoder
-was resident in those measured processes. A pytest parses the Phase-1 runner with `ast` and
-fails if it ever imports `ml.evaluation.similarity`.
-
-### Still to do before the gate
-
-EXP-009/009b, EXP-010, EXP-011, EXP-012, EXP-013 · EXP-014 Phase-2 similarity (CPU) ·
-contact sheets · monotonicity, isolation and lower-bound reports · blank scoring form and
-failure-mode probe · the gate handoff.
+**empty on every text-only and img2img row** — positive evidence from the data that no CLIP
+encoder was resident in those measured processes. Pytests guard the boundary in both directions.
 
 ### Correction carried against the approved plan
 
@@ -73,6 +109,22 @@ orientation, not because it is the only framed reference.
 - EXP-008/EXP-009 run the **named levels alongside the sweep in one shared process**, a documented
   extension of the plan's run counts: the sweep values and named levels are different numbers, so
   without this the clean-process spot checks would have had no counterpart to compare against.
+- Regenerate any artefact with: `scripts/build_reference_kit.py` · `scripts/run_reference_conditioning.py`
+  (`--dry-run`, `--only`, `--start-at`) · `scripts/evaluate_similarity.py` ·
+  `scripts/build_p2_analysis.py` · `scripts/build_p2_contact_sheets.py` · `scripts/build_p2_scoring_form.py`.
+
+### After Kylian's scores arrive — the post-approval order
+
+Record the scores at the granularity actually used → **DR-008** with its conclusion and the
+ControlNet screen-out reason → `docs/prototypes/prototype-2.md` → finalise
+`experiments/registry.csv` (EXP-007…EXP-014) → planning + change log, risk register (R1 gains the
+adapter VRAM figure, R8 its first conditioning evidence), testing strategy (new principle:
+measurement instrumentation must not enter the workload it measures), traceability (D1, **D4**,
+D5, D6), `docs/ai-usage.md`, and the `docs/04-dataset-methodology.md` M4/M6 wording correction →
+close issue #5 → board Done → push → M4 milestone report. **Then stop before M5.**
+
+If the outcome is negative — neither method giving visible, monotone, usable control — that is a
+legitimate RQ6 answer and gets recorded as one, with Prototype 5 planning for text-only + LoRA.
 
 ---
 
