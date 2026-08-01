@@ -1,8 +1,82 @@
 # Session handoff
 
-**Last updated:** 2026-07-30 (M3 / Prototype 1 session, under Opus 5)
+**Last updated:** 2026-08-01 (M4 / Prototype 2 execution session, under Opus 5)
 
-## Current state
+## M4 (Prototype 2 — text + reference-image conditioning): IN PROGRESS
+
+Executing the approved M4 plan
+(`C:\Users\kylia\.claude\plans\read-the-complete-file-stateful-lightning.md`)
+autonomously up to the **mandatory human-review gate**. Nothing is scored, no method is
+selected, DR-008 is unwritten, issue #5 is open, nothing is pushed.
+
+**EXP-007 adapter gate: PASSED** (hard gate — nothing downstream ran until it was green).
+IP-Adapter and its CLIP image encoder both load at the pinned revision
+`018e402774aeeddd60609b4ecdb7e298259dc729`; **16 of 32** UNet attention processors are
+`IPAdapterAttnProcessor2_0`, read back from the live UNet. Measured cost against bare
+SD 1.5, each in its own process: **+1248.69 MiB peak allocated** (2675.38 → 3924.07),
+latency +0.164 s. Peak device used 5695.5 MiB of 8187.5 MiB physical, tier 0, no overflow.
+
+**Committed so far (local only, never pushed):**
+
+```
+9053c71 docs(experiments): record the ip-adapter environment gate for prototype 2
+9f0d664 feat(inference): add reference-conditioning runner for img2img and ip-adapter
+ce681b7 feat(inference): add reference-image registry and conditioning schema for prototype 2
+```
+
+**Interruption to be aware of.** A first orchestrator run was killed mid-EXP-009 by a
+usage-limit cutoff. Stages 1–4 (EXP-008, EXP-008b) had completed; EXP-009's partial file
+was **rewritten from scratch** on resume, because each runner deletes its own results file
+at start rather than appending twice. `--start-at N` was added to
+`scripts/run_reference_conditioning.py` for exactly this. Nothing was recovered by hand and
+no partial data was kept.
+
+**Measured so far (all tier 0, no escalation, no failures):**
+
+| | result |
+|---|---|
+| EXP-008 img2img sweep, 512×512 | **96/96 ok.** Peak allocated **2675.38 MiB at every level — identical to bare SD 1.5, i.e. genuinely zero extra VRAM.** |
+| EXP-008b img2img clean-process spot check | **3/3 within tolerance at +0.000 %** — shared-process comparison accepted for img2img |
+| EXP-009 IP-Adapter sweep | re-running after the interruption |
+
+**The img2img latency trap is confirmed, not assumed:** strength 0.90 → 3.021 s but
+strength 0.30 → 1.208 s, i.e. *a stronger reference is faster*, while seconds-per-effective-step
+stays flat at 0.112–0.134. Raw wall-clock across strengths is therefore meaningless and every
+row carries `effective_steps`.
+
+**Verified separation of measurement from evaluation:** `image_encoder_revision_sha` is
+**empty on every text-only and img2img row**, which is positive evidence that no CLIP encoder
+was resident in those measured processes. A pytest parses the Phase-1 runner with `ast` and
+fails if it ever imports `ml.evaluation.similarity`.
+
+### Still to do before the gate
+
+EXP-009/009b, EXP-010, EXP-011, EXP-012, EXP-013 · EXP-014 Phase-2 similarity (CPU) ·
+contact sheets · monotonicity, isolation and lower-bound reports · blank scoring form and
+failure-mode probe · the gate handoff.
+
+### Correction carried against the approved plan
+
+The plan describes C5's reference as *"cresting wave"*. That is the wording of prompt
+**P3-ukiyo**, not the content of **R3** (`DS-0103`), which is a landscape ukiyo-e print of a
+seated figure at a low desk in an interior. The C5 conflict is real and unchanged; only the
+description was wrong. A pytest guards the old label from returning. Recorded also: **R1 is
+also a framed, text-dominated poster scan** — R5 is the harder case because it adds landscape
+orientation, not because it is the only framed reference.
+
+### M4 facts a new session must know
+
+- `.venv/Scripts/python.exe -m pytest` → **123 tests**, frozen-kit fingerprint `c40749bc…` unchanged.
+- **No linter is installed** (`ruff` absent). pytest is the validation gate; do not claim a lint step ran.
+- Adapter cache: `h94/IP-Adapter` **2453.8 MiB** downloaded once (2411.2 encoder + 42.6 adapter), outside the repo.
+- `scripts/run_reference_conditioning.py --dry-run` prints the 16-stage process plan without running it.
+- EXP-008/EXP-009 run the **named levels alongside the sweep in one shared process**, a documented
+  extension of the plan's run counts: the sweep values and named levels are different numbers, so
+  without this the clean-process spot checks would have had no counterpart to compare against.
+
+---
+
+## Prior state (M3, completed 2026-07-30)
 
 Phase 0, public planning (issues #1–#12), **M1 (Prototype 0)**, and **M2 (dataset)** complete and pushed.
 

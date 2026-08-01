@@ -4,6 +4,63 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-01 — M4 Phase-1 measurements: EXP-007 to EXP-013 complete, 299 runs, zero failures
+
+**Objective:** produce the measured evidence for RQ6 — how text and reference conditioning combine, and what each method costs — up to the mandatory human-review gate.
+
+**Plan:** approved M4 plan, execution steps 2–6. One fresh OS process per method × adapter variant × resolution × memory tier, launched by `scripts/run_reference_conditioning.py`. Influence levels share a process by design, with clean-process spot checks to verify that sharing.
+
+**Completed work:** 16 processes, 299 generation rows, **0 failures, 0 timeouts, no memory-tier escalation anywhere**. EXP-007 gate · EXP-008/008b img2img sweep + spot check · EXP-009/009b IP-Adapter sweep + spot check · EXP-010 baseline and scale-0.0 diagnostic (512×512 and the deck format) · EXP-011 conflict and difficult reference · EXP-012 IP-Adapter-Plus · EXP-013 deck format.
+
+**Interruption, recorded rather than smoothed over.** The first orchestrator invocation was killed mid-EXP-009 by a usage-limit cutoff. Stages 1–4 had completed; EXP-009's 77 partial rows were **discarded and the experiment re-run from scratch**, because each runner deletes its own results file at start rather than appending twice. `--start-at` was added for clean resumption. No partial data was kept and nothing was reconstructed by hand.
+
+**Real results — VRAM (peak allocated, per run, tier 0, fp16):**
+
+```
+512x512      text-only      2675.38 MiB     img2img         2675.38 MiB  (+0.00)
+             ip-adapter     3924.07 MiB     ip-adapter-plus 3978.87 MiB
+512x1536     text-only      3892.01 MiB     img2img         3892.01 MiB  (+0.00)
+             ip-adapter     5140.69 MiB
+```
+
+**img2img costs exactly zero extra VRAM** — byte-identical to the text-only baseline at both geometries, which is what `AutoPipelineForImage2Image.from_pipe` sharing the already-loaded components should produce, and it is now measured rather than projected. **IP-Adapter costs +1248.69 MiB at 512×512 and +1248.68 MiB at 512×1536** — the same fixed resident cost at both geometries, consistent with its scale acting on attention rather than on output size. IP-Adapter-Plus adds a further 54.80 MiB over base IP-Adapter.
+
+**Headroom warning for the deck format.** IP-Adapter at 512×1536 reached **7965.5 MiB peak device used against 8187.5 MiB physical — roughly 222 MiB spare**. No overflow flag was raised (allocated and reserved both stayed below physical) and all 9 runs succeeded, but this is not headroom to describe as comfortable, and adding a LoRA on top in Prototype 3–4 cannot be assumed to fit.
+
+**Real results — latency (median seconds):**
+
+```
+512x512    text-only 3.248 | img2img 3.021 (s=0.90) ... 1.208 (s=0.30) | ip-adapter ~3.35-3.47 | plus 3.436
+512x1536   text-only 11.837 | img2img 7.980 (s=0.65) | ip-adapter 12.022
+```
+
+**The img2img latency trap is confirmed, not assumed.** Wall-clock falls as reference influence rises (3.021 s at strength 0.90 → 1.208 s at 0.30) purely because diffusers runs `int(steps × strength)` steps. Seconds per effective step stays flat at 0.112–0.134, so the apparent speed advantage is fewer steps, not faster ones. Every row carries `effective_steps` and the summaries report s/eff step alongside wall-clock.
+
+**Process isolation — ACCEPTED in full.** All **6 of 6** clean-process spot-check pairs agree with their shared-process counterparts at **+0.000 %**, against a 2 % tolerance pre-declared in code before any measurement. Sharing a process across influence levels did not distort `peak_vram_allocated_mb`; no method needed re-running one level per process. Recorded as a confirmation precisely because it could have gone the other way, as EXP-005's allocator contamination did one milestone earlier.
+
+**EXP-010 lower-bound diagnostic — both comparisons maximally positive:**
+
+- **12 of 12** IP-Adapter runs at `scale=0.0` are **byte-identical** to the text-only baseline at the same prompt and seed. At zero scale the cross-attention path contributes nothing, so the method's lower bound is the baseline *exactly*, not approximately.
+- **12 of 12** M4 baseline outputs are **byte-identical to Prototype 1's EXP-002 hashes**. Cross-milestone repeatability holds, and the M4 baseline is provably the M3 baseline, so the two milestones' figures are directly comparable.
+
+Both were tested rather than promised; the diagnostic was written to report a mismatch honestly, and the "hash inequality alone does not fail the lower bound" caveat remains in the document because it governs how the result would have been read had it come out differently.
+
+**Measurement separation verified from data:** `image_encoder_revision_sha` is **empty on every text-only and img2img row**, which is positive evidence that no CLIP encoder was resident in those measured processes. A pytest parses the Phase-1 runner with `ast` and fails if it ever imports `ml.evaluation.similarity`.
+
+**Defect found in my own analysis script and fixed:** the process-isolation report initially printed "REJECTED — at least one pair exceeded the tolerance" when the pairs were merely *absent* from a partial dataset. Reporting missing data as a failed check is exactly the kind of false claim the honesty rules forbid, so the three outcomes are now distinguished: accepted, rejected, and not measured.
+
+**Unfinished work:** Phase-2 similarity evaluation (running), contact sheets, the scoring form, and the gate handoff.
+
+**Blockers:** none.
+
+**Commands/tests:** `.venv\Scripts\python.exe scripts\run_reference_conditioning.py --start-at 5` → `12/12 processes exited 0 in 1200.87s`. `.venv\Scripts\python.exe -m pytest` → 123 passed; frozen-kit fingerprint `c40749bc…` unchanged.
+
+**Evidence:** `docs/evidence/EXP-007/` … `EXP-013/`, and `docs/evidence/prototype-2/` (`measurement-summary.md`, `process-isolation-check.md`, `lower-bound-diagnostic.md`, `all-generation-results.csv`, `process-run-manifest.json`).
+
+**Next step:** Phase-2 similarity, contact sheets, blank scoring form, then **stop at the human-review gate**. No scores, no method selection, no DR-008 conclusion, no push.
+
+---
+
 ## 2026-08-01 — M4 foundation: Prototype 2 reference-conditioning schema, kit and Phase-1 runner
 
 **Objective:** build and validate the reference-conditioning foundation for Prototype 2 (RQ6, RQ7) before spending any GPU time — the data model, the frozen reference kit, and the Phase-1 generation runner.
