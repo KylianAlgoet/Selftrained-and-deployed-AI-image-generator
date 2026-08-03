@@ -1,8 +1,93 @@
 # Session handoff
 
-**Last updated:** 2026-08-01 (M4 / Prototype 2 execution session, under Opus 5)
+**Last updated:** 2026-08-04 (M5 / Prototype 3 execution session, under Opus 5)
 
-## M4 (Prototype 2 — text + reference-image conditioning): COMPLETE
+## M5 (Prototype 3 — LoRA smoke test): COMPLETE
+
+**No human review gate was used, by Kylian's decision** — M5's acceptance is automated and
+measurable, following the EXP-007 precedent. **No style-quality claim is made anywhere.**
+Issue #6 closure, board move, and any push are **not done**: `gh` was not on PATH in this
+session. Verify with `gh issue view 6` and `git status -sb` rather than trusting this line.
+
+**Decision (DR-009): LoRA selected** for Prototypes 4–5 — rank 8 / alpha 8, UNet attention
+(`to_q,to_k,to_v,to_out.0`), text encoder and VAE frozen, training memory **tier 0**.
+
+### ⚠️ Four things the next session must not soften
+
+1. **R12 is re-scoped, NOT closed.** The combined SD 1.5 + LoRA + IP-Adapter stack **fits at
+   512×1536 — by 202.0 MiB of 8187.5, which is 2.5 % of the device.** That is *less* margin
+   than IP-Adapter alone had (222 MiB). **Never call it comfortable headroom.** Prototype 5
+   must treat this as the **memory ceiling of the production path**: a second adapter, a
+   higher rank, a bigger reference batch, or ControlNet all have 202 MiB to fit into.
+2. **DR-009 makes no superiority claim.** From-scratch, full fine-tuning, DreamBooth and
+   Textual Inversion were **screened, never measured**. The defensible statement is that
+   LoRA is the mandated method *demonstrated feasible* on this hardware. Do not upgrade
+   this to "best" in the report.
+3. **No long native 512×1536 training run has happened.** EXP-017 was a **feasibility probe
+   only** (1 and 10 steps). Expanding it is a **separate M6 decision that needs Kylian**.
+4. **Gradient accumulation is not a memory tier**, and a guard enforces it. At micro-batch 1
+   it changes effective batch size, not micro-step peak memory. Kylian caught this in plan
+   review and the measurements confirmed him.
+
+### Measured results (13 runs across 8 experiments, tier 0 throughout, zero escalations)
+
+| run | geometry | peak alloc | peak device | spare | s/step |
+|---|---|---|---|---|---|
+| EXP-016a (1 step) | 512×512 | 3114.09 | 4267.5 | 3920.0 | 1.9344 |
+| EXP-016b (10 steps) | 512×512 | 3133.40 | 4285.5 | 3902.0 | 0.4340 |
+| EXP-016 (300 steps) | 512×512 | 3133.40 | 4285.5 | 3902.0 | 0.2854 |
+| EXP-017a (1 step) | 512×1536 | 5160.96 | 6429.5 | 1758.0 | 2.5533 |
+| EXP-017b (10 steps) | 512×1536 | 5182.58 | 6449.5 | 1738.0 | 1.1223 |
+| **EXP-019a** (LoRA+IP-Adapter) | 512×512 | 3927.11 | 5697.5 | 2490.0 | — |
+| **EXP-019b** (LoRA+IP-Adapter) | **512×1536** | **5143.73** | **7985.5** | **202.0** | — |
+
+- **Activations scale with geometry; optimizer state does not.** Post-load allocation is
+  identical at both geometries (2066.56 MiB) and the optimizer-step peak barely moves
+  (2108.93 → 2118.76) while forward/backward rises 3114 → 5183. **So gradient checkpointing
+  (tier 1) is the correct first escalation**, not a lower-memory optimizer.
+- **A rank-8 LoRA costs +3.04 MiB allocated at BOTH geometries** — measured independently in
+  EXP-018 and EXP-019. It does not scale with output size.
+- **300 training steps cost 91 s.** Prototype 4's comparison grid is affordable many times over.
+- **EXP-018:** reload proven from the **live UNet** (0 → 128 LoRA modules). Weight 0.0 gave
+  **4/4 byte-identical** to baseline — a **diagnostic, not a pass condition**. Weight 1.0 gave
+  **4/4 beyond a pre-declared noise floor** (mean abs pixel diff 51.89–66.33, dHash 20–28,
+  CLIP cosine 0.4796–0.7247). A differing PNG hash alone was never treated as sufficient.
+- **Cross-milestone continuity holds for a third milestone:** the EXP-018 baseline peak of
+  **2675.38 MiB is byte-identical** to Prototype 1's EXP-002 and Prototype 2's text-only baseline.
+
+### M5 facts a new session must know
+
+- `.venv/Scripts/python.exe -m pytest` → **210 tests**. Frozen prompt kit `c40749bc…` unchanged;
+  **new smoke kit fingerprint `a8052f44…`** hash-locked the same way. **No linter is installed.**
+- **`peft==0.20.0`** pinned in `ml/requirements-training.txt`, installed `--no-deps` after a
+  parsed `--dry-run --report` proved it moved none of torch / diffusers / transformers /
+  accelerate / safetensors. **Never install `bitsandbytes` or `xformers` without Kylian's
+  approval** — both confirmed absent, and no 8-bit-optimizer support may be claimed.
+- **Frozen smoke subset:** `data/manifests/smoke-test-p3.csv`, 12 `minimal-geometric` **train**
+  items, deterministic rule (sort by id, first 12), covering all 6 palettes and 6 shape counts.
+  Holdout exclusion is proven **against dataset-v1**, not against the manifest's own column.
+- **Caption strategy: dataset-v1 captions verbatim, NO trigger token** — deliberate, so the
+  smoke test carried one variable. **Trigger-token design is an open M6 decision.**
+- **The training tier ladder is NOT the inference ladder** (`ml/training/lora_schema.py`);
+  a test asserts they stay distinct so "tier 2" cannot mean two things.
+- **Import boundaries are AST-parsed, not text-scanned.** The schema imports no torch; neither
+  training runner may import the CLIP evaluator. Phase 1 (train/generate) and Phase 2
+  (similarity) stay separate processes.
+- Regenerate with: `scripts/build_smoke_test_manifest.py` · `scripts/run_lora_training.py`
+  (`--plan`, `--stage`, `--dry-run`) · `scripts/build_p3_training_summary.py` ·
+  `scripts/evaluate_lora_effect.py` · `ml.training.verify_lora` · `ml.training.combined_stack`.
+- **`outputs/` is git-ignored** — ~31 MB of adapters and images live there. Only manifests,
+  summaries and contact sheets are committed. **Model weights are never committed.**
+- The **EXP-016 smoke adapter** used by EXP-018/019 is
+  `outputs/lora/EXP-016__smoke__512x512__r8a8__lr0p0001__bs1x1__st300__seed42__tier0/`,
+  sha256 `e76f822bd3b6314a…`. It is git-ignored — **re-run EXP-016 to regenerate it**.
+- One honest failure is preserved: the first **EXP-019a** row has `status: failed`, a defect in
+  that runner (`preprocess_for_adapter` returns `(image, note)`), **not** a finding about the
+  stack. Do not delete it.
+
+## Prior state (M4, completed 2026-08-01)
+
+### M4 (Prototype 2 — text + reference-image conditioning): COMPLETE
 
 **Human review passed 2026-08-01; conditioning method selected in DR-008.** Issue #5 closure, board
 move to Done, and the push to `origin/main` follow this commit — verify their real state with
@@ -150,16 +235,32 @@ All at memory tier 0; no tier escalation was needed anywhere.
 
 ## Blockers
 
-- None. M3 is closed.
+- None. M5 is complete. **`gh` is not on PATH in this session**, so issue #6 state could not be
+  verified or changed from here — that remains Kylian's to confirm, along with any push.
 
 ## Next action
 
-**M4 — Prototype 2: text + reference-image conditioning** (issue #5, planned Aug 4–6; can start early — roughly four days of critical-path buffer exist). Start in **Plan mode**, per the project's milestone rule.
+**M6 — Prototype 4: style-learning experiments** (issue #7, planned Aug 8–11; **~7 days of
+critical-path buffer now exist**, so it can start early). Start in **Plan mode**, per the
+project's milestone rule.
 
-Scope reminders for M4:
-- Target **SD 1.5** per DR-007, with ~5.5 GB VRAM headroom at 512×512.
-- Compare **img2img vs IP-Adapter** (ControlNet if relevant) on a fixed prompt + reference kit; strength sweeps with fixed seeds (RQ6, RQ7).
-- Prototype 2 is where `reference_influence` becomes scoreable for the first time.
-- Reuse the **frozen kit** (`c40749bc…`) so results stay comparable to the Prototype 1 baselines; extend it with reference images rather than editing it, and expect the hash-lock test to require a deliberate, documented update if the kit itself changes.
-- Two open items inherited from M3: build a **multi-seed contact sheet** so `diversity_across_seeds` can finally be scored, and address the possible **repetition/vertical stretching** at 512×1536 that Kylian flagged.
-- Two M2 dataset findings still awaiting M4 decisions: framed/matted scans in `retro-poster`, and the text-dominated source material (see `docs/04-dataset-methodology.md`).
+Scope reminders for M6:
+- **Per-style vs multi-style LoRAs (RQ5)** and **dataset-size / rank / learning-rate
+  variations (RQ4)**, on the DR-009 foundation: SD 1.5 + rank-8 UNet-attention LoRA at tier 0.
+- **This is where the human rubric returns.** M5 deliberately made no style-quality claim.
+  Build the contact sheets and the scoring form, then **stop and hand off** — never invent
+  scores or pick the winner.
+- **Three open decisions M5 handed over, all needing Kylian:**
+  1. **Trigger-token design** — M5 used dataset captions verbatim on purpose.
+  2. **Whether to run a long native 512×1536 training run** — only feasibility was probed.
+  3. **Whether Textual Inversion / DreamBooth get measured comparisons at all**, or stay
+     screened-only with the limitation stated in the report.
+- **Two M2 dataset findings are still open** and now have M4 evidence behind them: framed /
+  matted scans in `retro-poster` and the text-dominated source material. EXP-011 confirmed
+  both transfer at medium influence and above, and the M4 record hands the mitigation
+  decision (crop pass vs negative prompting) to this milestone with training evidence.
+- **Budget rank increases against R12.** A rank-8 LoRA costs +3.04 MiB; higher ranks scale
+  that, and the combined stack has only **202 MiB** of room at the deck format.
+- Reuse the frozen kits (`c40749bc…` prompts, `a8052f44…` smoke kit) so results stay
+  comparable; extend rather than edit, and expect the hash locks to demand a deliberate,
+  documented update if a kit itself must change.

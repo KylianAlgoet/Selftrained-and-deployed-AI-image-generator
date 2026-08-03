@@ -10,6 +10,18 @@ Honest record of how Claude Code (Anthropic) is used in this project, per sessio
 
 ## Session log
 
+### 2026-08-04 — Prototype 3: LoRA smoke test (M5)
+
+**AI assistance:** Plan-mode M5 plan, revised after Kylian issued **twelve mandatory corrections and then a thirteenth**. Implementation of the PEFT dependency gating, the frozen smoke-test manifest and validation kit, the training schema and tier ladder, the training runner and its process-isolating orchestrator, the load-and-generate verifier, the two-phase effect evaluator, and the combined-stack runner; running all eight experiments; documentation, eight registry rows, DR-009 drafting, and atomic commits. Executed under Claude Opus 5.
+
+**Student decisions:** chose to **measure both training geometries** in separate processes rather than assume the deck format's cost, and chose **automated technical gates only** for M5, deferring all visual judgement to Prototype 4. Then issued twelve pre-execution corrections that materially changed the plan, including several the assistant had got wrong:
+
+- **Gate design.** Byte equality at LoRA weight 0.0 had been written as a *pass condition*; Kylian required it be demoted to a **diagnostic**, on the correct reasoning that loading an inactive adapter may legitimately change the execution graph. He likewise required that a differing PNG hash alone never count as proof of change, and that a decreasing loss never gate a short, noisy run.
+- **A technical error in the assistant's tier ladder.** The draft listed "increase gradient accumulation" as a VRAM-reduction tier. Kylian identified that at micro-batch 1 this changes effective batch size and training semantics but does **not** reduce the peak memory of one forward/backward micro-step, and required it be removed from the ladder entirely. The measured EXP-016/EXP-017 phase peaks later confirmed his reasoning: activations scale with geometry, optimizer state does not.
+- **Dependency protection**, **micro-run gating with hard wall-clock limits**, **the 512×512-before-512×1536 ordering** for the combined stack, **phase-separated resource recording**, and a requirement that **DR-009 not claim LoRA is superior to methods that were never measured**.
+
+**Boundary actually enforced:** the assistant produced measurements and evidence only. It made **no visual-quality claim anywhere** in M5, assigned no rubric score, and did not close issue #6 or push. The 512×1536 arm was held to feasibility probes and never expanded into a long training run, because that expansion was reserved as a separate decision for Kylian. One defect in the assistant's own EXP-019 runner (unpacking `preprocess_for_adapter`'s `(image, note)` return as one value) is preserved in the results as a failed row rather than deleted, and is labelled as a runner defect rather than a finding about the stack.
+
 ### 2026-07-30 — Prototype 1: base-model benchmark (M3)
 
 **AI assistance:** Plan-mode M3 plan, revised after Kylian issued seven mandatory corrections (two-track fairness, immutable revision pinning, a correctly scoped reproducibility claim, a hard human-review gate, safety-checker comparability, and resolving a style-label inconsistency first). Implementation of the inference dependency pinning, the CUDA smoke test, the hash-locked frozen evaluation kit, the benchmark schema and runner, the aspect-ratio experiment, two process-isolating orchestrators, and the scoring-form generator; running all experiments; diagnosing three real defects; documentation, registry rows, DR-007 drafting, and atomic commits. Executed under Claude Opus 5.

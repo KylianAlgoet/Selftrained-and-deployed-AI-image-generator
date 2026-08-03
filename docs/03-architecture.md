@@ -73,7 +73,7 @@ Requirements: local LoRA training on 8 GB VRAM, scriptable/reproducible (no GUI-
 | Community-validated LoRA quality (3) | 4 | 5 | 4 |
 | **Weighted total (max 105)** | **98** | **83** | **54** |
 
-**Decision:** Hugging Face Diffusers + PEFT + Accelerate (+ Transformers, Safetensors) as the toolchain. kohya-ss remains the documented fallback if Diffusers LoRA training underperforms on VRAM in Prototype 3. **The fine-tuning method itself (LoRA vs. alternatives) is still NOT decided here** — see feasibility screening below. **The base model WAS decided on 2026-07-30 with measured data → DR-007, section D-E below.** → `docs/decisions/DR-004-ml-toolchain.md`
+**Decision:** Hugging Face Diffusers + PEFT + Accelerate (+ Transformers, Safetensors) as the toolchain. **Update 2026-08-04: the kohya-ss fallback is NOT needed** — Diffusers + PEFT LoRA training fits 8 GB comfortably at 512×512 (3133 MiB) and adequately at the deck format (5183 MiB), both at tier 0 with no escalation (EXP-016/EXP-017). **The fine-tuning method WAS decided on 2026-08-04 with measured data → DR-009**, and the base model on 2026-07-30 → DR-007, section D-E below. → `docs/decisions/DR-004-ml-toolchain.md`
 
 ---
 
@@ -144,17 +144,22 @@ Full reasoning, with objective measurements and human scores reported in separat
 
 ---
 
-## ML method feasibility screening — HYPOTHESIS ONLY
+## ML method feasibility screening — LoRA now MEASURED (DR-009)
 
-Screening of the assignment-mandated alternatives against the audited constraint (8 GB VRAM, ~19 days). This narrows what gets empirical testing; it decides nothing final.
+**Update 2026-08-04:** the LoRA row below is no longer a hypothesis. Prototype 3 measured it
+across 8 experiments and 13 runs, and **DR-009 selects LoRA for Prototypes 4–5**. The other
+rows remain screening judgements: from-scratch and full fine-tuning are documented
+comparisons that were **never run**, and DreamBooth / Textual Inversion remain Prototype 4
+candidates. DR-009 states that evidence limitation explicitly and does **not** claim LoRA is
+objectively superior to methods that were never measured.
 
-| Method | 8 GB VRAM feasibility (screening) | Empirical test |
+| Method | 8 GB VRAM feasibility | Empirical test |
 |---|---|---|
-| Training diffusion model from scratch | Infeasible (multi-GPU-weeks class of compute); documented comparison only | Literature analysis in report |
-| Full fine-tuning | Marginal at best (optimizer states exceed VRAM for SD-class UNets) | Documented calculation; no full run planned |
-| DreamBooth | Possible with heavy optimization; subject-driven, less suited to style | Compared in Prototype 4 if time allows |
-| Textual Inversion | Feasible (tiny trainable footprint); limited style capacity | Candidate comparison in Prototype 4 |
-| **LoRA** | **Feasible; primary hypothesis** | **Prototype 3 (smoke test), Prototype 4 (styles)** |
+| Training diffusion model from scratch | Infeasible (multi-GPU-weeks class of compute); documented comparison only — **not measured** | Literature analysis in report |
+| Full fine-tuning | Marginal at best; AdamW holds two fp32 moments per trained parameter, ~6.9 GB of optimizer state alone for SD 1.5's ~860 M UNet parameters — **not measured** | Documented calculation; no full run planned |
+| DreamBooth | Possible with heavy optimization; subject-driven, less suited to style — **not measured** | Compared in Prototype 4 if time allows |
+| Textual Inversion | Feasible (tiny trainable footprint); limited style capacity — **not measured** | Candidate comparison in Prototype 4 |
+| **LoRA** | **MEASURED and SELECTED (DR-009).** Rank 8 / alpha 8 on UNet attention, tier 0, no escalation: **3133 MiB @512×512**, **5183 MiB @512×1536** of 8187.5 physical. 300 steps in 91 s. Marginal inference cost **+3.04 MiB**, independent of geometry | **Prototype 3 EXP-016…EXP-019 (done)**, Prototype 4 (styles) |
 | img2img without training | Feasible; baseline that "custom training" must beat | Prototype 2 baseline |
 | ControlNet | Feasible for inference conditioning | Prototype 2 if relevant |
 | IP-Adapter | Feasible; strong reference-image conditioning candidate | Prototype 2 |

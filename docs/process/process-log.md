@@ -39,6 +39,59 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-04 — M5 complete: LoRA trains, reloads, and the combined stack fits by 202 MiB (DR-009)
+
+**Objective:** answer RQ1 with measured data — does a LoRA actually train, save, reload and measurably change generation on 8 GB, and what does it cost? — and discharge the mandatory R12 combined-stack acceptance item.
+
+**Completed work:** all thirteen plan steps. PEFT pinned under dependency gating; the smoke subset and validation kit frozen and hash-locked before any GPU work; a training schema with its own tier ladder; a training runner plus a process-isolating, gate-enforcing orchestrator; eight experiments across thirteen runs; a load-and-generate verifier split into two phases; the combined-stack runner; DR-009; eight registry rows; and the documentation set.
+
+**Real results — all at training tier 0, no escalation anywhere:**
+
+```
+                geometry     peak alloc   peak device   spare     s/step
+EXP-016a  1 step   512x512     3114.09      4267.5      3920.0    1.9344
+EXP-016b  10 step  512x512     3133.40      4285.5      3902.0    0.4340
+EXP-016   300 step 512x512     3133.40      4285.5      3902.0    0.2854
+EXP-017a  1 step   512x1536    5160.96      6429.5      1758.0    2.5533
+EXP-017b  10 step  512x1536    5182.58      6449.5      1738.0    1.1223
+```
+
+**Native deck-format LoRA training FITS**, which the plan treated as genuinely uncertain. Because tier 0 passed everywhere, deeper tiers were **not** executed — the ladder guard forbids collecting extra results for their own sake.
+
+**The mechanism was measured, not assumed.** Post-load allocation is byte-identical at both geometries (2066.56 MiB) and the optimizer-step peak barely moves (2108.93 → 2118.76), while the forward/backward peak rises 3114.09 → 5182.58. **Activations scale with geometry; optimizer state does not.** This vindicates Kylian's thirteenth correction — he removed "increase gradient accumulation" from the memory ladder on the reasoning that at micro-batch 1 it changes training semantics but not micro-step peak memory — and it establishes gradient checkpointing as the correct tier-1 escalation, with a lower-memory optimizer as the wrong first move.
+
+**EXP-018 (load and generate).** Reload proven from the **live UNet**: 0 LoRA modules before load, **128 after**. Lower bound at weight 0.0: **4/4 byte-identical** to the no-adapter baseline (mean absolute pixel difference 0.0, dHash 0, CLIP cosine 1.0) — recorded as a **diagnostic, not a pass condition**, because loading an inactive adapter can legitimately alter the execution graph. Changed output at weight 1.0: **4/4 beyond a noise floor declared before any result was read** (mean abs difference 51.89–66.33, dHash 20–28, CLIP cosine 0.4796–0.7247). The baseline peak of **2675.38 MiB is byte-identical to Prototype 1's EXP-002**, giving cross-milestone continuity for a third milestone running.
+
+**EXP-019 (the R12 acceptance item).** Ran in the fixed order, 512×512 first. Both adapters live simultaneously, read back from the UNet: 128 LoRA modules + 16 IP-Adapter attention processors. At the deck format: **5143.73 MiB allocated, 7985.5 MiB device used of 8187.5 — 202.0 MiB spare, 2.5 % of the device.** It fits. **It is not comfortable headroom**, and it is *less* margin than IP-Adapter alone had in EXP-013 (222 MiB). Geometry was never reduced and no tier escalated.
+
+**The LoRA's marginal cost is +3.04 MiB allocated at both geometries**, measured independently in EXP-018 and EXP-019 and matching the arithmetic for 1 594 368 fp16 parameters. It does not scale with output size.
+
+**Decision — DR-009:** **LoRA selected** for Prototypes 4–5, rank 8 / alpha 8, UNet attention, text encoder and VAE frozen, tier 0. The record states explicitly that from-scratch, full fine-tuning, DreamBooth and Textual Inversion were **screened, not measured**, and that no superiority claim is made over them — the same honest limitation DR-007 carries for the gated SD 2.1.
+
+**Commands and tests:**
+
+```
+.venv/Scripts/python.exe -m pytest                                    -> 210 passed
+.venv/Scripts/python.exe scripts/build_smoke_test_manifest.py         -> 12 rows, full palette/shape coverage
+.venv/Scripts/python.exe -m ml.training.train_lora --exp-id ...       -> 5 training runs
+.venv/Scripts/python.exe scripts/run_lora_training.py --stage ...     -> gate-enforced staging
+.venv/Scripts/python.exe -m ml.training.verify_lora --arm ...         -> 3 arms, 12 images
+.venv/Scripts/python.exe scripts/evaluate_lora_effect.py              -> Phase 2, CPU, 29.7 s
+.venv/Scripts/python.exe -m ml.training.combined_stack --exp-id ...   -> EXP-019a/b
+```
+
+**Failures recorded honestly.** The first EXP-019a attempt is preserved with `status: failed`. It was a defect in this milestone's own runner — `preprocess_for_adapter` returns `(image, note)` and the caller unpacked one value — **not** a finding about the stack. It is kept rather than deleted because deleting failed rows is how a record stops being a record, and it still carries one real measurement: the full stack loaded at 3308.33 MiB before failing in preprocessing.
+
+**Unfinished work / deliberately out of scope:** no long *native* 512×1536 training run (a separate Prototype 4 decision); no trigger-token design (M5 used dataset captions verbatim, deliberately, so the smoke test carried one variable); no human rubric gate and **no style-quality claim anywhere** — that is Prototype 4's question.
+
+**Blockers:** none. **`gh` is not on PATH in this session**, so issue #6 state could not be verified or changed from here.
+
+**Evidence:** `docs/evidence/EXP-016/`, `EXP-017/`, `EXP-018/`, `EXP-019/`, `docs/evidence/prototype-3/` (training summary, two contact sheets), `docs/decisions/DR-009-fine-tuning-method.md`.
+
+**Next step:** **M6 — Prototype 4: style-learning experiments** (issue #7, planned Aug 8–11). Per-style vs multi-style LoRAs (RQ5), dataset-size/rank/learning-rate variations (RQ4), and the human rubric evaluation that M5 deliberately deferred.
+
+---
+
 ## 2026-08-01 — M4 closed: human review passed, standard IP-Adapter selected (DR-008)
 
 **Objective:** complete M4 after the human-review gate by recording Kylian's scores, deciding the reference-conditioning method, and finalising the milestone.
