@@ -232,6 +232,23 @@ def test_runner_never_imports_the_similarity_evaluator():
     assert not offenders, f"training runner must not import {sorted(offenders)}"
 
 
+def test_verifier_never_imports_the_similarity_evaluator():
+    """EXP-018 Phase 1 generates; Phase 2 measures. The 2.35 GiB CLIP encoder must
+    never be resident in a process reporting generation VRAM."""
+    from ml.training import verify_lora
+
+    offenders = {name for name in _all_imports(verify_lora) if name.startswith("ml.evaluation.similarity")}
+    assert not offenders, f"verifier must not import {sorted(offenders)}"
+
+
+def test_verifier_arms_cover_baseline_and_both_frozen_weights():
+    from ml.training import verify_lora
+
+    assert verify_lora.ARM_WEIGHTS[verify_lora.ARM_BASELINE] is None
+    assert verify_lora.ARM_WEIGHTS[verify_lora.ARM_WEIGHT0] == smoke_kit.LORA_WEIGHT_LOWER_BOUND
+    assert verify_lora.ARM_WEIGHTS[verify_lora.ARM_WEIGHT1] == smoke_kit.LORA_WEIGHT_ACTIVE
+
+
 def test_runner_does_not_import_torch_at_module_scope():
     """Keeps `--dry-run` and these tests cheap, and keeps the module importable
     for inspection on a machine with no CUDA."""
