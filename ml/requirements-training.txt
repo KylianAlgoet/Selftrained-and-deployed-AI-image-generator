@@ -1,0 +1,57 @@
+# Prototype 3 (M5) LoRA training stack - Python 3.11 venv at repo root (.venv).
+# Kept separate from ml/requirements-inference.txt (M3) and ml/requirements.txt
+# (M2 dataset tooling) so each layer stays installable on its own.
+#
+# INSTALL ORDER MATTERS. This file is installed LAST, on top of an already
+# working inference stack:
+#
+#   .venv/Scripts/python.exe -m pip install -r ml/requirements-inference.txt
+#   .venv/Scripts/python.exe -m pip install --no-deps -r ml/requirements-training.txt
+#
+# --- Why torch/diffusers/transformers/accelerate/safetensors are NOT re-pinned here ---
+#
+# They are pinned in ml/requirements-inference.txt and are deliberately absent
+# from this file. Every VRAM and latency figure recorded in M3 (EXP-001..005) and
+# M4 (EXP-007..014) is only comparable because that stack has not moved. A silent
+# upgrade or downgrade pulled in as a transitive dependency of a training package
+# would retroactively invalidate the measured history, so this layer is required
+# to add packages without moving any of them.
+#
+# --- Why --no-deps, and how the pin was chosen (2026-08-04) ---
+#
+# diffusers 0.39.0 declares `peft>=0.17.0` for its `training` extra
+# (MIN_PEFT_VERSION in diffusers/utils/constants.py is the older 0.6.0 floor).
+# peft 0.20.0 was the latest official PyPI release at the time of pinning.
+#
+# Compatibility was demonstrated before installing, not assumed:
+#   .venv/Scripts/python.exe -m pip install --dry-run peft==0.20.0 --report -
+# The machine-readable report resolved to exactly ONE package to install
+# (peft 0.20.0) and touched NONE of the five protected packages. peft 0.20.0's
+# runtime requirements - torch>=1.13.0, transformers, accelerate>=0.21.0,
+# safetensors, huggingface-hub>=0.25.0, numpy, packaging, psutil, pyyaml, tqdm -
+# are all already satisfied by the inference stack, so --no-deps installs the
+# same result while being structurally incapable of moving anything.
+#
+# Verified after install: `pip check` -> "No broken requirements found";
+# real imports report peft 0.20.0 / diffusers 0.39.0 / transformers 5.14.1 /
+# accelerate 1.14.0 / safetensors 0.8.0 / torch 2.13.0+cu126 unchanged,
+# torch.cuda.is_available() True on the RTX 4060 Laptop GPU, and diffusers
+# reports USE_PEFT_BACKEND True. Full suite still 123 passed.
+# Evidence: docs/evidence/EXP-016/dependency-resolution.md
+#
+# --- Deliberately NOT installed ---
+#
+# bitsandbytes: 8-bit optimizer states are tier 3 of the M5 training memory
+# ladder. It is OPTIONAL and must never be installed automatically on this
+# Windows machine - it requires explicit approval, and its support is not
+# claimed anywhere unless it has actually installed and run. Confirmed ABSENT
+# on 2026-08-04.
+#
+# xformers: torch 2.x scaled-dot-product attention is the Diffusers default and
+# needs no extra dependency, exactly as recorded in requirements-inference.txt.
+# Confirmed ABSENT on 2026-08-04.
+#
+# No nightlies, no pre-releases, no VCS installs.
+
+# --- LoRA / PEFT training ---
+peft==0.20.0

@@ -4,6 +4,41 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-04 — M5 step 1: PEFT pinned under dependency-stack protection
+
+**Objective:** add the LoRA training dependency required by Prototype 3 **without moving any part of the inference stack that M3 and M4 measurements depend on.**
+
+**Plan:** M5 was planned in Plan mode and approved by Kylian after three rounds of correction. Two decisions were taken before planning: the smoke test **measures both training geometries** (512×512 and native 512×1536) in separate processes, and M5 uses **automated technical gates only — no human rubric gate**, deferring all visual judgement to Prototype 4.
+
+**Completed work:** pre-flight (clean tree at `f1eba54`, in sync with `origin/main`, **123 passed**); protected baseline versions recorded; PEFT version chosen from published metadata (`diffusers 0.39.0` declares `peft>=0.17.0` for its `training` extra; `MIN_PEFT_VERSION` in `diffusers/utils/constants.py:24` is the older `0.6.0` loader floor); resolver **dry-run inspected before any write to the venv**; `peft==0.20.0` installed `--no-deps`; post-install verification; `ml/requirements-training.txt` written with the full rationale.
+
+**Decision — dependency gating.** Installing a training package is treated as a gated step with its own evidence file, not a routine `pip install`. The stop-and-ask condition (any of torch / diffusers / transformers / accelerate / safetensors being upgraded, downgraded or reinstalled) was checked against the machine-readable `--report` JSON and **did not trigger**, so the install proceeded under the approved plan.
+
+**Commands and tests:**
+
+```
+.venv/Scripts/python.exe -m pytest                                   -> 123 passed in 1.06s (pre)
+.venv/Scripts/python.exe -m pip index versions peft                  -> latest 0.20.0
+.venv/Scripts/python.exe -m pip install --dry-run peft==0.20.0 --report <json>
+.venv/Scripts/python.exe -m pip install --no-deps peft==0.20.0
+.venv/Scripts/python.exe -m pip check                                -> No broken requirements found.
+.venv/Scripts/python.exe -m pytest                                   -> 123 passed in 1.09s (post)
+```
+
+**Real results:** the resolver report resolved to **exactly one package to install (peft 0.20.0)** and **touched none of the five protected packages** — peft's floors (`torch>=1.13.0`, `accelerate>=0.21.0`) sit far below the pinned versions and its `transformers` / `safetensors` requirements carry no upper bound, so the resolver had no reason to move anything. After install, all five protected versions are unchanged, `torch.cuda.is_available()` is `True` on the RTX 4060 Laptop GPU, and the only functional change is `diffusers.utils.USE_PEFT_BACKEND` flipping to `True`. Test count identical before and after (**123**), so nothing regressed.
+
+**`bitsandbytes` and `xformers` confirmed ABSENT and deliberately not installed.** bitsandbytes is tier 3 of the M5 training memory ladder and requires Kylian's explicit approval; no 8-bit-optimizer support is claimed anywhere until it has actually installed and run on this machine.
+
+**Unfinished work:** everything from plan step 2 onward — freezing the smoke-test manifest and validation kit, the training schema and runner, and experiments EXP-016…EXP-019.
+
+**Blockers:** none. Note that **`gh` is not on PATH in this session**, so issue #6 state cannot be verified or changed from here.
+
+**Evidence:** `docs/evidence/EXP-016/dependency-resolution.md` (protected baseline, version selection from metadata, real resolver output, install log, post-install verification, optional-tool absence).
+
+**Next step:** plan step 2 — freeze `data/manifests/smoke-test-p3.csv` (12 `minimal-geometric` train-split items) and the validation kit **before any GPU work**, with a pytest proving no holdout item is included.
+
+---
+
 ## 2026-08-01 — M4 closed: human review passed, standard IP-Adapter selected (DR-008)
 
 **Objective:** complete M4 after the human-review gate by recording Kylian's scores, deciding the reference-conditioning method, and finalising the milestone.
