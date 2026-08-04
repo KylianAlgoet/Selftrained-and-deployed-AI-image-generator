@@ -232,6 +232,114 @@ def test_runner_never_imports_the_similarity_evaluator():
     assert not offenders, f"training runner must not import {sorted(offenders)}"
 
 
+# --- Prototype 4 additions ---------------------------------------------------
+
+
+def _style_args(**overrides):
+    base = dict(
+        exp_id="EXP-020",
+        phase=train_lora.PHASE_SMOKE,
+        width=512,
+        height=512,
+        steps=300,
+        tier=0,
+        rank=8,
+        alpha=8,
+        learning_rate=1e-4,
+        seed=42,
+        style="minimal-geometric",
+        manifest="",
+        caption_mode="",
+        checkpoint_steps=[150],
+    )
+    base.update(overrides)
+    return Namespace(**base)
+
+
+def test_style_spec_defaults_to_the_style_manifest_and_style_only_captions():
+    spec = train_lora.build_spec(_style_args())
+    assert spec.style == "minimal-geometric"
+    assert spec.style_manifest_path == "data/manifests/style-minimal-geometric-p4.csv"
+    assert spec.caption_mode == "style-only"
+    assert spec.trigger_token == "xgeo"
+    assert spec.checkpoint_steps == (150,)
+
+
+def test_size_arm_manifest_overrides_without_changing_anything_else():
+    """The RQ4 arms must differ from the full run in the manifest alone."""
+    full = train_lora.build_spec(_style_args())
+    arm = train_lora.build_spec(
+        _style_args(manifest="data/manifests/style-minimal-geometric-p4-n12.csv")
+    )
+    assert arm.style_manifest_path.endswith("n12.csv")
+    for field in ("seed", "rank", "alpha", "learning_rate", "optimizer_steps_planned",
+                  "width", "height", "caption_mode", "trigger_token", "source_transform"):
+        assert getattr(arm, field) == getattr(full, field), f"{field} drifted between arms"
+
+
+def test_caption_ab_arms_differ_only_in_caption_mode():
+    a = train_lora.build_spec(_style_args(caption_mode="style-only"))
+    b = train_lora.build_spec(_style_args(caption_mode="dataset-v1-verbatim"))
+    assert a.caption_mode != b.caption_mode
+    for field in ("style", "style_manifest_path", "seed", "rank", "alpha", "learning_rate",
+                  "optimizer_steps_planned", "width", "height", "trigger_token"):
+        assert getattr(a, field) == getattr(b, field), f"{field} drifted between A/B arms"
+
+
+def test_m5_smoke_behaviour_is_unchanged_when_no_style_is_given():
+    """The M6 additions must not alter how the M5 runs were configured."""
+    spec = train_lora.build_spec(_args())
+    assert spec.style_manifest_path == ""
+    assert spec.caption_mode == ""
+    assert spec.trigger_token == ""
+    assert spec.style == smoke_kit.SMOKE_STYLE
+
+
+def test_caption_for_selects_the_declared_column():
+    item = {"training_caption": "xgeo style-only", "dataset_v1_caption": "verbatim phrase"}
+    assert train_lora.caption_for(item, "style-only") == "xgeo style-only"
+    assert train_lora.caption_for(item, "dataset-v1-verbatim") == "verbatim phrase"
+
+
+def test_caption_for_falls_back_to_the_m5_column():
+    assert train_lora.caption_for({"caption": "m5 caption"}, "") == "m5 caption"
+
+
+def test_style_manifest_loads_and_carries_both_caption_columns():
+    rows = train_lora.load_style_items("data/manifests/style-minimal-geometric-p4.csv")
+    assert len(rows) == 44
+    assert rows[0]["training_caption"].startswith("xgeo ")
+    assert rows[0]["dataset_v1_caption"] != rows[0]["training_caption"]
+
+
+def test_missing_style_manifest_raises():
+    with pytest.raises(RuntimeError, match="style manifest not found"):
+        train_lora.load_style_items("data/manifests/style-does-not-exist.csv")
+
+
+def test_presentation_counts_expose_the_equal_compute_confound():
+    """At fixed steps a small set is shown far more often. The numbers must be
+    recorded, not left to be inferred from steps / len(items)."""
+    items = [{"id": f"DS-{i:04d}"} for i in range(12)]
+    order = train_lora.build_sample_order(items, seed=42, steps=300)
+    encoded, mean = train_lora.presentation_counts(items, order)
+    assert mean == 25.0
+    assert encoded.count(";") == 11
+    assert sum(int(p.split(":")[1]) for p in encoded.split(";")) == 300
+
+
+def test_presentation_counts_scale_with_set_size():
+    order_n = {}
+    for n in (12, 24, 44):
+        items = [{"id": f"DS-{i:04d}"} for i in range(n)]
+        order = train_lora.build_sample_order(items, seed=42, steps=300)
+        order_n[n] = train_lora.presentation_counts(items, order)[1]
+    assert order_n[12] == 25.0
+    assert order_n[24] == 12.5
+    assert round(order_n[44], 3) == 6.818
+    assert order_n[12] > order_n[24] > order_n[44]
+
+
 def test_verifier_never_imports_the_similarity_evaluator():
     """EXP-018 Phase 1 generates; Phase 2 measures. The 2.35 GiB CLIP encoder must
     never be resident in a process reporting generation VRAM."""

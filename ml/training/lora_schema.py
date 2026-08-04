@@ -159,6 +159,13 @@ class TrainingSpec:
     base_model_repo_id: str = BASE_MODEL_REPO_ID
     base_model_revision: str = BASE_MODEL_REVISION
 
+    # --- Prototype 4 (M6) additions ------------------------------------------
+    # Empty selects the M5 smoke manifest, so existing M5 behaviour is unchanged.
+    style_manifest_path: str = ""
+    caption_mode: str = ""
+    trigger_token: str = ""
+    checkpoint_steps: tuple[int, ...] = ()
+
     @property
     def effective_batch_size(self) -> int:
         return self.batch_size * self.grad_accum
@@ -353,6 +360,26 @@ class TrainingResultRow:
     gate_failures: str = ""
     error_type: str = ""
     error_message: str = ""
+
+    # --- Prototype 4 (M6) additions ------------------------------------------
+    # Empty on the M5 smoke rows, which predate per-style training. Appended
+    # rather than inserted so the existing EXP-016/017 JSONL stays readable.
+    trigger_token: str = ""
+    trigger_token_ids: str = ""
+    caption_mode: str = ""
+    style_manifest_path: str = ""
+    style_manifest_sha256: str = ""
+    style_kit_fingerprint: str = ""
+    # How many times each item was actually presented, as "DS-0001:7;DS-0002:7".
+    # This is what makes the RQ4 equal-compute confound auditable: at a fixed
+    # step count a 12-image arm presents each item far more often than a
+    # 44-image arm, and those numbers must be visible in the record rather than
+    # left to be inferred from steps / len(items).
+    item_presentation_counts: str = ""
+    presentations_per_item_mean: float | str = "not measured"
+    loss_history_path: str = ""
+    # "step:sha256:bytes" per saved checkpoint, semicolon separated.
+    checkpoints: str = ""
 
 
 FIELDNAMES: list[str] = [f.name for f in fields(TrainingResultRow)]

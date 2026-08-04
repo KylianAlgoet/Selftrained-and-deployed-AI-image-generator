@@ -83,7 +83,7 @@ def sha256_text(text: str) -> str:
 
 
 def load_smoke_items() -> list[dict]:
-    """Read the frozen manifest. The subset is never reselected at run time."""
+    """Read the frozen M5 manifest. The subset is never reselected at run time."""
     import csv
 
     path = REPO / smoke_kit.SMOKE_MANIFEST_PATH
@@ -94,6 +94,88 @@ def load_smoke_items() -> list[dict]:
             f"smoke manifest {path} does not match the frozen kit: {ids} != {smoke_kit.SMOKE_ITEM_IDS}"
         )
     return rows
+
+
+def load_style_items(manifest_path: str) -> list[dict]:
+    """Read a frozen Prototype 4 per-style manifest.
+
+    Both caption columns travel with every row, so the style-only and verbatim
+    arms of EXP-023 read the same file and can differ in nothing but the column
+    they select.
+    """
+    import csv
+
+    path = REPO / manifest_path
+    if not path.is_file():
+        raise RuntimeError(f"style manifest not found: {path}")
+    rows = list(csv.DictReader(path.open(encoding="utf-8")))
+    if not rows:
+        raise RuntimeError(f"style manifest is empty: {path}")
+    for row in rows:
+        for column in ("id", "source_path", "training_caption", "dataset_v1_caption"):
+            if not row.get(column):
+                raise RuntimeError(f"{path.name}: row {row.get('id')} is missing {column!r}")
+    return rows
+
+
+def caption_for(item: dict, caption_mode: str) -> str:
+    """Which column the run trains on. The ONLY difference between the two arms
+    of the caption A/B - same images, same order, same seed, same steps."""
+    from ml.training import style_kit
+
+    if caption_mode == style_kit.CAPTION_MODE_STYLE_ONLY:
+        return item["training_caption"]
+    if caption_mode == style_kit.CAPTION_MODE_VERBATIM:
+        return item["dataset_v1_caption"]
+    # M5 smoke manifests carry a single `caption` column.
+    return item.get("caption") or item["training_caption"]
+
+
+def save_adapter(unet, out_dir: Path, pipeline_cls) -> dict:
+    """Write LoRA weights to `out_dir` and describe what was actually written.
+
+    Used for intermediate checkpoints and for the final save, so both are
+    described identically and neither can claim more than it wrote.
+    """
+    from peft.utils import get_peft_model_state_dict
+    from safetensors.torch import load_file
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    pipeline_cls.save_lora_weights(
+        save_directory=str(out_dir),
+        unet_lora_layers=get_peft_model_state_dict(unet),
+        safe_serialization=True,
+    )
+    weights = sorted(out_dir.glob("*.safetensors"))
+    if not weights:
+        raise RuntimeError(f"no .safetensors written to {out_dir}")
+    path = weights[0]
+    saved = load_file(str(path))
+    return {
+        "path": str(path.relative_to(REPO)).replace("\\", "/"),
+        "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "size_bytes": path.stat().st_size,
+        "tensor_count": len(saved),
+        "lora_key_count": sum(1 for k in saved if "lora" in k.lower()),
+        "unexpected_base_model_keys": ",".join(
+            sorted(k for k in saved if "lora" not in k.lower())
+        )[:400],
+    }
+
+
+def presentation_counts(items: list[dict], order: list[int]) -> tuple[str, float]:
+    """How often each item was actually shown.
+
+    Recorded because the RQ4 size arms hold STEPS fixed rather than epochs, so a
+    12-image arm presents each item ~25x against ~6.8x for the 44-image arm. That
+    confound must be visible in the row, not inferred.
+    """
+    from collections import Counter
+
+    counts = Counter(order)
+    encoded = ";".join(f"{items[i]['id']}:{counts.get(i, 0)}" for i in range(len(items)))
+    mean = sum(counts.values()) / len(items) if items else 0.0
+    return encoded, round(mean, 3)
 
 
 def build_sample_order(items: list[dict], seed: int, steps: int) -> list[int]:
@@ -196,9 +278,21 @@ def run(spec: TrainingSpec, results_path: Path) -> tuple[int, TrainingResultRow]
     import diffusers
     import peft as peft_pkg
 
-    items = load_smoke_items()
+    from ml.dataset.hashing import sha256_file
+    from ml.training import style_kit
+
+    if spec.style_manifest_path:
+        items = load_style_items(spec.style_manifest_path)
+        manifest_sha = sha256_file(REPO / spec.style_manifest_path)
+        style_fingerprint = style_kit.kit_fingerprint()
+    else:
+        items = load_smoke_items()
+        manifest_sha = ""
+        style_fingerprint = ""
+
     order = build_sample_order(items, spec.seed, spec.optimizer_steps_planned)
     order_sha = sample_order_fingerprint(items, order)
+    presentations, presentations_mean = presentation_counts(items, order)
 
     resources = ResourceRecord()
     gates = GateRecord()
@@ -248,6 +342,18 @@ def run(spec: TrainingSpec, results_path: Path) -> tuple[int, TrainingResultRow]
         resources=resources,
         gates=gates,
         adapter=adapter,
+        trigger_token=spec.trigger_token,
+        trigger_token_ids=(
+            ",".join(str(i) for i in style_kit.style_by_key(spec.style).trigger_token_ids)
+            if spec.style_manifest_path
+            else ""
+        ),
+        caption_mode=spec.caption_mode,
+        style_manifest_path=spec.style_manifest_path,
+        style_manifest_sha256=manifest_sha,
+        style_kit_fingerprint=style_fingerprint,
+        item_presentation_counts=presentations,
+        presentations_per_item_mean=presentations_mean,
     )
 
     if not torch.cuda.is_available():
@@ -357,6 +463,7 @@ def run(spec: TrainingSpec, results_path: Path) -> tuple[int, TrainingResultRow]
 
         generator = torch.Generator(device="cuda").manual_seed(spec.seed)
         losses: list[float] = []
+        checkpoint_records: list[tuple[int, dict]] = []
         peak_fb = 0.0
         peak_opt = 0.0
         grads_checked = False
@@ -370,7 +477,7 @@ def run(spec: TrainingSpec, results_path: Path) -> tuple[int, TrainingResultRow]
             pixel_values = to_tensor(image, torch, weight_dtype)
 
             tokens = tokenizer(
-                item["caption"],
+                caption_for(item, spec.caption_mode),
                 padding="max_length",
                 max_length=tokenizer.model_max_length,
                 truncation=True,
@@ -443,6 +550,16 @@ def run(spec: TrainingSpec, results_path: Path) -> tuple[int, TrainingResultRow]
                     f"probe exceeded the {PROBE_WALL_LIMIT_SECONDS}s limit at step {step + 1}"
                 )
 
+            # --- intermediate checkpoint -------------------------------------
+            # Saved so an over- or under-trained run is recoverable without
+            # retraining, and so the human review can compare step counts rather
+            # than take the final state on trust.
+            if (step + 1) in spec.checkpoint_steps and (step + 1) != len(order):
+                ck_dir = OUTPUT_ROOT / build_run_slug(spec) / f"step{step + 1:05d}"
+                saved = save_adapter(unet, ck_dir, StableDiffusionPipeline)
+                checkpoint_records.append((step + 1, saved))
+                print(f"    checkpoint at step {step + 1} -> {saved['sha256'][:16]}...")
+
         train_seconds = time.perf_counter() - train_started
 
         # --- evidence, read back rather than assumed ---
@@ -462,32 +579,32 @@ def run(spec: TrainingSpec, results_path: Path) -> tuple[int, TrainingResultRow]
 
         # --- save the adapter, outside git ---
         slug = build_run_slug(spec)
-        out_dir = OUTPUT_ROOT / slug
-        out_dir.mkdir(parents=True, exist_ok=True)
-        from peft.utils import get_peft_model_state_dict
-
-        lora_state = get_peft_model_state_dict(unet)
-        StableDiffusionPipeline.save_lora_weights(
-            save_directory=str(out_dir),
-            unet_lora_layers=lora_state,
-            safe_serialization=True,
+        final = save_adapter(unet, OUTPUT_ROOT / slug / f"step{len(order):05d}", StableDiffusionPipeline)
+        checkpoint_records.append((len(order), final))
+        adapter.path = final["path"]
+        adapter.size_bytes = final["size_bytes"]
+        adapter.sha256 = final["sha256"]
+        adapter.tensor_count = final["tensor_count"]
+        adapter.lora_key_count = final["lora_key_count"]
+        adapter.unexpected_base_model_keys = final["unexpected_base_model_keys"]
+        row.checkpoints = ";".join(
+            f"{step}:{rec['sha256']}:{rec['size_bytes']}" for step, rec in checkpoint_records
         )
-        weights = sorted(out_dir.glob("*.safetensors"))
-        if not weights:
-            raise RuntimeError(f"no .safetensors written to {out_dir}")
-        weight_path = weights[0]
-        adapter.path = str(weight_path.relative_to(REPO)).replace("\\", "/")
-        adapter.size_bytes = weight_path.stat().st_size
-        adapter.sha256 = hashlib.sha256(weight_path.read_bytes()).hexdigest()
 
-        from safetensors.torch import load_file
-
-        saved = load_file(str(weight_path))
-        adapter.tensor_count = len(saved)
-        adapter.lora_key_count = sum(1 for k in saved if "lora" in k.lower())
-        adapter.unexpected_base_model_keys = ",".join(
-            sorted(k for k in saved if "lora" not in k.lower())
-        )[:400]
+        # --- full loss history, outside the row so the row stays readable ---
+        history_dir = REPO / "docs" / "evidence" / spec.exp_id.split("_")[0]
+        history_dir.mkdir(parents=True, exist_ok=True)
+        history_path = history_dir / f"loss-history-{slug}.jsonl"
+        with history_path.open("w", encoding="utf-8", newline="") as fh:
+            for i, (index, value) in enumerate(zip(order, losses), start=1):
+                fh.write(
+                    json.dumps(
+                        {"step": i, "item_id": items[index]["id"], "loss": value},
+                        sort_keys=True,
+                    )
+                    + "\n"
+                )
+        row.loss_history_path = str(history_path.relative_to(REPO)).replace("\\", "/")
 
         resources.peak_forward_backward_allocated_mb = round(peak_fb, 2)
         resources.peak_optimizer_step_allocated_mb = round(peak_opt, 2)
@@ -532,14 +649,41 @@ def run(spec: TrainingSpec, results_path: Path) -> tuple[int, TrainingResultRow]
 
 def build_spec(args) -> TrainingSpec:
     native = (args.width, args.height) == (512, 1536)
+
+    style_manifest = getattr(args, "manifest", "") or ""
+    style_name = getattr(args, "style", "") or ""
+    caption_mode = getattr(args, "caption_mode", "") or ""
+    checkpoint_steps = tuple(getattr(args, "checkpoint_steps", ()) or ())
+
+    if style_name:
+        from ml.training import style_kit
+
+        spec_style = style_kit.style_by_key(style_name)
+        trigger = spec_style.trigger
+        if not style_manifest:
+            style_manifest = f"data/manifests/style-{style_name}-p4.csv"
+        if not caption_mode:
+            caption_mode = style_kit.CAPTION_MODE_STYLE_ONLY
+        caption_strategy = f"prototype-4 {caption_mode}; trigger {trigger!r}"
+        dataset_version = style_kit.DATASET_V1_SHA256[:12]
+    else:
+        trigger = ""
+        style_name = smoke_kit.SMOKE_STYLE
+        caption_strategy = smoke_kit.CAPTION_STRATEGY
+        dataset_version = smoke_kit.DATASET_VERSION
+
     return TrainingSpec(
         exp_id=args.exp_id,
         phase=args.phase,
         memory_tier=args.tier,
-        dataset_version=smoke_kit.DATASET_VERSION,
+        dataset_version=dataset_version,
         smoke_manifest_path=smoke_kit.SMOKE_MANIFEST_PATH,
-        style=smoke_kit.SMOKE_STYLE,
-        caption_strategy=smoke_kit.CAPTION_STRATEGY,
+        style=style_name,
+        caption_strategy=caption_strategy,
+        style_manifest_path=style_manifest,
+        caption_mode=caption_mode,
+        trigger_token=trigger,
+        checkpoint_steps=checkpoint_steps,
         width=args.width,
         height=args.height,
         source_transform="none" if native else "centre-crop",
@@ -576,6 +720,22 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--results", default="docs/evidence/EXP-016/training-runs.jsonl")
     parser.add_argument("--dry-run", action="store_true", help="print the spec and exit")
+    # --- Prototype 4 (M6) ---
+    parser.add_argument("--style", default="", help="train a Prototype 4 style (minimal-geometric, ukiyo-e, retro-poster)")
+    parser.add_argument("--manifest", default="", help="override the style manifest, e.g. an RQ4 size arm")
+    parser.add_argument(
+        "--caption-mode",
+        default="",
+        choices=["", "style-only", "dataset-v1-verbatim"],
+        help="which caption column to train on; the ONLY difference between the A/B arms",
+    )
+    parser.add_argument(
+        "--checkpoint-steps",
+        type=int,
+        nargs="*",
+        default=[],
+        help="intermediate checkpoints, e.g. --checkpoint-steps 150",
+    )
     args = parser.parse_args(argv)
 
     spec = build_spec(args)
