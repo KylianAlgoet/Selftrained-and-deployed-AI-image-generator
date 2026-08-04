@@ -1,0 +1,17 @@
+# Line-ending policy.
+#
+# `core.autocrlf` is true on the development machine, so without a rule here Git
+# rewrites LF to CRLF on checkout. For ordinary sources that is harmless. For
+# HASH-LOCKED EVIDENCE it is not: the recorded sha256 is the integrity control
+# that proves a human score was not edited after unblinding, and a line-ending
+# conversion would silently change every byte-level check that depends on it.
+#
+# `-text` stores and restores these files verbatim, with no conversion in either
+# direction.
+
+# Gate-1 and Gate-2 human scoring artifacts, verified by sha256 in pytest.
+docs/evidence/prototype-4/pilot-scoring-form-completed-blind.md -text
+
+# Frozen manifests and recorded run evidence are hashed by the tooling.
+data/manifests/*.csv -text
+docs/evidence/**/*.jsonl -text
