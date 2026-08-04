@@ -1,5 +1,93 @@
 # Session handoff
 
+**Last updated:** 2026-08-04 (M6 / Prototype 4 **Phase A**, under Opus 5)
+
+## M6 (Prototype 4 — style learning): PHASE A COMPLETE — STOPPED AT GATE 1
+
+**Phase B must not start until Kylian returns scores and six decisions.** The handover is
+`docs/evidence/prototype-4/GATE-1-handover.md`; the blank blinded form is
+`docs/evidence/prototype-4/pilot-scoring-form.md`.
+
+### ⚠️ Five things the next session must not do
+
+1. **Do not start Phase B without Kylian's six decisions** — checkpoint per style, full-run
+   step count per style, caption verdict, dataset-size verdict, contingency authorisation,
+   multi-style go/no-go. **Nothing in Phase A selected any of them.**
+2. **Do not open the blinding map for him.**
+   `docs/evidence/EXP-025/BLINDING-MAP-do-not-open-before-scoring.csv` is opened *after*
+   scoring. The sheets are the only thing to look at first.
+3. **Do not let the automated indicators decide anything.** EXP-026 populates no rubric cell,
+   selects no checkpoint and chooses no hyperparameter. `dHash ≤ 6` is a **coarse near-copy
+   indicator, not proof of memorisation**.
+4. **H4 is NOT answered.** The 97 % border-darkness flag on `retro-poster` is an *indicator*;
+   whether the LoRA learned the frame is Kylian's failure-mode probe on `PST-*`.
+5. **No visual-quality claim was made in Phase A, and none may be added retroactively.**
+
+### Run budget
+
+**6 of 12** training runs used. Remaining: ≤3 full, ≤1 multi-style, ≤2 contingency.
+Pilot matrix used **108/108** allowed generations. Final matrix cap **432**, and only for
+checkpoints Kylian approves. **Hard stop 2026-08-09 EOD.**
+
+### Frozen and verified
+
+- **Style kit `fc11d828…`** (`ml/training/style_kit.py`), hash-locked like `prompt_kit` and
+  `smoke_kit`. Prompt kit `c40749bc…` and smoke kit `a8052f44…` **unchanged**.
+- **Triggers `xgeo` / `xkyo` / `xpst`** — the plan's original `dfgeo`/`dfukiyo`/`dfposter` were
+  **rejected on measured tokenizer evidence**: `dfukiyo` split into 4 pieces and lost the
+  shared prefix; `dfposter` contained `poster</w>`, which sits in its own style phrase; `xuki`
+  collided because ukiyo-e captions contain the literal words "uki e". The selected family is
+  2 pieces each, shares a leading piece, and has **zero** corpus overlap.
+- **No tokenizer vocabulary added** — the text encoder is frozen, so an added embedding would
+  never be trained. A test asserts the vocab size.
+- **`dataset-v1.csv` is byte-identical to `cd18cbb0…`**, asserted by pytest. It was opened
+  read-only throughout.
+- **Five manifests**: `style-{minimal-geometric,ukiyo-e,retro-poster}-p4.csv` plus nested
+  `-n12` / `-n24` arms (**n12 ⊂ n24 ⊂ n44**, asserted). An exclusion ledger accounts for all
+  148 dataset items; **no train item is excluded**.
+- **Caption strategy: style-only, no trigger collision, and it is UNDER TEST** — EXP-023 is the
+  verbatim counterpart, blinded.
+
+### Measured results (6 runs, 6 passes, tier 0, no escalation)
+
+| arm | style | captions | images | pres./item | s/step | first → last loss |
+|---|---|---|---|---|---|---|
+| EXP-020 | minimal-geometric | style-only | 44 | 6.818 | 0.284 | 0.0780 → 0.0044 |
+| EXP-021 | ukiyo-e | style-only | 44 | 6.818 | **0.408** | 0.6583 → 0.0302 |
+| EXP-022 | retro-poster | style-only | 36 | 8.333 | 0.294 | 0.4973 → 0.0351 |
+| EXP-023 | minimal-geometric | **verbatim** | 44 | 6.818 | 0.294 | 0.0781 → 0.0045 |
+| EXP-024n12 | minimal-geometric | style-only | **12** | **25.000** | 0.296 | 0.0648 → 0.0042 |
+| EXP-024n24 | minimal-geometric | style-only | **24** | **12.500** | 0.331 | 0.0849 → 0.0052 |
+
+- **Peak allocated 3133.4 MiB in all six** — neither style nor set size moves training memory;
+  only geometry does (EXP-016/017).
+- **The RQ4 equal-compute confound is measured, not assumed**: 25.000 / 12.500 / 6.818
+  presentations per item. This measures **set size at equal compute, not equal epochs**, for
+  `minimal-geometric` only, and **must not be generalised** to the other styles.
+- `ukiyo-e` is slowest per step because its sources reach 4000 px — a **data-loading** cost.
+- **EXP-025**: 108/108 generations at the cap. **EXP-026**: **0/108** near-copy flags; holdout
+  control at a comparable distance to training, which is the point of the control.
+
+### Pre-training audit (evidence for H4, gathered before any run)
+
+| style | visual / attribution / truncated | distinct phrases | border delta | flagged |
+|---|---|---|---|---|
+| minimal-geometric | 44 / 0 / 0 | **6** | +17.5 | 11/44 |
+| ukiyo-e | 32 / 5 / 7 | 41 | +29.7 | 2/44 |
+| retro-poster | **14** / 16 / 0 (+6 venue) | 28 | **−73.5** | **35/36** |
+
+### M6 facts a new session must know
+
+- `.venv/Scripts/python.exe -m pytest` → **260 tests**. **No linter installed.**
+- Regenerate with: `scripts/build_style_manifests.py` · `build_caption_audit.py` ·
+  `ml.training.train_lora --style <s> [--manifest …] [--caption-mode …]` ·
+  `scripts/run_pilot_matrix.py` · `evaluate_p4_memorisation.py` · `build_p4_review_package.py`.
+- **Adapters and images are git-ignored** in `outputs/`; re-run training to regenerate them.
+- The M5 runner is unchanged for M5 use — with no `--style` the spec is what it was, asserted
+  by test.
+
+## Prior state (M5, completed 2026-08-04)
+
 **Last updated:** 2026-08-04 (M5 / Prototype 3 execution session, under Opus 5)
 
 ## M5 (Prototype 3 — LoRA smoke test): COMPLETE

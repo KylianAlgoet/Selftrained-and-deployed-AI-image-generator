@@ -4,6 +4,58 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-04 — M6 Phase A complete: pilots, caption A/B and dataset-size arms; STOPPED at gate 1
+
+**Objective:** complete the autonomous pre-review half of Prototype 4 — freeze the style datasets, train the pilots, gather automated evidence, and hand Kylian a blinded scoring package — then stop.
+
+**Completed work:** style kit frozen and hash-locked (`fc11d828…`); five per-style manifests; caption and source-image audit; the M5 runner extended for per-style training; **six 300-step pilot runs**; the capped 108-image pilot review matrix; offline memorisation indicators; the blinded review package; eight registry rows; the gate-1 handover.
+
+**Two findings that came from verifying rather than assuming.**
+
+**1. The trigger tokens named in the approved plan were wrong.** Checked against the pinned CLIP tokenizer before freezing anything: `dfukiyo` splits into **four** pieces `['d','fu','ki','yo</w>']` and loses the shared `df` prefix, so the family was not even internally consistent; `dfposter` contains `poster</w>`, a piece sitting inside its own style phrase and across the caption corpus — exactly the ordinary-word collision a trigger must avoid. A replacement candidate `xuki` also failed, because several ukiyo-e captions contain the literal words *"uki e"*. The frozen family is **`xgeo` / `xkyo` / `xpst`** — each exactly two pieces, sharing a leading piece, with **zero** overlap against the style phrases, the frozen prompt kit, or all 148 dataset captions. A test asserts the recorded ids against the live tokenizer, and another asserts the vocabulary size is unchanged: **no new vocabulary is added**, because the text encoder is frozen and an added embedding would never receive a gradient.
+
+**2. The caption defects are worse than the M2 note implied, and the frame evidence is now quantified.** Rule-based audit over the training captions: `retro-poster` has **only 14 of 36** captions describing anything visible — 16 are authorship credits, 6 name venues; `ukiyo-e` has **7 of 44** truncated mid-phrase; `minimal-geometric` has **6 distinct** content phrases across 44 items. Separately, an objective border-darkness measurement with a threshold fixed before any image was read puts `retro-poster` at **median −73.5 with 35 of 36 items flagged (97 %)**, against **+29.7 and 2 of 44** for `ukiyo-e`. That is far more specific than "most items", and the `ukiyo-e` figure being *positive* matches the M4 observation about light paper margins. **It is recorded as an indicator, not proof** — a dark border can be a framed scan or simply dark artwork — and **H4 remains unanswered** until Kylian's failure-mode probe.
+
+**Real results — six runs, six passes, tier 0 throughout, no escalation:**
+
+```
+             images  pres./item  s/step   wall    first -> last loss   L2
+EXP-020         44      6.818    0.284   90.4 s   0.0780 -> 0.0044   3.449
+EXP-021         44      6.818    0.408  127.6 s   0.6583 -> 0.0302   2.737
+EXP-022         36      8.333    0.294   93.3 s   0.4973 -> 0.0351   3.534
+EXP-023         44      6.818    0.294   93.1 s   0.0781 -> 0.0045   3.559
+EXP-024n12      12     25.000    0.296   93.4 s   0.0648 -> 0.0042   3.831
+EXP-024n24      24     12.500    0.331  104.6 s   0.0849 -> 0.0052   3.406
+```
+
+Peak allocated is **3133.4 MiB in all six** — neither style nor set size moves training memory; only geometry does, as EXP-016/017 measured. `ukiyo-e` is slowest per step because its sources run to 4000 px, so decode and crop dominate — a **data-loading** cost, not a model-side one.
+
+**The RQ4 presentation counts landed exactly where the plan predicted** — 25.000 / 12.500 / 6.818 — which is the equal-compute confound made visible in the record rather than left to be inferred from steps ÷ items.
+
+**EXP-025 pilot matrix:** 108 of 108 generations, at exactly the declared cap, one process per checkpoint. **EXP-026 memorisation:** **0 of 108** near-copy flags at `dHash ≤ 6`; median nearest-training distance 20.5–27.0, with the holdout control at a comparable 25.0–28.0 — which is what the control is for.
+
+**Commands and tests:**
+
+```
+.venv/Scripts/python.exe scripts/build_style_manifests.py      -> 5 manifests, 148/148 accounted for
+.venv/Scripts/python.exe scripts/build_caption_audit.py        -> caption + border audit
+.venv/Scripts/python.exe -m ml.training.train_lora --style ... -> 6 runs
+.venv/Scripts/python.exe scripts/run_pilot_matrix.py           -> 108/108 images
+.venv/Scripts/python.exe scripts/evaluate_p4_memorisation.py   -> 0/108 flagged, 315.1 s CPU
+.venv/Scripts/python.exe scripts/build_p4_review_package.py    -> 15 sheets, blinded form, mapping
+.venv/Scripts/python.exe -m pytest                             -> 260 passed
+```
+
+**Unfinished by design:** no checkpoint selected · no step count chosen · no style called recognisable · no hyperparameter changed · no full, contingency or multi-style run · no final matrix · no DR-010 · no push. **No visual-quality claim anywhere in Phase A.**
+
+**Blockers:** none. `gh` is not on PATH, so issue #7 state could not be verified.
+
+**Evidence:** `docs/evidence/prototype-4/GATE-1-handover.md`, `caption-audit.md`, `pilot-sheets/`, `pilot-scoring-form.md`; `docs/evidence/EXP-020…EXP-026/`.
+
+**Next step:** **STOP at gate 1.** Phase B begins only when Kylian returns scores and six decisions: checkpoint per style, full-run step count per style, caption verdict, dataset-size verdict, contingency authorisation, and whether the multi-style run proceeds.
+
+---
+
 ## 2026-08-04 — M5 step 1: PEFT pinned under dependency-stack protection
 
 **Objective:** add the LoRA training dependency required by Prototype 3 **without moving any part of the inference stack that M3 and M4 measurements depend on.**
