@@ -1,6 +1,6 @@
 # Session handoff
 
-**Last updated:** 2026-08-04 (M6 / Prototype 4 **Phase A**, under Opus 5)
+**Last updated:** 2026-08-05 (M6 / Prototype 4 **Phase A**, gate 1 acknowledged, under Opus 5)
 
 ## M6 (Prototype 4 — style learning): PHASE A COMPLETE — STOPPED AT GATE 1
 
@@ -22,6 +22,24 @@
 4. **H4 is NOT answered.** The 97 % border-darkness flag on `retro-poster` is an *indicator*;
    whether the LoRA learned the frame is Kylian's failure-mode probe on `PST-*`.
 5. **No visual-quality claim was made in Phase A, and none may be added retroactively.**
+
+### Gate 1 status (2026-08-05)
+
+**Kylian acknowledged gate 1. He has NOT yet returned scores or the six decisions, so Phase B
+remains blocked.** Acknowledgement is not approval.
+
+A review-only ZIP was built on request at
+`outputs/m6-gate-1-blinded-review-package.zip` (509 KB, sha256 `fb467e1d5b5667f3…`):
+the handover, the blank scoring form, the 12 blinded sheets and the 3 base controls — **17
+members, and the blinding map deliberately excluded.** It is a **derived copy in git-ignored
+`outputs/`**; nothing tracked was modified, and rebuilding it changes no evidence. Regenerate
+by copying those same 17 files, or re-run `scripts/build_p4_review_package.py` first if the
+sheets themselves are missing.
+
+Two leakage checks were run on the shipped text, and both must be repeated if the package is
+rebuilt: the handover names arms and **never** a blind label, the form names blind labels and
+**never** an arm, and all 15 JPEGs carry **zero EXIF and zero text metadata**. The only file
+joining label to arm is the excluded CSV.
 
 ### Run budget
 
@@ -267,23 +285,24 @@ Phase 0, public planning (issues #1–#12), **M1 (Prototype 0)**, and **M2 (data
 
 None expected at handoff — verify with `git status`.
 
-## Latest commits (M3 sequence, 2026-07-30)
+## Latest commits (M6 Phase A sequence, 2026-08-04/05)
+
+**`main` is 8 commits ahead of `origin/main`. NOTHING IS PUSHED, and no push may happen
+before Kylian approves it.** M5 ended at `9ebb7a2`, which is the last pushed commit.
 
 ```
-5bf0f40 docs(process): close prototype 1 across planning, risks, testing, and traceability
-67ca695 docs(decisions): select stable diffusion 1.5 as the base model for prototypes 2-5
-34b05d8 docs(experiments): record human rubric scores at the granularity actually used
-3765c5c docs(experiments): correct the literal-decal observation as resolution-dependent
-5994305 docs(experiments): record aspect-ratio findings and prototype 1 evidence
-bffb813 feat(benchmark): add deck aspect-ratio comparison with per-strategy isolation
-8829664 docs(experiments): record base-model benchmark measurements for prototype 1
-e25f1e0 feat(benchmark): add benchmark orchestrator and blank rubric scoring form
-eae6e41 feat(benchmark): add base-model benchmark runner with vram and timing measurement
-f646ee9 feat(evaluation): add frozen prompt and seed kit with hash-locked tests
-1d51ccc feat(inference): add cuda environment smoke test with json evidence
-37650b6 chore(ml): pin pytorch and diffusers inference dependencies for prototype 1
-e5684f1 fix(dataset): rename retro-comic style to retro-poster to match wpa poster evidence
+0f1389e docs(process): record prototype 4 phase a and stop at the human review gate
+ed23abf feat(evaluation): add the blinded prototype 4 gate-1 review package
+2b98f65 docs(experiments): record prototype 4 memorisation indicators, offline on cpu
+5ffe057 feat(evaluation): add the capped prototype 4 pilot review matrix
+66cd0a4 docs(experiments): record prototype 4 pilots, caption a/b and dataset-size arms
+0611319 feat(training): extend the training runner for per-style runs and loss history
+3226a33 docs(dataset): audit prototype 4 captions and source images before training
+b42e693 feat(training): freeze the prototype 4 style kit and per-style manifests
+9ebb7a2 docs(process): close prototype 3 across planning, risks, testing, and traceability  <- last pushed
 ```
+
+Earlier M3/M4/M5 commit sequences are in the process log rather than repeated here.
 
 ## Human scores (Kylian, 2026-07-30) — read before re-scoring anything
 
@@ -323,32 +342,43 @@ All at memory tier 0; no tier escalation was needed anywhere.
 
 ## Blockers
 
-- None. M5 is complete. **`gh` is not on PATH in this session**, so issue #6 state could not be
-  verified or changed from here — that remains Kylian's to confirm, along with any push.
+- **M6 Phase B is blocked on Kylian's gate-1 review.** This is the intended state, not a
+  failure: the milestone deliberately stops here. Nothing may be worked around, and no
+  automated indicator may stand in for a decision he has not made.
+- **`gh` is not on PATH**, so issue #6 and #7 state could not be verified or changed from
+  here. Both remain Kylian's, along with any push.
+- **Three M5 decisions are still open** and Phase B does not need them resolved to start:
+  whether a long native 512×1536 training run happens (only feasibility was probed);
+  whether Textual Inversion / DreamBooth get measured comparisons or stay screened-only with
+  the limitation stated in the report; and the M2 framed / matted `retro-poster` mitigation
+  (crop pass vs negative prompting), which now has EXP-022 and the caption audit behind it.
+  Trigger-token design — the third M5 open decision — **is now closed** by the frozen
+  `xgeo` / `xkyo` / `xpst` family.
 
 ## Next action
 
-**M6 — Prototype 4: style-learning experiments** (issue #7, planned Aug 8–11; **~7 days of
-critical-path buffer now exist**, so it can start early). Start in **Plan mode**, per the
-project's milestone rule.
+**Wait.** Do not start Phase B, and do not do preparatory Phase B work that presumes an
+answer. When Kylian returns the scored form he must also return the **six decisions** listed
+in `docs/evidence/prototype-4/GATE-1-handover.md` §6:
 
-Scope reminders for M6:
-- **Per-style vs multi-style LoRAs (RQ5)** and **dataset-size / rank / learning-rate
-  variations (RQ4)**, on the DR-009 foundation: SD 1.5 + rank-8 UNet-attention LoRA at tier 0.
-- **This is where the human rubric returns.** M5 deliberately made no style-quality claim.
-  Build the contact sheets and the scoring form, then **stop and hand off** — never invent
-  scores or pick the winner.
-- **Three open decisions M5 handed over, all needing Kylian:**
-  1. **Trigger-token design** — M5 used dataset captions verbatim on purpose.
-  2. **Whether to run a long native 512×1536 training run** — only feasibility was probed.
-  3. **Whether Textual Inversion / DreamBooth get measured comparisons at all**, or stay
-     screened-only with the limitation stated in the report.
-- **Two M2 dataset findings are still open** and now have M4 evidence behind them: framed /
-  matted scans in `retro-poster` and the text-dominated source material. EXP-011 confirmed
-  both transfer at medium influence and above, and the M4 record hands the mitigation
-  decision (crop pass vs negative prompting) to this milestone with training evidence.
-- **Budget rank increases against R12.** A rank-8 LoRA costs +3.04 MiB; higher ranks scale
-  that, and the combined stack has only **202 MiB** of room at the deck format.
-- Reuse the frozen kits (`c40749bc…` prompts, `a8052f44…` smoke kit) so results stay
-  comparable; extend rather than edit, and expect the hash locks to demand a deliberate,
-  documented update if a kit itself must change.
+1. **Checkpoint per style** — 150 or 300, for each of the three styles.
+2. **Full-run step count per style** — within the pre-declared band **600–1500**.
+3. **Caption verdict** — style-only / verbatim / trade-off / tie-inconclusive.
+4. **Dataset-size verdict** — O1 monotone / O2 plateau / O3 no effect / O4 trade-off /
+   O5 inconclusive.
+5. **Contingency** — authorised or not, and if so which **single** variable it may change.
+6. **Multi-style** — whether the balanced run proceeds.
+
+Then Phase B runs, in this order and no other: approved full per-style runs (EXP-027/028/029)
+→ any authorised contingency → the multi-style run if approved (EXP-030) → the final
+validation matrix on **approved checkpoints only**, capped at **432** (EXP-031) →
+combined-stack checks against the **202 MiB** margin (EXP-032) → **DR-010 as a draft with no
+conclusion** → **gate 2**.
+
+**If Kylian returns scores but not all six decisions, ask for the missing ones. Do not infer
+them from the rubric, and do not let a high score select a checkpoint.**
+
+**2026-08-09 EOD is the hard stop whatever state M6 is in**, and M7 integration must begin
+2026-08-10 to 08-12. If the gate is still open close to that date, the scope-reduction order
+applies: keep `minimal-geometric`, then `ukiyo-e`, then reduce or drop `retro-poster` — and a
+dropped style is **stated as dropped, with the reason and date**, never quietly removed.
