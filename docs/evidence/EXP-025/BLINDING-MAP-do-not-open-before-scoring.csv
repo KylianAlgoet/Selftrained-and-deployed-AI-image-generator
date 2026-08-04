@@ -1,0 +1,13 @@
+blind_label,arm,checkpoint_step,style,note
+GEO-1,EXP-024n24,150,minimal-geometric,"style-only captions, 24 images (RQ4 size arm)"
+GEO-2,EXP-024n24,300,minimal-geometric,"style-only captions, 24 images (RQ4 size arm)"
+GEO-3,EXP-020,150,minimal-geometric,"style-only captions, 44 images"
+GEO-4,EXP-023,150,minimal-geometric,"dataset-v1 verbatim captions, 44 images (caption A/B counterpart)"
+GEO-5,EXP-024n12,150,minimal-geometric,"style-only captions, 12 images (RQ4 size arm)"
+GEO-6,EXP-024n12,300,minimal-geometric,"style-only captions, 12 images (RQ4 size arm)"
+GEO-7,EXP-020,300,minimal-geometric,"style-only captions, 44 images"
+GEO-8,EXP-023,300,minimal-geometric,"dataset-v1 verbatim captions, 44 images (caption A/B counterpart)"
+PST-1,EXP-022,150,retro-poster,"style-only captions, 36 images"
+PST-2,EXP-022,300,retro-poster,"style-only captions, 36 images"
+UKY-1,EXP-021,300,ukiyo-e,"style-only captions, 44 images"
+UKY-2,EXP-021,150,ukiyo-e,"style-only captions, 44 images"
