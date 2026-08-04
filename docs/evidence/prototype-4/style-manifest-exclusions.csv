@@ -1,0 +1,25 @@
+id,style,split,reason
+DS-0014,minimal-geometric,val,validation split - excluded from training by the dataset-v1 split design
+DS-0021,minimal-geometric,val,validation split - excluded from training by the dataset-v1 split design
+DS-0022,minimal-geometric,val,validation split - excluded from training by the dataset-v1 split design
+DS-0026,minimal-geometric,val,validation split - excluded from training by the dataset-v1 split design
+DS-0029,minimal-geometric,val,validation split - excluded from training by the dataset-v1 split design
+DS-0036,minimal-geometric,val,validation split - excluded from training by the dataset-v1 split design
+DS-0044,minimal-geometric,val,validation split - excluded from training by the dataset-v1 split design
+DS-0048,minimal-geometric,holdout,holdout split - reserved untouched for the memorisation comparison and the Prototype 2 reference kit; never trained on
+DS-0077,retro-poster,holdout,holdout split - reserved untouched for the memorisation comparison and the Prototype 2 reference kit; never trained on
+DS-0078,retro-poster,val,validation split - excluded from training by the dataset-v1 split design
+DS-0079,retro-poster,holdout,holdout split - reserved untouched for the memorisation comparison and the Prototype 2 reference kit; never trained on
+DS-0083,retro-poster,val,validation split - excluded from training by the dataset-v1 split design
+DS-0088,retro-poster,holdout,holdout split - reserved untouched for the memorisation comparison and the Prototype 2 reference kit; never trained on
+DS-0095,ukiyo-e,val,validation split - excluded from training by the dataset-v1 split design
+DS-0103,ukiyo-e,holdout,holdout split - reserved untouched for the memorisation comparison and the Prototype 2 reference kit; never trained on
+DS-0106,ukiyo-e,val,validation split - excluded from training by the dataset-v1 split design
+DS-0111,ukiyo-e,val,validation split - excluded from training by the dataset-v1 split design
+DS-0115,ukiyo-e,holdout,holdout split - reserved untouched for the memorisation comparison and the Prototype 2 reference kit; never trained on
+DS-0120,ukiyo-e,holdout,holdout split - reserved untouched for the memorisation comparison and the Prototype 2 reference kit; never trained on
+DS-0128,ukiyo-e,val,validation split - excluded from training by the dataset-v1 split design
+DS-0130,ukiyo-e,val,validation split - excluded from training by the dataset-v1 split design
+DS-0138,ukiyo-e,val,validation split - excluded from training by the dataset-v1 split design
+DS-0147,ukiyo-e,val,validation split - excluded from training by the dataset-v1 split design
+DS-0148,ukiyo-e,val,validation split - excluded from training by the dataset-v1 split design
