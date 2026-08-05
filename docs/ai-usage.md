@@ -10,6 +10,22 @@ Honest record of how Claude Code (Anthropic) is used in this project, per sessio
 
 ## Session log
 
+### 2026-08-05 — Prototype 4: style learning, both phases (M6)
+
+**AI assistance:** Plan-mode M6 plan, revised after Kylian issued **eight mandatory corrections**. Implementation of the frozen style kit, five per-style manifests, the caption audit, the per-style and balanced multi-style training paths, the capped pilot and final validation matrices, the memorisation and diversity indicators, the blinded gate-1 package and the labelled gate-2 package; running all fourteen Prototype-4 experiments; documentation, eleven registry rows, the DR-010 draft, and atomic commits. Executed under Claude Opus 5.
+
+**Student decisions:** Kylian's plan review caught a **contradiction in the assistant's own plan** — it promised an intermediate human review gate and then authorised full training runs, contingency adjustments and the final validation matrix before he had seen anything. He required a hard Phase A / Phase B split with an explicit list of things not to do before the gate, and that split is what made gate 1 a real decision point rather than a formality. Three further corrections were substantive:
+
+- **RQ4 was not actually being answered.** Training only 36–44-image sets can show those counts worked; it cannot establish the *effect* of count. Kylian required a controlled nested 12 ⊂ 24 ⊂ 44 experiment, which cost two extra runs.
+- **An unfalsifiable hypothesis.** H2 claimed style-only captions were "at least as strong" as verbatim, while treating equality as a refutation. Equality cannot refute "at least as strong". He required four explicit verdict rules instead.
+- **An unfair multi-style comparison.** "Matched steps" would have given each style roughly a third of the exposure it received in its own run. He required exposure-matched sampling, which the runner now asserts.
+
+He then scored the blinded pilot sheets, fixed the scores, supplied their sha256 **before** the blinding map was opened, and made all six gate-1 decisions himself — including leaving the dataset-size result at **O5 inconclusive** rather than accepting a tidier reading of a non-monotonic ordering.
+
+**Three defects in the assistant's own work, found and recorded rather than quietly patched:** trigger tokens in the approved plan that collided with the caption corpus (caught against the live tokenizer before any GPU time was spent); 24 duplicated generations in the final matrix that were biasing a diversity indicator toward zero; and a missing `.gitattributes` rule that would have rewritten the hash-locked scoring artifact to CRLF on checkout and invalidated the integrity check protecting Kylian's scores.
+
+**Verification status:** every measurement quoted is read back from a recorded run row or re-read from the artifact on disk; no figure was retyped by hand into the registry or the decision record. Two figures the assistant mis-transcribed into a draft DR-010 table were caught by re-reading the source rows and corrected. **No rubric score was invented, no production checkpoint was selected, no style was declared a winner, and DR-010 carries no conclusion** — all of which wait on Kylian's gate-2 review.
+
 ### 2026-08-04 — Prototype 3: LoRA smoke test (M5)
 
 **AI assistance:** Plan-mode M5 plan, revised after Kylian issued **twelve mandatory corrections and then a thirteenth**. Implementation of the PEFT dependency gating, the frozen smoke-test manifest and validation kit, the training schema and tier ladder, the training runner and its process-isolating orchestrator, the load-and-generate verifier, the two-phase effect evaluator, and the combined-stack runner; running all eight experiments; documentation, eight registry rows, DR-009 drafting, and atomic commits. Executed under Claude Opus 5.

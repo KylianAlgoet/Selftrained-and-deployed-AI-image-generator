@@ -1,32 +1,122 @@
 # Session handoff
 
-**Last updated:** 2026-08-05 (M6 / Prototype 4 **Phase A**, gate 1 acknowledged, under Opus 5)
+**Last updated:** 2026-08-05 (M6 / Prototype 4 **Phase B complete**, stopped at gate 2, under Opus 5)
 
-## M6 (Prototype 4 — style learning): PHASE A COMPLETE — STOPPED AT GATE 1
+## M6 (Prototype 4 — style learning): PHASE B COMPLETE — STOPPED AT GATE 2
 
-**Phase B must not start until Kylian returns scores and six decisions.** The handover is
+**Gate 1 is closed.** Kylian scored the blinded pilot sheets, fixed the scores, supplied their
+sha256 **before** the blinding map was opened, and made all six decisions himself. Full record:
+`docs/evidence/prototype-4/GATE-1-approval.md`. **Phase B executed exactly that approval and
+decided nothing further.**
+
+**The handover for the next gate is `docs/evidence/prototype-4/GATE-2-handover.md`;
+the blank form is `docs/evidence/prototype-4/gate-2-scoring-form.md`.**
+
+### ⚠️ Six things the next session must not do
+
+1. **Do not select a production checkpoint, a default LoRA weight, or a winning style.**
+   Those are gate-2 decisions. Phase B made none of them, and no automated indicator may stand
+   in for one.
+2. **Do not finalise DR-010.** It is a draft with **no decision and no consequences section**,
+   by design.
+3. **Do not run a contingency training run.** None is authorised. Both slots are unused, and a
+   contingency needs a gate-2-identified defect *plus* new explicit approval for one variable.
+4. **Do not edit any human score**, and do not let `pilot-scoring-form-completed-blind.md`
+   change: a pytest asserts its sha256 `cf6bf260…`, and `.gitattributes` keeps Git from
+   rewriting its line endings. If that test fails, a score was altered after unblinding.
+5. **Do not describe 202.0 MiB as comfortable headroom**, and never silently reduce geometry.
+6. **Do not close M6, move it to Done, push, or begin M7.**
+
+### Gate-2 decisions still needed
+
+Production checkpoint per style · default LoRA weight · RQ5 verdict (and cross-style bleed) ·
+H4 verdict (retro-poster frames / pseudo-text) · H5 verdict (style vs adherence trade-off) ·
+per-style pass / partial pass / failure · contingency authorisation · whether DR-010 may be
+finalised.
+
+### Phase B measured results (4 runs, 4 passes, tier 0, no escalation)
+
+| run | style | steps | s/step | wall | first → last loss | L2 |
+|---|---|---:|---:|---:|---|---:|
+| EXP-027 | minimal-geometric | 600 | 0.283 | 175.9 s | 0.0780 → 0.0025 | 4.752 |
+| EXP-028 | ukiyo-e | 600 | 0.398 | 244.1 s | 0.6583 → 0.2297 | 4.080 |
+| EXP-029 | retro-poster | 600 | 0.308 | 189.5 s | 0.4973 → 0.1425 | 4.972 |
+| EXP-030 | **multi-style** | 1800 | 0.350 | 633.8 s | 0.6290 → 0.1960 | 8.307 |
+
+- **Peak allocated 3133.4 MiB in all ten runs of the milestone** — geometry sets training
+  memory; style count, image count and step count do not.
+- **Multi-style exposure is asserted, not hoped for:** `minimal-geometric:600;
+  retro-poster:600; ukiyo-e:600`. An unbalanced run raises an error rather than producing a
+  plausible adapter.
+- **EXP-031:** 252 generations against a cap of 432, 21 fresh processes, approved candidates
+  only. **EXP-032:** 8 runs, **202.0 MiB spare** at 512×1536 for every candidate, and the WDDM
+  spill signature is **absent** (device near ceiling but RSS *lower* than at 512×512).
+  **EXP-033:** **0 of 252** near-copy flags, holdout control at a comparable distance.
+
+### Three defects found in my own work — do not "re-discover" these
+
+1. **Training is not bit-reproducible from the recorded seed (risk R14).** The LoRA
+   initialisation draws from the unseeded global torch RNG. Same-step adapters differ by an L2
+   of ~158 against a norm of ~112 — the √2 ratio of independent draws — while training moves
+   the weights by ~5. **The data pipeline IS deterministic** and was verified so. **Not fixed
+   mid-milestone on purpose:** seeding it would alter every run the gate-1 arms were compared
+   against. A shipped checkpoint must therefore be preserved as an artifact, not treated as
+   regenerable.
+2. **24 duplicate generations in the final matrix.** Blocks A and B overlap at weight 0.7. They
+   were byte-identical, but each put a self-pair into a diversity cell and pulled it toward
+   zero. Fixed in the plan and the diversity pass, guarded by a test; **the matrix was not
+   regenerated**, because its evidence is a valid superset of the fixed plan. Executed rows
+   carry fingerprint `da7e4c36…`; the fixed plan's is `c58364681c08…`.
+3. **`core.autocrlf` would have broken the scoring artifact's hash lock.** `.gitattributes` now
+   pins that file, the frozen manifests and the recorded run evidence to verbatim bytes.
+
+### Run budget
+
+**10 of 12** training runs used (6 pilots + 3 full + 1 multi-style). **Both contingency slots
+remain.** Final matrix used 252 of 432. **Hard stop 2026-08-09 EOD**; M7 must begin 08-10…08-12.
+
+### Frozen and verified at the end of M6
+
+- `dataset-v1.csv` **byte-identical** to `cd18cbb0…`, read-only throughout, asserted by pytest.
+- Style kit **`fc11d828…` unchanged by Phase B** — the final matrix's prompts live in
+  `ml/training/final_matrix.py` precisely so the kit fingerprint would not move.
+- Prompt kit `c40749bc…` and smoke kit `a8052f44…` unchanged.
+- `.venv/Scripts/python.exe -m pytest` → **284 tests**. **No linter installed.**
+- Regenerate with: `ml.training.train_lora` (`--style`, or `--multi-style --per-style-steps`) ·
+  `scripts/validate_p4_full_runs.py` · `scripts/run_final_matrix.py` ·
+  `ml.training.combined_stack` · `scripts/evaluate_p4_final_indicators.py` ·
+  `scripts/build_p4_gate2_package.py` · `scripts/build_p4_gate2_zip.py`.
+- **Adapters and images are git-ignored** in `outputs/`; re-run training to regenerate them.
+
+## Prior state (M6 Phase A, 2026-08-04)
+
+### PHASE A COMPLETE — gate 1, now closed
+
+*Historical section, kept for the record. Its gate-1 instructions were satisfied on
+2026-08-05 and are superseded by the Phase B section above.* The handover was
 `docs/evidence/prototype-4/GATE-1-handover.md`; the blank blinded form is
-`docs/evidence/prototype-4/pilot-scoring-form.md`.
+`docs/evidence/prototype-4/pilot-scoring-form.md`, and the completed one is
+`pilot-scoring-form-completed-blind.md`.
 
-### ⚠️ Five things the next session must not do
+### ⚠️ Five things that applied before gate 1 closed
 
-1. **Do not start Phase B without Kylian's six decisions** — checkpoint per style, full-run
-   step count per style, caption verdict, dataset-size verdict, contingency authorisation,
-   multi-style go/no-go. **Nothing in Phase A selected any of them.**
-2. **Do not open the blinding map for him.**
-   `docs/evidence/EXP-025/BLINDING-MAP-do-not-open-before-scoring.csv` is opened *after*
-   scoring. The sheets are the only thing to look at first.
+1. ~~Do not start Phase B without Kylian's six decisions~~ — **satisfied.** All six were
+   returned on 2026-08-05; nothing in Phase A selected any of them.
+2. ~~Do not open the blinding map for him.~~ — **satisfied.** It was opened only after the
+   scores were fixed and their sha256 verified, and no score changed afterwards.
 3. **Do not let the automated indicators decide anything.** EXP-026 populates no rubric cell,
    selects no checkpoint and chooses no hyperparameter. `dHash ≤ 6` is a **coarse near-copy
    indicator, not proof of memorisation**.
-4. **H4 is NOT answered.** The 97 % border-darkness flag on `retro-poster` is an *indicator*;
-   whether the LoRA learned the frame is Kylian's failure-mode probe on `PST-*`.
+4. **H4 is STILL not answered** — it carried past gate 1 unchanged and is now a gate-2
+   question. The 97 % border-darkness flag on `retro-poster` is an *indicator*; whether the
+   LoRA learned the frame is Kylian's failure-mode probe.
 5. **No visual-quality claim was made in Phase A, and none may be added retroactively.**
 
 ### Gate 1 status (2026-08-05)
 
-**Kylian acknowledged gate 1. He has NOT yet returned scores or the six decisions, so Phase B
-remains blocked.** Acknowledgement is not approval.
+**Superseded.** Kylian first acknowledged gate 1 without scores, and Phase B stayed blocked —
+acknowledgement is not approval. He then returned the fixed scores and all six decisions later
+the same day, which is what unblocked Phase B. See `GATE-1-approval.md`.
 
 A review-only ZIP was built on request at
 `outputs/m6-gate-1-blinded-review-package.zip` (509 KB, sha256 `fb467e1d5b5667f3…`):

@@ -59,6 +59,21 @@
   deletes its own results file at start, so a killed run leaves no half-written evidence to be
   mistaken for a complete one.
 
+- **Caps are asserted before the work, not tallied after it.** The final validation matrix
+  computes its exact total and checks it against the pre-declared 432 *before the first image*.
+  A matrix that discovers it overran once it has overrun is not capped.
+- **A balanced sampler asserts the balance it claims.** The multi-style run checks the achieved
+  per-style exposure and fails loudly, because an unbalanced run would still produce a plausible
+  adapter and would silently make the RQ5 comparison meaningless.
+- **A generation plan may not contain the same cell twice.** Two overlapping blocks of the final
+  matrix repeated 24 configurations. They were byte-identical, so nothing looked wrong - but each
+  repeat put a self-pair into a diversity cell and dragged it toward zero, which reads as mode
+  collapse. A regression test now forbids a duplicated cell in any arm.
+- **Hash-locked evidence is protected from line-ending normalisation.** `core.autocrlf` is true
+  here, so without a `.gitattributes` rule Git would rewrite the Gate-1 scoring artifact to CRLF
+  on checkout and invalidate the sha256 that proves no human score was edited after unblinding.
+  A pytest asserts that hash on every run.
+
 ## Evidence
 
 Test run outputs for milestone validations are captured in `docs/evidence/` and referenced in the process log and final report.

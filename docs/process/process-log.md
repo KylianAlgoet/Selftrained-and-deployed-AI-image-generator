@@ -4,6 +4,42 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-05 — M6 Phase B complete: approved full runs, multi-style, final matrix; STOPPED at gate 2
+
+**Objective:** execute Phase B exactly as Kylian's gate-1 approval authorised it, produce the gate-2 review package, and stop without selecting anything.
+
+**Plan:** verify the gate-1 artifact → three 600-step per-style runs in fresh processes → validate every gate and checkpoint → balanced multi-style run only if all three passed → capped final matrix on approved candidates only → combined-stack checks → offline indicators → gate-2 package → documentation → atomic commits → stop.
+
+**Completed work:** gate-1 scoring artifact verified (`cf6bf260…`, matching, 15/15 rows filled) and an approval record written; `.gitattributes` added to stop line-ending normalisation from breaking that hash; balanced multi-style training implemented with asserted exposure; **EXP-027/028/029** at 600 steps and **EXP-030** at 1800; **EXP-031** final matrix, 252 generations against a cap of 432; **EXP-032** combined stack, 8 runs; **EXP-033** offline indicators; 21 labelled contact sheets; a blank gate-2 form; a review-only ZIP; seven registry rows; DR-010 opened as a draft; `docs/prototypes/prototype-4.md`.
+
+**Real results.** Four runs, four passes, tier 0, no escalation. Peak allocated **3133.4 MiB in all four — and in all ten runs of the milestone**, so training memory is set by geometry alone. Multi-style exposure asserted at exactly `minimal-geometric:600; retro-poster:600; ukiyo-e:600`. The combined stack fits at 512×1536 with **202.0 MiB spare** for every candidate, identical to M5's EXP-019b, and the WDDM spill signature is **absent** — device used is near the ceiling but peak RSS at the deck format is *lower* than at 512×512. **0 of 252** near-copy flags, with the holdout control at a comparable distance.
+
+**Three defects found in my own work, all recorded rather than patched away.**
+
+1. **Training is not bit-reproducible from the recorded seed.** The LoRA initialisation draws from the global torch RNG, which the runner never seeds. Diagnosed from the *shape* of the discrepancy rather than guessed: same-step adapters differ by an L2 of ~158 against a norm of ~112, a ratio of √2 — the signature of two independent draws, not floating-point drift. The data pipeline was verified deterministic in the same pass, and I did **not** fix it mid-milestone, because seeding the initialisation would alter every run the gate-1 arms were compared against. Recorded as risk **R14**.
+
+2. **24 duplicate generations in my own matrix.** Two blocks of the plan overlap at weight 0.7. The duplicates were byte-identical, so nothing looked broken — but each one put a self-pair into a diversity cell and dragged it toward zero, which reads as mode collapse. EXP-027@300 moved from 0.3302 to **0.4067** once the repeats were excluded. Found by noticing a `seeds=5` count where the design allowed at most 3. Fixed in the plan, in the diversity computation, and guarded by a regression test; the matrix was not regenerated, because its evidence is a valid superset of the fixed plan.
+
+3. **A line-ending rule that would have broken a hash lock.** `core.autocrlf` is true and no `.gitattributes` existed, so committing Kylian's scored form would have rewritten it to CRLF on checkout and silently invalidated the sha256 that proves no score was edited after unblinding.
+
+**Also corrected:** two L2 figures I mis-transcribed into a draft DR-010 table, caught by re-reading the recorded rows rather than trusting the draft.
+
+**Commands and tests:** `.venv/Scripts/python.exe -m pytest` → **284 passed**. Training via `ml.training.train_lora` (one fresh process per run); matrix via `scripts/run_final_matrix.py` (21 processes); validation via `scripts/validate_p4_full_runs.py`; indicators via `scripts/evaluate_p4_final_indicators.py` (CPU, separate process).
+
+**Unfinished work, deliberately:** no production checkpoint selected; no style declared a winner; no default LoRA weight chosen; RQ5, H4 and H5 without verdicts; DR-010 without a conclusion or consequences section; M6 issue open; nothing pushed.
+
+**Blockers:** none technical. Gate 2 is a human gate and is the intended stopping point. `gh` remains unavailable, so issue state stays Kylian's.
+
+**Decisions:** all six gate-1 decisions were Kylian's and are recorded in `docs/evidence/prototype-4/GATE-1-approval.md`. No decision was made in Phase B.
+
+**Evidence:** `docs/evidence/EXP-027…EXP-033/`, `docs/evidence/prototype-4/` (approval, full-run validation, final sheets, gate-2 form and handover), `experiments/registry.csv` rows EXP-027…EXP-033.
+
+**Budget:** 10 of 12 authorised training runs used; both contingency slots preserved. 252 of 432 allowed generations.
+
+**Next step:** Kylian's gate-2 review. Nothing proceeds until the eight decisions in `docs/evidence/prototype-4/GATE-2-handover.md` come back.
+
+---
+
 ## 2026-08-04 — M6 Phase A complete: pilots, caption A/B and dataset-size arms; STOPPED at gate 1
 
 **Objective:** complete the autonomous pre-review half of Prototype 4 — freeze the style datasets, train the pilots, gather automated evidence, and hand Kylian a blinded scoring package — then stop.
