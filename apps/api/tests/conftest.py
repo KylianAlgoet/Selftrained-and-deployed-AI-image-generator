@@ -86,6 +86,8 @@ class FakePipeline:
             peak_reserved_mb=5200.0,
             allocated_before_mb=2066.56,
             allocated_after_mb=2066.56,
+            reserved_before_mb=2100.0,
+            reserved_after_mb=2100.0,
             device_used_mb=7985.5,
             process_rss_mb=1000.0,
             active_adapters=self.loaded_adapters,

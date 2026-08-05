@@ -71,6 +71,8 @@ class GenerationOutcome:
     peak_reserved_mb: float
     allocated_before_mb: float
     allocated_after_mb: float
+    reserved_before_mb: float
+    reserved_after_mb: float
     device_used_mb: float
     process_rss_mb: float
     active_adapters: tuple[str, ...]
@@ -322,6 +324,7 @@ class ResidentPipeline:
         torch.cuda.empty_cache()
         torch.cuda.reset_peak_memory_stats()
         allocated_before = round(torch.cuda.memory_allocated() / MIB, 2)
+        reserved_before = round(torch.cuda.memory_reserved() / MIB, 2)
 
         pipe.set_ip_adapter_scale(scale_applied)
         pipe._interrupt = False
@@ -394,6 +397,8 @@ class ResidentPipeline:
             peak_reserved_mb=round(torch.cuda.max_memory_reserved() / MIB, 2),
             allocated_before_mb=allocated_before,
             allocated_after_mb=round(torch.cuda.memory_allocated() / MIB, 2),
+            reserved_before_mb=reserved_before,
+            reserved_after_mb=round(torch.cuda.memory_reserved() / MIB, 2),
             device_used_mb=round((total - free) / MIB, 2),
             process_rss_mb=round(process.memory_info().rss / MIB, 2),
             active_adapters=self.loaded_adapter_names(),

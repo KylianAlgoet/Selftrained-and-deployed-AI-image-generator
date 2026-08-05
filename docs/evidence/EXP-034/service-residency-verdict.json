@@ -1,0 +1,110 @@
+{
+  "criteria": {
+    "all_requests_complete": "12/12 requests complete, no OOM",
+    "allocated_growth_within_64mb": "same-case allocated VRAM grows by <= 64 MiB between cycles",
+    "device_ceiling_respected": "physical device use never exceeds 8187.5 MiB",
+    "no_monotonic_growth": "allocated VRAM after generation does not rise monotonically",
+    "no_previous_adapter": "no previous style adapter remains active",
+    "no_stale_reference": "prompt-only requests apply IP-Adapter scale 0.0",
+    "one_adapter_per_request": "exactly one style LoRA active per request",
+    "repeat_byte_identical": "each case's cycle-2 output is byte-identical to its cycle-1 output"
+  },
+  "exp_id": "EXP-034",
+  "failures": [],
+  "growth_detail": [
+    {
+      "allocated_growth_mb": 0.0,
+      "case": 1,
+      "within": true
+    },
+    {
+      "allocated_growth_mb": 0.0,
+      "case": 2,
+      "within": true
+    },
+    {
+      "allocated_growth_mb": 0.0,
+      "case": 3,
+      "within": true
+    },
+    {
+      "allocated_growth_mb": 0.0,
+      "case": 4,
+      "within": true
+    },
+    {
+      "allocated_growth_mb": 0.0,
+      "case": 5,
+      "within": true
+    },
+    {
+      "allocated_growth_mb": 0.0,
+      "case": 6,
+      "within": true
+    }
+  ],
+  "passed": true,
+  "repeat_detail": [
+    {
+      "case": 1,
+      "cycle1_sha256": "46bbf160e4270429e6692467dc6c59577e99bf3178dedd8d38193d0335fb6d7f",
+      "cycle2_sha256": "46bbf160e4270429e6692467dc6c59577e99bf3178dedd8d38193d0335fb6d7f",
+      "identical": true,
+      "reference_present": false,
+      "style": "minimal-geometric"
+    },
+    {
+      "case": 2,
+      "cycle1_sha256": "76fadc5de18d368776ea941b6319f3c4c6e6390d14ca2904100ff132a7d58ca7",
+      "cycle2_sha256": "76fadc5de18d368776ea941b6319f3c4c6e6390d14ca2904100ff132a7d58ca7",
+      "identical": true,
+      "reference_present": true,
+      "style": "ukiyo-e"
+    },
+    {
+      "case": 3,
+      "cycle1_sha256": "4a2c11423def6dee9ef01fff58a5cffd452273e40a8ea3f233acec7360f163b8",
+      "cycle2_sha256": "4a2c11423def6dee9ef01fff58a5cffd452273e40a8ea3f233acec7360f163b8",
+      "identical": true,
+      "reference_present": false,
+      "style": "retro-poster"
+    },
+    {
+      "case": 4,
+      "cycle1_sha256": "5e5f672883191742fa690a74542a0451b97ac5f2fde10622ff62569792f1d56c",
+      "cycle2_sha256": "5e5f672883191742fa690a74542a0451b97ac5f2fde10622ff62569792f1d56c",
+      "identical": true,
+      "reference_present": true,
+      "style": "minimal-geometric"
+    },
+    {
+      "case": 5,
+      "cycle1_sha256": "0b98f1c76d6aa9769d4926aaf91a1a5c869f05558ac0a7e17a63c42bec0ef8f3",
+      "cycle2_sha256": "0b98f1c76d6aa9769d4926aaf91a1a5c869f05558ac0a7e17a63c42bec0ef8f3",
+      "identical": true,
+      "reference_present": false,
+      "style": "ukiyo-e"
+    },
+    {
+      "case": 6,
+      "cycle1_sha256": "b4561151ac82d1e39fc713c5e142e804fa46c102eeaf717605d2e11cda09b727",
+      "cycle2_sha256": "b4561151ac82d1e39fc713c5e142e804fa46c102eeaf717605d2e11cda09b727",
+      "identical": true,
+      "reference_present": true,
+      "style": "retro-poster"
+    }
+  ],
+  "requests": 12,
+  "timestamp_utc": "2026-08-05T23:56:10Z",
+  "verdict": {
+    "all_requests_complete": true,
+    "allocated_growth_within_64mb": true,
+    "device_ceiling_respected": true,
+    "no_monotonic_growth": true,
+    "no_previous_adapter": true,
+    "no_stale_reference": true,
+    "one_adapter_per_request": true,
+    "repeat_byte_identical": true
+  },
+  "wall_seconds": 174.27
+}
