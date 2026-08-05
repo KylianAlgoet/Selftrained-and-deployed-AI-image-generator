@@ -123,7 +123,17 @@ def build_prompt(style: str, template: str) -> str:
 
 
 def plan_for_arm(kind: str, geometry: str) -> list[tuple[str, int, float | None]]:
-    """(prompt_id, seed, weight) triples for one arm in one process."""
+    """(prompt_id, seed, weight) triples for one arm in one process.
+
+    Deduplicated. Blocks A and B overlap by construction - block A sweeps four
+    weights over two prompts and two seeds, block B holds the weight at the
+    nominal 0.7 across four prompts and three seeds - so (FP1/FP2, 42/1337, 0.7)
+    falls in both. The first executed run generated those four cells twice per
+    candidate arm, 24 redundant images in all, and they came back byte-identical.
+    The duplicates are removed here rather than tolerated: they cost GPU time
+    against a declared cap and they put a self-pair into every diversity cell they
+    touched, biasing it toward zero.
+    """
     plan: list[tuple[str, int, float | None]] = []
     if kind == "candidate" and geometry == "512x512":
         for pid in BLOCK_A_PROMPTS:                       # block A: weight sweep
@@ -151,7 +161,14 @@ def plan_for_arm(kind: str, geometry: str) -> list[tuple[str, int, float | None]
             plan.append(("FP1-style", seed, None))
     else:
         raise ValueError(f"no plan for kind={kind!r} geometry={geometry!r}")
-    return plan
+
+    seen: set[tuple[str, int, float | None]] = set()
+    unique: list[tuple[str, int, float | None]] = []
+    for cell in plan:
+        if cell not in seen:
+            seen.add(cell)
+            unique.append(cell)
+    return unique
 
 
 def planned_arms() -> list[dict]:

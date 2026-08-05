@@ -106,3 +106,18 @@ def test_gate_1_approval_record_exists_and_names_the_scoring_artifact():
     text = path.read_text(encoding="utf-8")
     assert "cf6bf2605b7159128dc4d841ccd04cc8867211c53992d19fd0fb6856625b71ec" in text
     assert "Kylian Algoet" in text
+
+
+def test_no_arm_generates_the_same_configuration_twice():
+    """Blocks A and B overlap at the nominal weight. The first executed matrix
+    repeated 24 cells because of it, wasting capped GPU budget and putting a
+    self-pair into every diversity cell it touched."""
+    for arm in fm.planned_arms():
+        plan = fm.plan_for_arm(arm["kind"], arm["geometry"])
+        assert len(plan) == len(set(plan)), f"{arm} repeats a configuration"
+
+
+def test_dedup_removed_exactly_the_overlapping_cells():
+    """The unique set is unchanged; only repeats were dropped. 252 executed
+    generations covered 228 distinct configurations."""
+    assert fm.planned_generations() == 228
