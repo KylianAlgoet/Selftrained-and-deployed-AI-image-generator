@@ -1,18 +1,19 @@
 # DR-010 — Style-learning configuration for Prototype 5
 
-**Status:** **DRAFT — NO CONCLUSION.** This record may not be finalised until Kylian
-completes Gate 2. · **Date opened:** 2026-08-04 · **Milestone:** M6 (Prototype 4)
+**Status:** **accepted** · **Date opened:** 2026-08-04 · **Finalised:** 2026-08-05 at Gate 2
+by Kylian Algoet · **Milestone:** M6 (Prototype 4)
 **Answers:** RQ4 — *how many images, and what caption standards, does style learning need?*
 and RQ5 — *one multi-style LoRA, or separate per-style LoRAs?*
 **Related:** DR-006 (dataset styles), DR-007 (base model), DR-008 (reference conditioning),
 DR-009 (fine-tuning method)
 
-> **Why this record has no decision section yet.** Every remaining question in it is a
-> visual-quality judgement, and no visual-quality claim is made anywhere in Prototype 4.
-> The automated indicators in `docs/evidence/EXP-026/` and `docs/evidence/EXP-033/` are
-> descriptive; they populate no rubric cell and may not select a checkpoint, style or
-> hyperparameter. The M4 and M5 precedent applies: the conclusion is written **after** the
-> human gate, from the human's scores, or not at all.
+> **How this record reached a conclusion.** It stayed a draft with an empty decision section
+> until Kylian completed Gate 2, because every question left in it was a visual-quality
+> judgement. The conclusion below is written **from his scores**, recorded in
+> `docs/evidence/prototype-4/gate-2-scoring-form-completed.md` (sha256 `835488f3…`) and
+> `GATE-2-approval.md`. The automated indicators in `docs/evidence/EXP-026/` and
+> `docs/evidence/EXP-033/` remain descriptive: they populate no rubric cell and selected no
+> checkpoint, weight, style or verdict.
 
 ## Context
 
@@ -122,18 +123,24 @@ per-*style* exposure is identical — which is exactly what makes the comparison
 
 ### An honest limitation found during validation
 
-**Training runs are not bit-reproducible from their recorded seed.** The adapter is created
-with `init_lora_weights="gaussian"`, which draws from the global torch RNG; the runner seeds a
-`torch.Generator` for the VAE sample, the noise and the timesteps but never seeds the global
-RNG. Measured consequence: the same-step full-run and pilot adapters differ by an L2 of ~158
-against a weight norm of ~112 — a ratio of √2, the signature of two independent draws — while
-training itself moves the weights by ~5.
+**Every M6 training run is not bit-reproducible from its recorded seed.** The adapter was
+created with `init_lora_weights="gaussian"`, which draws from the global torch RNG, and at the
+time of these runs the runner seeded a `torch.Generator` for the VAE sample, the noise and the
+timesteps but never the global RNG. Measured consequence: the same-step full-run and pilot
+adapters differ by an L2 of ~158 against a weight norm of ~112 — a ratio of √2, the signature of
+two independent draws — while training itself moves the weights by ~5.
 
 The **data** pipeline is deterministic and was verified, not assumed: the 600-step sample
 order's first 300 draws are byte-identical to the 300-step pilot's recorded
-`sample_order_sha256`. This is recorded as a limitation and as future work; it was **not**
-fixed mid-milestone, because seeding the initialisation would change every run that the
-gate-1 arms were compared against.
+`sample_order_sha256`.
+
+It was **not** fixed mid-milestone, because seeding the initialisation would have changed every
+run the gate-1 arms were compared against. At Gate 2 Kylian authorised the fix **for future
+training only**: `seed_everything()` now seeds Python `random`, the global torch RNG and CUDA
+before the adapter is constructed, with regression tests proving the same seed gives identical
+initial weights and a different seed does not. **The M6 runs above predate that call, were not
+rerun, and this finding stands unchanged for them** — their checkpoints are authoritative as
+files, by sha256, not as a recipe.
 
 ## Alternatives considered for the open questions
 
@@ -142,11 +149,11 @@ gate-1 arms were compared against.
 | step count | 600 / 900 / 1200 / 1500 within the pre-declared band | **decided at gate 1: 600**, by Kylian |
 | caption strategy | style-only vs dataset-v1 verbatim | **decided at gate 1: style-only**, by Kylian, from blinded scores |
 | dataset size | 12 / 24 / 44 at equal compute | **decided at gate 1: O5 inconclusive**, by Kylian |
-| production checkpoint per style | step 300 vs 600 per style, or none | **open — gate 2** |
-| default LoRA weight | 0.0 / 0.4 / 0.7 / 1.0 | **open — gate 2** |
-| per-style vs multi-style (RQ5) | 3 adapters vs 1 balanced adapter | **open — gate 2** |
-| H4 (retro-poster frames / pseudo-text) | confirmed / refuted | **open — gate 2** |
-| H5 (style vs adherence trade-off) | confirmed / refuted | **open — gate 2** |
+| production checkpoint per style | step 300 vs 600 per style, or none | **decided at gate 2**: 300 / 600 / 300 |
+| default LoRA weight | 0.0 / 0.4 / 0.7 / 1.0 | **decided at gate 2: 0.7** |
+| per-style vs multi-style (RQ5) | 3 adapters vs 1 balanced adapter | **decided at gate 2**: 3 adapters; multi-style viable, not selected |
+| H4 (retro-poster frames / pseudo-text) | confirmed / refuted | **CONFIRMED at gate 2** |
+| H5 (style vs adherence trade-off) | confirmed / refuted | **SUPPORTED at gate 2** |
 
 ## Criteria the gate-2 decision will be judged against
 
@@ -161,11 +168,102 @@ Fixed before the evidence existed, in the approved plan:
 - **Fallback** — ship the styles that passed and report the failure honestly. **A failed style
   is never quietly dropped from the record.**
 
-## Consequences (to be completed after gate 2)
-
-Not written. Filling this in before Kylian's Gate-2 scores would be inventing the result the
-gate exists to produce.
-
 ## Decision
 
-**None recorded. This record is a draft.**
+### D1. Separate per-style LoRA adapters, one selected checkpoint each
+
+| style | run | step | sha256 | outcome |
+|---|---|---:|---|---|
+| minimal-geometric | EXP-027 | **300** | `2d425838cce59adc…` | **PASS** |
+| ukiyo-e | EXP-028 | **600** | `52381b6052ad71f1…` | **PASS** |
+| retro-poster | EXP-029 | **300** | `70d2afbfb3c09aff…` | **PARTIAL PASS** |
+
+Full paths and untruncated hashes in `docs/evidence/prototype-4/GATE-2-approval.md`. All three
+are rank 8 / alpha 8 UNet-attention adapters, 256 tensors, 256 LoRA keys, **zero base-model
+keys**, 6 414 480 bytes, re-hashed on disk against their recorded values.
+
+**Two of the three selected checkpoints are step 300, not step 600.** More training was not
+better for `minimal-geometric` or `retro-poster`: prompt adherence fell from 4 to 3 at step 600
+in both while style consistency stayed at 5. Only `ukiyo-e` improved to step 600. This is the
+concrete reason a single global step count was never assumed.
+
+### D2. Default application LoRA weight — 0.7
+
+0.4 often gives insufficient style influence; 1.0 frequently increases prompt override, repeated
+motifs or style leakage. The application may expose **0.4–1.0** as an advanced control but must
+**default to 0.7**. **0.7 is the selected compromise, not a universal optimum.**
+
+### D3. RQ5 — per-style adapters selected; the multi-style adapter is viable but not selected
+
+The balanced multi-style LoRA is **technically feasible and visually competitive at 512×512**,
+with **no severe cross-style token bleed observed** — its ukiyo-e arm matched the best per-style
+ukiyo-e sheet on every dimension. **The multi-style experiment did not fail.**
+
+Per-style adapters are selected because each style has a *different* approved checkpoint, they
+give cleaner independent control, each was evaluated at both geometries, and styles can be
+improved or replaced independently. The multi-style adapter's advantage does not outweigh the
+reduced flexibility.
+
+### D4. H4 — confirmed
+
+`retro-poster` learns a recognisable, useful vintage-poster aesthetic **and** transfers
+pseudo-text, poster borders, framed composition and repeated poster-layout motifs. The
+failure-mode probe marks `pseudo_text` and `unwanted_frame` **worse than base on every**
+`EXP-029` sheet, and `artefacts` scores 2 throughout. This confirms the M2 dataset finding and
+the pre-training audit, which measured a dark border on **35 of 36** training images.
+
+### D5. H5 — supported
+
+Style strength rises with LoRA weight, but at the highest tested weight prompt authority can
+weaken, repeated motifs can increase, style-free prompts can leak more, and the trained
+composition can dominate the requested content.
+
+### D6. RQ4 — image count remains inconclusive (O5), captions style-only
+
+The **O5** verdict from Gate 1 stands: 44 scored highest, 12 second, 24 lowest, non-monotonic at
+both checkpoints. **No monotonic relationship and no universal minimum image count is
+established.** Style-only captions are selected, and were used for every Phase-B run.
+
+## Consequences
+
+**For Prototype 5 (the integrated application):**
+
+- Ship **three separate per-style adapters**, defaulting to **weight 0.7**, with 0.4–1.0
+  optionally adjustable.
+- **`retro-poster` ships with a named limitation**, not as an equal. It is a partial pass and
+  **is never upgraded**; if it is exposed to users, its pseudo-text and framing behaviour should
+  be expected rather than treated as a defect to be surprised by.
+- **The 202 MiB memory ceiling is binding.** SD 1.5 + one LoRA + IP-Adapter at 512×1536 peaks at
+  7985.5 MiB device of 8187.5 — measured identically for all four candidates. **This is 2.5 % of
+  the device and is not comfortable headroom.** A second adapter, a higher rank, a larger
+  reference batch or ControlNet all have to fit inside it, and none may be added without a new
+  memory test.
+- **The selected checkpoints are authoritative as FILES, by sha256, not as a recipe** — see the
+  limitation below. They must be preserved, not regenerated.
+
+**Limitations carried forward, none softened:**
+
+1. **R14 — the M6 artifacts are not bit-reproducible from their seed.** The LoRA initialisation
+   drew from the unseeded global torch RNG. Measured: two runs of one configuration differ by an
+   L2 of ~158 against a weight norm of ~112, the √2 ratio of independent draws, while training
+   moves the weights by ~5. The **data** pipeline was verified deterministic. The runner is now
+   seeded **for future training only**, with two regression tests; **EXP-027…EXP-030 were not
+   rerun or replaced**, and the fix does not retroactively change the historical finding.
+2. **An orchestration defect in the final matrix.** Two blocks overlapped at weight 0.7, so 24 of
+   252 generations were exact repeats. They were byte-identical — which incidentally confirms
+   generation determinism — but each put a self-pair into a diversity cell and pulled it toward
+   zero; one cell moved from 0.3302 to **0.4067** once excluded. Fixed in the plan, in the
+   diversity computation, and guarded by a test. The matrix was **not** regenerated, because its
+   evidence is a valid superset of the fixed plan.
+3. **Zero near-copy flags is not proof of no memorisation.** 0 of 108 and 0 of 252 generations
+   flagged at `dHash ≤ 6`, with the holdout control at a comparable distance. **That threshold
+   is a coarse near-copy indicator** — sensitive to layout, blind to recolouring — and not a
+   general memorisation measure.
+4. **RQ4 answers less than it appears to.** The size comparison holds *compute* fixed, not
+   epochs, so it is deliberately confounded with repetition and applies to `minimal-geometric`
+   only. It establishes no minimum image count.
+5. **DreamBooth, Textual Inversion and full fine-tuning were never measured** (DR-009). Nothing
+   here claims LoRA is superior to them.
+6. **Gate 2 was scored on labelled sheets**, unlike Gate 1's blinded ones, because the question
+   was which checkpoint ships. Labelled sheets carry an expectation effect that blinded ones do
+   not.
