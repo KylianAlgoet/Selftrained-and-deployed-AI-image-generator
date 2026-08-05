@@ -10,6 +10,22 @@ Honest record of how Claude Code (Anthropic) is used in this project, per sessio
 
 ## Session log
 
+### 2026-08-05 — Prototype 4 gate 2: production selection and milestone closure (M6)
+
+**AI assistance:** verification of the completed Gate-2 scoring artifact against its supplied sha256; resolution of the selected checkpoint paths, hashes, byte sizes and tensor inventories from the recorded evidence; the R14 runner fix and its four regression tests; finalising DR-010 from Kylian's decisions; the documentation and registry pass; atomic commits. Executed under Claude Opus 5.
+
+**Student decisions:** **Kylian Algoet is the final human approver of Gate 2.** He reviewed the 21 labelled contact sheets — **with ChatGPT assisting the visual analysis** — inspected the review material, and approved every conclusion and production decision himself. **No automated indicator selected any checkpoint, weight, style or verdict.**
+
+Three of his decisions went against the tidier reading:
+
+- **Two of the three production checkpoints are step 300, not the step 600 the runs trained to.** More training was not better for `minimal-geometric` or `retro-poster`, and his scores show it — prompt adherence fell from 4 to 3 at step 600 in both while style consistency stayed at 5.
+- **`retro-poster` is recorded as a PARTIAL PASS and explicitly not upgraded**, with H4 confirmed against it.
+- **The multi-style adapter is recorded as viable but not selected**, rather than as a failed experiment — it was competitive and showed no severe token bleed; it simply lost on flexibility.
+
+He also required that the R14 reproducibility fix be **forward-looking only**: the runner is seeded for future training, but EXP-027…EXP-030 are neither rerun nor replaced, and the historical finding is not softened by the fix.
+
+**Verification status:** every checkpoint hash in the approval record and DR-010 was re-read from the file on disk and compared against the value recorded at training time — none was copied from a draft. The scoring artifact was hashed before it was read and is now asserted by pytest. **No score was invented or altered, and the assistant selected nothing.**
+
 ### 2026-08-05 — Prototype 4: style learning, both phases (M6)
 
 **AI assistance:** Plan-mode M6 plan, revised after Kylian issued **eight mandatory corrections**. Implementation of the frozen style kit, five per-style manifests, the caption audit, the per-style and balanced multi-style training paths, the capped pilot and final validation matrices, the memorisation and diversity indicators, the blinded gate-1 package and the labelled gate-2 package; running all fourteen Prototype-4 experiments; documentation, eleven registry rows, the DR-010 draft, and atomic commits. Executed under Claude Opus 5.

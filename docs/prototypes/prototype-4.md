@@ -1,6 +1,6 @@
 # Prototype 4 — style learning and visual comparison
 
-**Milestone:** M6 · **Status:** Phase A and Phase B complete, **stopped at Gate 2**
+**Milestone:** M6 · **Status:** **COMPLETE** — both gates passed, closed 2026-08-05
 **Answers:** RQ4 (how many images, what caption standards) and RQ5 (per-style vs multi-style)
 **Builds on:** DR-007 (SD 1.5), DR-008 (IP-Adapter @ 0.55), DR-009 (LoRA rank 8, tier 0)
 
@@ -15,9 +15,9 @@
 |---|---|---|
 | H1 | Style learning varies with training-set size across nested 12 ⊂ 24 ⊂ 44 subsets at equal compute | **O5 inconclusive** (Gate 1, Kylian) |
 | H2 | *(replaced)* the original wording was unfalsifiable — "at least as strong" cannot be refuted by equality. Replaced by four explicit verdict rules | **style-only preferred** (Gate 1, Kylian) |
-| H3 | Separate per-style LoRAs give cleaner style separation than one balanced multi-style LoRA | **open — Gate 2** |
-| H4 | `retro-poster` transfers frames and pseudo-text into generations | **open — Gate 2** |
-| H5 | Style strength and prompt adherence trade off as LoRA weight rises | **open — Gate 2** |
+| H3 | Separate per-style LoRAs give cleaner style separation than one balanced multi-style LoRA | **not refuted, but not on separation** — the multi-style adapter was competitive with no severe bleed; per-style adapters were selected on *flexibility* (Gate 2) |
+| H4 | `retro-poster` transfers frames and pseudo-text into generations | **CONFIRMED** (Gate 2) |
+| H5 | Style strength and prompt adherence trade off as LoRA weight rises | **SUPPORTED** (Gate 2) |
 
 ## Scope
 
@@ -96,8 +96,11 @@ with `init_lora_weights="gaussian"`, drawing from the global torch RNG, which th
 seeds. Diagnosed from the *shape* of the discrepancy: same-step adapters differ by an L2 of
 ~158 against a norm of ~112, a ratio of √2 — the signature of two independent draws, not of
 floating-point drift. The data pipeline was verified deterministic in the same pass. Recorded
-as a limitation; **not fixed mid-milestone**, because seeding the initialisation would alter
-every run the Gate-1 arms were compared against.
+as a limitation and **not fixed mid-milestone**, because seeding the initialisation would have
+altered every run the Gate-1 arms were compared against. At Gate 2 Kylian authorised the fix
+**for future training only**: the runner now seeds Python `random`, the global torch RNG and
+CUDA before adapter construction, with regression tests in both directions. **The M6 runs were
+not rerun**, and the finding stands unchanged for them.
 
 **3. My own matrix orchestration generated 24 duplicate images.** Blocks A and B overlap at
 weight 0.7. The duplicates were byte-identical — which incidentally confirms generation
@@ -121,8 +124,30 @@ unblinding.
 - **Fallback** — ship what passed and report the failure. **A failed style is never quietly
   dropped from the record.**
 
-**Technical acceptance is met: 10 of 10 runs pass every gate.** The style-quality half of the
-criteria is unjudged and stays that way until Gate 2.
+**Technical acceptance is met: 10 of 10 runs pass every gate.**
+
+**Gate-2 outcomes (Kylian Algoet, 2026-08-05):** `minimal-geometric` **PASS** · `ukiyo-e`
+**PASS** · `retro-poster` **PARTIAL PASS**, on pseudo-text and framing artefacts, **not
+upgraded** and **not dropped**.
+
+## Gate 2 — production selection
+
+| style | run | step | sha256 | outcome |
+|---|---|---:|---|---|
+| minimal-geometric | EXP-027 | **300** | `2d425838cce59adc…` | PASS |
+| ukiyo-e | EXP-028 | **600** | `52381b6052ad71f1…` | PASS |
+| retro-poster | EXP-029 | **300** | `70d2afbfb3c09aff…` | PARTIAL PASS |
+
+**Default application LoRA weight: 0.7**, with an optional 0.4–1.0 range. **Separate per-style
+adapters** are selected; the balanced multi-style adapter is recorded as **viable but not
+selected**, not as a failure.
+
+**Two of the three selected checkpoints are step 300, not the 600 the runs trained to** — prompt
+adherence fell from 4 to 3 at step 600 for both `minimal-geometric` and `retro-poster` while
+style consistency stayed at 5. Only `ukiyo-e` improved with the longer run. Checkpointing at
+150 / 300 / 450 / 600 and deciding per style at a human gate is what made that visible.
+
+Full record: `docs/evidence/prototype-4/GATE-2-approval.md`; decision: `DR-010` (**accepted**).
 
 ## Evidence
 
@@ -136,7 +161,11 @@ never committed; re-run the recorded commands to regenerate them.
 
 ## Impact on the next iteration
 
-Prototype 5 inherits a **202.0 MiB** production memory ceiling at the deck format, measured
-identically for all four candidates, and the standing rule that this is never described as
-comfortable headroom. Which checkpoint it ships, at which weight, and whether it ships one
-adapter or three, are Gate-2 decisions and are not made here.
+Prototype 5 inherits **three per-style adapters at a default weight of 0.7**, a **202.0 MiB**
+production memory ceiling at the deck format — measured identically for all four candidates, and
+never to be described as comfortable headroom — and **`retro-poster` as a named partial pass**
+that must ship with its pseudo-text and framing limitation stated rather than as an equal.
+
+The selected checkpoints are authoritative **as files, by sha256**: because of R14 they cannot
+be regenerated from their seed, so they are preserved rather than rebuilt. The runner is seeded
+for **future** training only.

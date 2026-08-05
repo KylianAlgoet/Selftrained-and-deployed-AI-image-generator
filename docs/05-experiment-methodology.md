@@ -39,3 +39,24 @@ Scores are recorded per output grid in the experiment's evidence folder; the reg
 ## Evidence
 
 Each experiment stores under `docs/evidence/EXP-###/` (or the prototype folder): the exact config, output images/grids, relevant logs, and `nvidia-smi` readings. Reports may only cite conclusions that trace to these artifacts.
+
+## Two-gate human review (established in M6)
+
+Prototype 4 used **two** human review gates rather than one, and they ask different questions,
+which changes how each is run:
+
+| | Gate 1 (pilots) | Gate 2 (production selection) |
+|---|---|---|
+| question | which configuration to take forward | which checkpoint ships |
+| sheets | **blinded** within style | **labelled** |
+| why | the arms differed in one hidden variable each (captions, set size, step count), so the label would have leaked the answer | the question cannot be answered without knowing which checkpoint a sheet is |
+| known cost | none beyond the reduced context | **labelled sheets carry an expectation effect that blinded ones do not**, and this is stated rather than left implicit |
+
+**Both gates hash the completed score file.** The Gate-1 hash was supplied *before* the blinding
+map was opened; both hashes are asserted by pytest and both files are pinned in `.gitattributes`
+so line-ending normalisation cannot alter them. This makes "no score was edited after the fact"
+a check rather than a promise.
+
+**A blank is never a zero** and is never back-filled. **Automated indicators populate no rubric
+cell and may not select a checkpoint, weight, style or verdict** - they live in separate files
+from human judgement.

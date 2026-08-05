@@ -1,38 +1,120 @@
 # Session handoff
 
-**Last updated:** 2026-08-05 (M6 / Prototype 4 **Phase B complete**, stopped at gate 2, under Opus 5)
+**Last updated:** 2026-08-05 (M6 / Prototype 4 **COMPLETE** — both gates passed, under Opus 5)
 
-## M6 (Prototype 4 — style learning): PHASE B COMPLETE — STOPPED AT GATE 2
+## M6 (Prototype 4 — style learning): **COMPLETE**
+
+**Both gates passed.** Kylian scored the labelled Gate-2 sheets (ChatGPT assisted the visual
+analysis; he is the final approver), selected the production checkpoints, and finalised DR-010.
+Records: `docs/evidence/prototype-4/GATE-2-approval.md` and `GATE-1-approval.md`.
+
+### The production artifacts — preserve these files
+
+| style | run | step | sha256 | outcome |
+|---|---|---:|---|---|
+| minimal-geometric | EXP-027 | **300** | `2d425838cce59adc5c12b894e29439b695b98b9e40ef5d7ae667bd5216cb96a8` | PASS |
+| ukiyo-e | EXP-028 | **600** | `52381b6052ad71f165ed23425bfc4ea1ba794a3886948a741cea9cad3d81abfd` | PASS |
+| retro-poster | EXP-029 | **300** | `70d2afbfb3c09aff6ba37e1f1cf82c02ad69b0269969ea7cdf43b0ead17ba8db` | PARTIAL PASS |
+
+All in **git-ignored** `outputs/lora/<run-slug>/step00300|step00600/pytorch_lora_weights.safetensors`.
+Each is 6 414 480 bytes, 256 tensors, 256 LoRA keys, **zero base-model keys**.
+
+**These files are authoritative as FILES, by sha256 — not as a recipe.** Because of R14 they
+cannot be regenerated from their seed. **Do not delete `outputs/lora/`, do not retrain, do not
+"regenerate" them.** If they are lost, the production selection is lost with them.
+
+**Default application LoRA weight: 0.7**, optional range 0.4–1.0. **Three separate per-style
+adapters**, not the multi-style one.
+
+### ⚠️ Seven things the next session must not do
+
+1. **Do not retrain any style**, and do not change learning rate, rank/alpha, dataset, captions,
+   resolution, optimizer or step count. No contingency is authorised; **both slots are unused.**
+2. **Do not rerun or replace EXP-027…EXP-030** after the R14 seeding fix. The fix is
+   **forward-only**; the M6 evidence predates it deliberately.
+3. **Do not claim the M6 artifacts are bit-reproducible from seed.** They are not. The fix
+   improves *future* reproducibility and changes nothing retroactively.
+4. **Do not upgrade `retro-poster` to a full pass.** It is a **PARTIAL PASS** — H4 confirmed:
+   pseudo-text, poster borders, framed composition, repeated layout motifs. It is also **not
+   dropped**.
+5. **Do not describe the multi-style adapter as a failed experiment.** It is **viable but not
+   selected** — competitive at 512×512, no severe cross-style bleed; per-style adapters won on
+   flexibility because each style needs a *different* checkpoint.
+6. **Do not describe ~202 MiB as comfortable headroom**, and never silently reduce geometry.
+7. **Do not push, and do not update the GitHub issue or board** — `gh` is unavailable and those
+   browser actions are Kylian's.
+
+### What Gate 2 decided, in one line each
+
+- **RQ5:** three separate per-style adapters selected; multi-style viable, not selected.
+- **H4:** **confirmed** for `retro-poster`.
+- **H5:** **supported** — 0.7 is a compromise, **not a universal optimum**.
+- **RQ4 image count:** **O5 inconclusive**, non-monotonic; no minimum count established.
+- **Captions:** style-only, selected at Gate 1 from a blinded A/B.
+- **DR-010:** **accepted**.
+
+### The result worth remembering
+
+**Two of the three selected checkpoints are step 300, not the 600 the runs trained to.** Prompt
+adherence fell from 4 to 3 at step 600 for both `minimal-geometric` and `retro-poster` while
+style consistency held at 5 — training longer made the style stronger and the model less
+obedient. Only `ukiyo-e` improved. Checkpointing at 150/300/450/600 and letting a human choose
+per style is what surfaced it.
+
+### Measured position at close
+
+- **10 of 12** training runs used; **both contingency slots unused**.
+- **Peak allocated 3133.4 MiB in all ten runs** — geometry sets training memory, nothing else.
+- **EXP-032:** 202.0 MiB spare at 512×1536 for all four candidates; **WDDM spill signature
+  absent** (device near ceiling, but RSS *lower* than at 512×512).
+- **EXP-033:** **0 of 252** near-copy flags, holdout control at a comparable distance. `dHash ≤ 6`
+  remains a **coarse indicator, not proof**.
+- `.venv/Scripts/python.exe -m pytest` → **289 tests**. **No linter installed.**
+- `dataset-v1.csv` byte-identical to `cd18cbb0…`; style kit `fc11d828…`, smoke kit `a8052f44…`,
+  prompt kit `c40749bc…` all unchanged.
+- Both human scoring artifacts hash-locked in pytest and pinned in `.gitattributes`:
+  Gate 1 `cf6bf260…`, Gate 2 `835488f3…`.
+
+### Next milestone
+
+**M7 — Prototype 5, the integrated MVP.** Must begin **2026-08-10 to 08-12**. It inherits: SD 1.5
++ three per-style LoRAs at weight 0.7 + IP-Adapter @ 0.55, deck geometry from *generation* at
+512×1536, a **binding 202 MiB memory ceiling**, and `retro-poster` shipping with its limitation
+stated rather than as an equal.
+
+## Prior state (M6 Phase B, before gate 2)
+
+### PHASE B COMPLETE — gate 2, now closed
 
 **Gate 1 is closed.** Kylian scored the blinded pilot sheets, fixed the scores, supplied their
 sha256 **before** the blinding map was opened, and made all six decisions himself. Full record:
 `docs/evidence/prototype-4/GATE-1-approval.md`. **Phase B executed exactly that approval and
 decided nothing further.**
 
-**The handover for the next gate is `docs/evidence/prototype-4/GATE-2-handover.md`;
-the blank form is `docs/evidence/prototype-4/gate-2-scoring-form.md`.**
+*Historical section. Its gate-2 instructions were satisfied on 2026-08-05 and are superseded
+by the section above.* The handover was `docs/evidence/prototype-4/GATE-2-handover.md`, the blank
+form `gate-2-scoring-form.md`, and the completed one `gate-2-scoring-form-completed.md`.
 
-### ⚠️ Six things the next session must not do
+### ⚠️ Six things that applied before gate 2 closed
 
-1. **Do not select a production checkpoint, a default LoRA weight, or a winning style.**
-   Those are gate-2 decisions. Phase B made none of them, and no automated indicator may stand
-   in for one.
-2. **Do not finalise DR-010.** It is a draft with **no decision and no consequences section**,
-   by design.
-3. **Do not run a contingency training run.** None is authorised. Both slots are unused, and a
-   contingency needs a gate-2-identified defect *plus* new explicit approval for one variable.
+1. ~~Do not select a production checkpoint, a default LoRA weight, or a winning style.~~ —
+   **satisfied.** Phase B selected none of them; Kylian selected all three at gate 2, and no
+   automated indicator stood in for one.
+2. ~~Do not finalise DR-010.~~ — **satisfied.** It stayed a draft with an empty decision section
+   until his scores existed, and is now **accepted**.
+3. **Do not run a contingency training run** — **still in force.** Gate 2 authorised none, and
+   both slots remain unused.
 4. **Do not edit any human score**, and do not let `pilot-scoring-form-completed-blind.md`
    change: a pytest asserts its sha256 `cf6bf260…`, and `.gitattributes` keeps Git from
    rewriting its line endings. If that test fails, a score was altered after unblinding.
 5. **Do not describe 202.0 MiB as comfortable headroom**, and never silently reduce geometry.
 6. **Do not close M6, move it to Done, push, or begin M7.**
 
-### Gate-2 decisions still needed
+### Gate-2 decisions — all returned 2026-08-05
 
-Production checkpoint per style · default LoRA weight · RQ5 verdict (and cross-style bleed) ·
-H4 verdict (retro-poster frames / pseudo-text) · H5 verdict (style vs adherence trade-off) ·
-per-style pass / partial pass / failure · contingency authorisation · whether DR-010 may be
-finalised.
+Production checkpoints (300 / 600 / 300) · weight 0.7 · RQ5 per-style selected, multi-style
+viable · H4 confirmed · H5 supported · PASS / PASS / PARTIAL PASS · no contingency · DR-010
+finalised. Recorded in `GATE-2-approval.md`.
 
 ### Phase B measured results (4 runs, 4 passes, tier 0, no escalation)
 

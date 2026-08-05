@@ -74,6 +74,17 @@
   on checkout and invalidate the sha256 that proves no human score was edited after unblinding.
   A pytest asserts that hash on every run.
 
+- **Both human scoring artifacts are hash-locked in the test suite.** The Gate-1 and Gate-2
+  completed forms are asserted by sha256 on every pytest run and pinned in `.gitattributes`, so
+  "no score was edited after approval" is a check rather than a promise.
+- **A reproducibility fix is tested in both directions.** The R14 seeding fix has a test proving
+  the same seed gives identical initial LoRA weights *and* one proving a different seed does not
+  - seeding that pinned every run to one adapter would otherwise pass the first test. A third
+  test asserts the seeding happens *before* adapter construction, since seeding afterwards would
+  leave the initialisation unseeded and still satisfy the first two.
+- **A forward-looking fix must not be allowed to imply a retroactive one.** A test asserts the
+  `seed_everything` docstring still states that the M6 artifacts are not bit-reproducible.
+
 ## Evidence
 
 Test run outputs for milestone validations are captured in `docs/evidence/` and referenced in the process log and final report.

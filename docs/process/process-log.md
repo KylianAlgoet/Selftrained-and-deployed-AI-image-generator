@@ -4,6 +4,38 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-05 — M6 COMPLETE: gate 2 passed, production checkpoints selected, DR-010 finalised
+
+**Objective:** verify the completed Gate-2 scoring artifact, record Kylian's decisions and their provenance, resolve the selected production checkpoints from evidence, apply the authorised forward-only reproducibility fix, finalise DR-010, and close M6 in documentation.
+
+**Completed work:** Gate-2 artifact verified (`835488f3…`, exact match, 21/21 score rows, 15/15 failure-mode rows) and pinned in `.gitattributes` with a pytest asserting the hash; `GATE-2-approval.md` written with explicit provenance; the three selected checkpoints resolved, re-hashed on disk and confirmed against their recorded values; the R14 runner fix with four regression tests; DR-010 moved from draft to **accepted**; registry, planning, architecture, dataset methodology, experiment methodology, testing strategy, risk register, traceability, AI-usage, the Prototype-4 report and this log updated; M6 marked complete.
+
+**Real results — the selected production artifacts.** All three: rank 8 / alpha 8, 256 tensors, 256 LoRA keys, **zero base-model keys**, 6 414 480 bytes, sha256 matching the value recorded at training time.
+
+| style | run | step | sha256 | outcome |
+|---|---|---:|---|---|
+| minimal-geometric | EXP-027 | **300** | `2d425838cce59adc…` | PASS |
+| ukiyo-e | EXP-028 | **600** | `52381b6052ad71f1…` | PASS |
+| retro-poster | EXP-029 | **300** | `70d2afbfb3c09aff…` | PARTIAL PASS |
+
+**Decisions (all Kylian's).** Three separate per-style adapters at a **default weight of 0.7** (optional 0.4–1.0). **RQ5:** the multi-style adapter is **viable but not selected** — competitive at 512×512 with no severe cross-style bleed, and explicitly **not recorded as a failure**; per-style adapters win on flexibility, since each style needs a different checkpoint. **H4 confirmed** — `retro-poster` bakes in pseudo-text and framing, so it is a **partial pass, not upgraded**. **H5 supported** — 0.7 is a compromise, not a universal optimum. **No contingency authorised; both slots unused at 10 of 12 runs.**
+
+**The most informative result is one nobody would have seen without per-style gating.** Two of the three selected checkpoints are **step 300**, not the 600 the runs trained to: prompt adherence fell from 4 to 3 at step 600 for both `minimal-geometric` and `retro-poster` while style consistency held at 5. Training longer made the style stronger and the model less obedient. Only `ukiyo-e` improved.
+
+**R14 handled as authorised — forward-only.** `seed_everything()` now seeds Python `random`, the global torch RNG and CUDA **before** adapter construction, keeping the explicitly seeded `Generator`. Four tests: same seed gives identical initial weights; a different seed does not; the seeding happens before `add_adapter`; and the docstring still states the M6 artifacts are not bit-reproducible. **EXP-027…EXP-030 were not rerun or replaced**, and the historical finding is unchanged — the selected checkpoints are authoritative as files, not as a recipe.
+
+**Commands and tests:** `.venv/Scripts/python.exe -m pytest` → **289 passed**.
+
+**Unfinished work, deliberately:** the GitHub issue and project-board status are **not** updated — `gh` is unavailable and those browser actions are Kylian's. Nothing is pushed. M7 has not begun.
+
+**Blockers:** none. M6 is complete.
+
+**Evidence:** `docs/evidence/prototype-4/GATE-2-approval.md`, `gate-2-scoring-form-completed.md`, `docs/decisions/DR-010-style-learning-configuration.md` (accepted), `experiments/registry.csv` rows EXP-020…EXP-033.
+
+**Next step:** Kylian's push approval, then M7 (Prototype 5 — integrated MVP), which must begin 2026-08-10 to 08-12.
+
+---
+
 ## 2026-08-05 — M6 Phase B complete: approved full runs, multi-style, final matrix; STOPPED at gate 2
 
 **Objective:** execute Phase B exactly as Kylian's gate-1 approval authorised it, produce the gate-2 review package, and stop without selecting anything.

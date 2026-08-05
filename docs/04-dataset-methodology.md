@@ -88,3 +88,30 @@ original wording implied, which strengthens the case for a crop pass rather than
 show whether a style LoRA actually learns the frame, and whether negative prompting suppresses it.
 Evidence: `docs/evidence/EXP-011/`, `docs/evidence/prototype-2/difficult-reference-artefacts.jpg`,
 `docs/evidence/EXP-015-scoring/failure-mode-probe.md`.
+
+## The two open M2 findings, decided with training evidence (M6, 2026-08-05)
+
+Both dataset findings recorded in M2 and carried through M4 are now closed with measured and
+scored evidence rather than judgement.
+
+**1. Framed and matted scans in `retro-poster` — CONFIRMED to transfer.** A border-darkness
+measurement made **before any training run** flagged **35 of 36** train items (median border
+delta **-73.5**, against +29.7 and 2/44 for `ukiyo-e`). H4 predicted the frame would transfer;
+Kylian's Gate-2 failure-mode probe marks `unwanted_frame` **worse than base on every** trained
+`retro-poster` sheet. The style is recorded as a **PARTIAL PASS**, not dropped and not upgraded.
+
+**2. Text-dominated source material — CONFIRMED to transfer as pseudo-text.** Only **14 of 36**
+`retro-poster` captions describe anything visible; 20 of 41 are play-title attributions. The
+Gate-2 probe marks `pseudo_text` **worse than base on every** trained `retro-poster` sheet, and
+`artefacts` scores 2 throughout.
+
+**Mitigation chosen: captions, not cropping.** `dataset-v1` was **never modified** - it is
+byte-identical to `cd18cbb0...` and was opened read-only for the whole of M6. Instead the
+**style-only caption strategy** was adopted and tested as a blinded A/B (EXP-020 vs EXP-023),
+and Kylian selected it at Gate 1. A crop pass was not run: it would have altered the dataset for
+one style only, and the caption route was testable without touching a single source file.
+
+**What this does NOT establish.** The caption A/B ran on `minimal-geometric`, not on
+`retro-poster`, so style-only captions are selected on evidence from the lead style plus the
+audit - not on a measured `retro-poster` comparison. Removing frames at the pixel level was
+never tested, and remains open future work.

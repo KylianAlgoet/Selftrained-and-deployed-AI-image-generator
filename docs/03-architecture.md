@@ -178,3 +178,25 @@ ml/dataset (validation, hashing, captions, splits, contact sheets)
 ```
 
 Deployment candidates (decided later, RQ12): documented two-process local run vs. Docker Compose. See `docs/08-deployment-strategy.md`.
+
+## Style-learning configuration (settled by DR-010, M6, 2026-08-05)
+
+The generation path for Prototype 5 is fixed by measurement and human review, not by the
+Phase-0 hypothesis table:
+
+- **SD 1.5** (DR-007) + **one rank-8 / alpha-8 UNet-attention LoRA per style** (DR-009, DR-010),
+  loaded at a **default weight of 0.7**, optionally adjustable 0.4-1.0.
+- **Three separate per-style adapters, not one multi-style adapter.** The balanced multi-style
+  LoRA was built, measured and scored, and is **viable but not selected** - each style needs a
+  different checkpoint (300 / 600 / 300), and separate adapters allow independent replacement.
+- **IP-Adapter at scale 0.55** (DR-008) for reference conditioning.
+- **Deck geometry comes from generation at 512x1536**, not from training, which is 512x512 for
+  every style.
+
+**Binding constraint:** SD 1.5 + one LoRA + IP-Adapter at 512x1536 peaks at **7985.5 MiB device
+of 8187.5 - 202 MiB spare, 2.5 % of the device.** This is **not comfortable headroom**. A second
+adapter, a higher rank, a larger reference batch or ControlNet all have to fit inside it, and
+none may be added without a new memory test.
+
+**`retro-poster` is a partial pass**, and the architecture must treat it as such: it transfers
+pseudo-text and poster framing (H4 confirmed), and ships with that limitation stated.
