@@ -11,6 +11,7 @@
 
 # Gate-1 and Gate-2 human scoring artifacts, verified by sha256 in pytest.
 docs/evidence/prototype-4/pilot-scoring-form-completed-blind.md -text
+docs/evidence/prototype-4/gate-2-scoring-form-completed.md -text
 
 # Frozen manifests and recorded run evidence are hashed by the tooling.
 data/manifests/*.csv -text
