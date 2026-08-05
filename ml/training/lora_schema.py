@@ -95,7 +95,19 @@ PHASE_SINGLE_STEP = "probe-1step"
 PHASE_STABILITY = "probe-10step"
 PHASE_SMOKE = "smoke"
 
-PHASES: tuple[str, ...] = (PHASE_SINGLE_STEP, PHASE_STABILITY, PHASE_SMOKE)
+# M6 Phase B. Named rather than reusing "smoke", because a 600-step approved
+# production run and a 300-step pilot are different claims and must not share a
+# label in the evidence.
+PHASE_STYLE_FULL = "style-full"
+PHASE_MULTI_STYLE = "multi-style"
+
+PHASES: tuple[str, ...] = (
+    PHASE_SINGLE_STEP,
+    PHASE_STABILITY,
+    PHASE_SMOKE,
+    PHASE_STYLE_FULL,
+    PHASE_MULTI_STYLE,
+)
 
 # Plan step 11: no single preliminary probe may run longer than 20 minutes, and
 # the smoke run needs explicit approval above 60 minutes.
@@ -165,6 +177,13 @@ class TrainingSpec:
     caption_mode: str = ""
     trigger_token: str = ""
     checkpoint_steps: tuple[int, ...] = ()
+
+    # --- M6 Phase B, balanced multi-style (RQ5) -------------------------------
+    # When set, the run draws from every style's manifest with exactly
+    # `per_style_steps` presentations each, so no style can dominate by having
+    # the largest training set.
+    multi_style: bool = False
+    per_style_steps: int = 0
 
     @property
     def effective_batch_size(self) -> int:
@@ -380,6 +399,15 @@ class TrainingResultRow:
     loss_history_path: str = ""
     # "step:sha256:bytes" per saved checkpoint, semicolon separated.
     checkpoints: str = ""
+
+    # --- M6 Phase B, balanced multi-style (RQ5) -------------------------------
+    # Per-style optimizer-step presentations, as "minimal-geometric:600;ukiyo-e:600".
+    # RQ5's comparison is only fair if each style got the SAME exposure it got in
+    # its own per-style run, so the exposure is recorded per style rather than
+    # divided out of a single total afterwards.
+    per_style_exposure: str = ""
+    per_style_item_counts: str = ""
+    multi_style_manifest_sha256: str = ""
 
 
 FIELDNAMES: list[str] = [f.name for f in fields(TrainingResultRow)]

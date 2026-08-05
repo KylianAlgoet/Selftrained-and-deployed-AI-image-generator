@@ -362,3 +362,109 @@ def test_runner_does_not_import_torch_at_module_scope():
     for inspection on a machine with no CUDA."""
     top = _top_level_imports(train_lora)
     assert not any(name.split(".")[0] in {"torch", "diffusers", "peft"} for name in top)
+
+
+# --- M6 Phase B: balanced multi-style (RQ5) ----------------------------------
+
+
+def test_multi_style_items_carry_their_own_style_and_trigger():
+    from ml.training import style_kit
+
+    paths = [f"data/manifests/style-{k}-p4.csv" for k in style_kit.STYLE_ORDER]
+    items = train_lora.load_multi_style_items(paths)
+    assert len(items) == 44 + 44 + 36
+    for key in style_kit.STYLE_ORDER:
+        trigger = style_kit.style_by_key(key).trigger
+        rows = [i for i in items if i["_style"] == key]
+        assert rows, f"no rows loaded for {key}"
+        assert all(r["training_caption"].startswith(f"{trigger} ") for r in rows)
+
+
+def test_balanced_order_gives_every_style_exactly_the_same_exposure():
+    """RQ5 is only answerable if no style got more optimizer steps than another.
+    The largest training set (44) must not dominate the smallest (36)."""
+    from ml.training import style_kit
+
+    paths = [f"data/manifests/style-{k}-p4.csv" for k in style_kit.STYLE_ORDER]
+    items = train_lora.load_multi_style_items(paths)
+    order = train_lora.build_balanced_multi_style_order(items, seed=42, per_style_steps=600)
+
+    assert len(order) == 1800
+    exposure = train_lora.per_style_exposure(items, order)
+    assert exposure == "minimal-geometric:600;retro-poster:600;ukiyo-e:600"
+
+
+def test_balanced_order_is_deterministic_and_seed_sensitive():
+    items = [{"_style": s, "id": f"{s}-{i}"} for s in ("a", "b") for i in range(4)]
+    first = train_lora.build_balanced_multi_style_order(items, seed=42, per_style_steps=10)
+    assert first == train_lora.build_balanced_multi_style_order(items, seed=42, per_style_steps=10)
+    assert first != train_lora.build_balanced_multi_style_order(items, seed=7, per_style_steps=10)
+
+
+def test_balanced_order_is_not_a_round_robin():
+    """A round-robin is balanced but ties style to step parity, a periodic
+    structure the optimizer could ride. The shuffle must break it."""
+    items = [{"_style": s, "id": f"{s}-{i}"} for s in ("a", "b", "c") for i in range(4)]
+    order = train_lora.build_balanced_multi_style_order(items, seed=42, per_style_steps=60)
+    styles = [items[i]["_style"] for i in order]
+    cycles = [tuple(styles[i : i + 3]) for i in range(0, len(styles) - 2, 3)]
+    assert not all(len(set(c)) == 3 for c in cycles)
+
+
+def test_balanced_order_spreads_items_evenly_inside_each_style():
+    """Balanced across styles must not mean lumpy inside one."""
+    from collections import Counter
+
+    from ml.training import style_kit
+
+    paths = [f"data/manifests/style-{k}-p4.csv" for k in style_kit.STYLE_ORDER]
+    items = train_lora.load_multi_style_items(paths)
+    order = train_lora.build_balanced_multi_style_order(items, seed=42, per_style_steps=600)
+    counts = Counter(order)
+    for key in style_kit.STYLE_ORDER:
+        seen = [counts[i] for i, it in enumerate(items) if it["_style"] == key]
+        assert max(seen) - min(seen) <= 1, f"{key} exposure spread {min(seen)}..{max(seen)}"
+
+
+def test_multi_style_spec_requires_matching_total_steps():
+    with pytest.raises(SystemExit):
+        train_lora.main(["--exp-id", "EXP-030", "--phase", "multi-style",
+                         "--steps", "1500", "--multi-style", "--per-style-steps", "600",
+                         "--dry-run"])
+
+
+def test_multi_style_spec_records_all_three_manifests_and_style_only_captions():
+    from ml.training import style_kit
+
+    spec = train_lora.build_spec(
+        _args(exp_id="EXP-030", phase=train_lora.PHASE_MULTI_STYLE, steps=1800,
+              multi_style=True, per_style_steps=600)
+    )
+    assert spec.multi_style is True
+    assert spec.per_style_steps == 600
+    assert spec.style == "multi-style"
+    assert spec.caption_mode == style_kit.CAPTION_MODE_STYLE_ONLY
+    assert len(spec.style_manifest_path.split(";")) == 3
+    assert spec.rank == 8 and spec.alpha == 8
+    assert spec.learning_rate == 1e-4
+    assert (spec.width, spec.height) == (512, 512)
+
+
+def test_phase_names_distinguish_pilot_from_approved_full_runs():
+    """A 300-step pilot and a 600-step approved run must not share a label."""
+    from ml.training import lora_schema
+
+    assert lora_schema.PHASE_SMOKE != lora_schema.PHASE_STYLE_FULL
+    assert lora_schema.PHASE_STYLE_FULL in lora_schema.PHASES
+    assert lora_schema.PHASE_MULTI_STYLE in lora_schema.PHASES
+
+
+def test_gate_1_scoring_artifact_is_unchanged():
+    """The fixed blind scores are evidence. If this hash moves, a human score was
+    edited after unblinding, which the gate exists to prevent."""
+    import hashlib
+
+    path = REPO / "docs" / "evidence" / "prototype-4" / "pilot-scoring-form-completed-blind.md"
+    assert path.is_file(), "the Gate-1 scoring artifact is missing"
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    assert digest == "cf6bf2605b7159128dc4d841ccd04cc8867211c53992d19fd0fb6856625b71ec"

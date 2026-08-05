@@ -42,9 +42,11 @@ from ml.training import smoke_kit  # noqa: E402
 from ml.training.lora_schema import (  # noqa: E402
     BASE_MODEL_REPO_ID,
     BASE_MODEL_REVISION,
+    PHASE_MULTI_STYLE,
     PHASE_SINGLE_STEP,
     PHASE_SMOKE,
     PHASE_STABILITY,
+    PHASE_STYLE_FULL,
     PHASES,
     PROBE_WALL_LIMIT_SECONDS,
     STATUS_FAILED,
@@ -116,6 +118,81 @@ def load_style_items(manifest_path: str) -> list[dict]:
             if not row.get(column):
                 raise RuntimeError(f"{path.name}: row {row.get('id')} is missing {column!r}")
     return rows
+
+
+def load_multi_style_items(manifest_paths: list[str]) -> list[dict]:
+    """Read every per-style manifest into one list, tagging each row with its style.
+
+    Each manifest's `training_caption` already carries that style's own trigger
+    (`xgeo` / `xkyo` / `xpst`), so the multi-style run needs no special caption
+    logic - the trigger is the style selector, which is exactly what makes RQ5
+    answerable.
+    """
+    items: list[dict] = []
+    for path in manifest_paths:
+        style = Path(path).stem.replace("style-", "").replace("-p4", "")
+        for row in load_style_items(path):
+            row = dict(row)
+            row["_style"] = style
+            row["_manifest"] = path
+            items.append(row)
+    return items
+
+
+def build_balanced_multi_style_order(
+    items: list[dict], seed: int, per_style_steps: int
+) -> list[int]:
+    """Exactly `per_style_steps` presentations per style, in a deterministic order.
+
+    Balanced by construction rather than in expectation: the style slots are built
+    as an exact multiset (600 of each) and then shuffled, so the largest training
+    set cannot dominate and no style can drift off its target exposure. Within a
+    style, items cycle through reshuffled pools exactly as the single-style
+    sampler does, so per-item exposure stays as even as the step count allows.
+
+    A round-robin interleave would also be balanced, but it would tie style to
+    step parity - every third step the same style - which is a periodic structure
+    the optimizer could ride. The seeded shuffle avoids that while staying
+    reproducible from the seed alone.
+    """
+    import random
+
+    by_style: dict[str, list[int]] = {}
+    for index, item in enumerate(items):
+        by_style.setdefault(item["_style"], []).append(index)
+
+    rng = random.Random(seed)
+
+    # Per-style queues, each `per_style_steps` long.
+    queues: dict[str, list[int]] = {}
+    for style, indices in sorted(by_style.items()):
+        order: list[int] = []
+        pool: list[int] = []
+        style_rng = random.Random(f"{seed}:{style}")
+        while len(order) < per_style_steps:
+            if not pool:
+                pool = list(indices)
+                style_rng.shuffle(pool)
+            order.append(pool.pop())
+        queues[style] = order
+
+    slots = [style for style in sorted(by_style) for _ in range(per_style_steps)]
+    rng.shuffle(slots)
+
+    cursors = {style: 0 for style in queues}
+    combined: list[int] = []
+    for style in slots:
+        combined.append(queues[style][cursors[style]])
+        cursors[style] += 1
+    return combined
+
+
+def per_style_exposure(items: list[dict], order: list[int]) -> str:
+    """Actual presentations per style, counted from the order that ran."""
+    from collections import Counter
+
+    counts = Counter(items[i]["_style"] for i in order)
+    return ";".join(f"{style}:{counts[style]}" for style in sorted(counts))
 
 
 def caption_for(item: dict, caption_mode: str) -> str:
@@ -281,16 +358,49 @@ def run(spec: TrainingSpec, results_path: Path) -> tuple[int, TrainingResultRow]
     from ml.dataset.hashing import sha256_file
     from ml.training import style_kit
 
-    if spec.style_manifest_path:
+    multi_manifest_sha = ""
+    exposure = ""
+    style_item_counts = ""
+    if spec.multi_style:
+        manifest_paths = [p for p in spec.style_manifest_path.split(";") if p]
+        items = load_multi_style_items(manifest_paths)
+        per_manifest = [f"{p}:{sha256_file(REPO / p)}" for p in manifest_paths]
+        manifest_sha = ""
+        multi_manifest_sha = sha256_text("|".join(per_manifest))
+        style_fingerprint = style_kit.kit_fingerprint()
+
+        order = build_balanced_multi_style_order(items, spec.seed, spec.per_style_steps)
+        if len(order) != spec.optimizer_steps_planned:
+            raise RuntimeError(
+                f"balanced order is {len(order)} steps but the spec planned "
+                f"{spec.optimizer_steps_planned}"
+            )
+        exposure = per_style_exposure(items, order)
+        # Asserted, not hoped for: an unbalanced multi-style run would make the
+        # RQ5 comparison meaningless while still producing a plausible adapter.
+        for pair in exposure.split(";"):
+            style_name, count = pair.split(":")
+            if int(count) != spec.per_style_steps:
+                raise RuntimeError(
+                    f"style {style_name} received {count} presentations, expected "
+                    f"{spec.per_style_steps}"
+                )
+        from collections import Counter
+
+        style_item_counts = ";".join(
+            f"{s}:{n}" for s, n in sorted(Counter(i["_style"] for i in items).items())
+        )
+    elif spec.style_manifest_path:
         items = load_style_items(spec.style_manifest_path)
         manifest_sha = sha256_file(REPO / spec.style_manifest_path)
         style_fingerprint = style_kit.kit_fingerprint()
+        order = build_sample_order(items, spec.seed, spec.optimizer_steps_planned)
     else:
         items = load_smoke_items()
         manifest_sha = ""
         style_fingerprint = ""
+        order = build_sample_order(items, spec.seed, spec.optimizer_steps_planned)
 
-    order = build_sample_order(items, spec.seed, spec.optimizer_steps_planned)
     order_sha = sample_order_fingerprint(items, order)
     presentations, presentations_mean = presentation_counts(items, order)
 
@@ -344,9 +454,16 @@ def run(spec: TrainingSpec, results_path: Path) -> tuple[int, TrainingResultRow]
         adapter=adapter,
         trigger_token=spec.trigger_token,
         trigger_token_ids=(
-            ",".join(str(i) for i in style_kit.style_by_key(spec.style).trigger_token_ids)
-            if spec.style_manifest_path
-            else ""
+            ";".join(
+                f"{s.key}:{','.join(str(i) for i in s.trigger_token_ids)}"
+                for s in sorted(style_kit.STYLES, key=lambda s: s.order)
+            )
+            if spec.multi_style
+            else (
+                ",".join(str(i) for i in style_kit.style_by_key(spec.style).trigger_token_ids)
+                if spec.style_manifest_path
+                else ""
+            )
         ),
         caption_mode=spec.caption_mode,
         style_manifest_path=spec.style_manifest_path,
@@ -354,6 +471,9 @@ def run(spec: TrainingSpec, results_path: Path) -> tuple[int, TrainingResultRow]
         style_kit_fingerprint=style_fingerprint,
         item_presentation_counts=presentations,
         presentations_per_item_mean=presentations_mean,
+        per_style_exposure=exposure,
+        per_style_item_counts=style_item_counts,
+        multi_style_manifest_sha256=multi_manifest_sha,
     )
 
     if not torch.cuda.is_available():
@@ -655,6 +775,49 @@ def build_spec(args) -> TrainingSpec:
     caption_mode = getattr(args, "caption_mode", "") or ""
     checkpoint_steps = tuple(getattr(args, "checkpoint_steps", ()) or ())
 
+    if getattr(args, "multi_style", False):
+        from ml.training import style_kit
+
+        style_manifest = ";".join(
+            f"data/manifests/style-{key}-p4.csv" for key in style_kit.STYLE_ORDER
+        )
+        caption_mode = caption_mode or style_kit.CAPTION_MODE_STYLE_ONLY
+        triggers = ",".join(style_kit.style_by_key(k).trigger for k in style_kit.STYLE_ORDER)
+        return TrainingSpec(
+            exp_id=args.exp_id,
+            phase=args.phase,
+            memory_tier=args.tier,
+            dataset_version=style_kit.DATASET_V1_SHA256[:12],
+            smoke_manifest_path=smoke_kit.SMOKE_MANIFEST_PATH,
+            style="multi-style",
+            caption_strategy=f"prototype-4 {caption_mode}; balanced; triggers {triggers}",
+            style_manifest_path=style_manifest,
+            caption_mode=caption_mode,
+            trigger_token=triggers,
+            checkpoint_steps=checkpoint_steps,
+            multi_style=True,
+            per_style_steps=args.per_style_steps,
+            width=args.width,
+            height=args.height,
+            source_transform="none" if native else "centre-crop",
+            rank=args.rank,
+            alpha=args.alpha,
+            target_modules=TARGET_MODULES_LABEL,
+            learning_rate=args.learning_rate,
+            optimizer="torch.optim.AdamW",
+            optimizer_state_dtype="fp32",
+            optimizer_steps_planned=args.steps,
+            batch_size=1,
+            grad_accum=1,
+            text_encoder_trained=False,
+            vae_trained=False,
+            gradient_checkpointing=args.tier >= 1,
+            latent_caching=args.tier >= 2,
+            precision="fp16",
+            attention_impl="sdpa",
+            seed=args.seed,
+        )
+
     if style_name:
         from ml.training import style_kit
 
@@ -736,7 +899,30 @@ def main(argv: list[str] | None = None) -> int:
         default=[],
         help="intermediate checkpoints, e.g. --checkpoint-steps 150",
     )
+    parser.add_argument(
+        "--multi-style",
+        action="store_true",
+        help="balanced RQ5 run across all three styles; use with --per-style-steps",
+    )
+    parser.add_argument(
+        "--per-style-steps",
+        type=int,
+        default=0,
+        help="exact optimizer-step presentations PER STYLE in a multi-style run",
+    )
     args = parser.parse_args(argv)
+
+    if args.multi_style:
+        from ml.training import style_kit
+
+        expected = args.per_style_steps * len(style_kit.STYLE_ORDER)
+        if args.per_style_steps <= 0:
+            parser.error("--multi-style requires --per-style-steps")
+        if args.steps != expected:
+            parser.error(
+                f"--steps {args.steps} does not match {len(style_kit.STYLE_ORDER)} styles x "
+                f"{args.per_style_steps} = {expected}"
+            )
 
     spec = build_spec(args)
     print(f"{spec.exp_id} [{spec.phase}] {spec.width}x{spec.height} tier {spec.memory_tier}")

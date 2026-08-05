@@ -144,7 +144,16 @@ def test_tier_invariants_name_the_things_that_must_not_move():
 
 
 def test_phases_are_ordered_shortest_first():
-    assert ls.PHASES == (ls.PHASE_SINGLE_STEP, ls.PHASE_STABILITY, ls.PHASE_SMOKE)
+    """M5's micro-gating order, then M6 Phase B's longer approved runs appended.
+    The M5 prefix stays fixed so existing rows keep their meaning."""
+    assert ls.PHASES[:3] == (ls.PHASE_SINGLE_STEP, ls.PHASE_STABILITY, ls.PHASE_SMOKE)
+    assert ls.PHASES == (
+        ls.PHASE_SINGLE_STEP,
+        ls.PHASE_STABILITY,
+        ls.PHASE_SMOKE,
+        ls.PHASE_STYLE_FULL,
+        ls.PHASE_MULTI_STYLE,
+    )
 
 
 def test_run_limits_match_the_approved_plan():
