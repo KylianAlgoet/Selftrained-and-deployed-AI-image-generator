@@ -315,6 +315,35 @@ def to_tensor(image, torch, dtype):
 # --- parameter evidence ------------------------------------------------------
 
 
+def seed_everything(seed: int) -> None:
+    """Seed every RNG the adapter construction can draw from.
+
+    Added after M6 (risk R14). `init_lora_weights="gaussian"` draws from the GLOBAL
+    torch RNG, which this runner previously never seeded - only a `torch.Generator`
+    for the VAE sample, the noise and the timesteps was seeded. The consequence was
+    measured, not assumed: two runs of the same configuration produced adapters
+    differing by an L2 of ~158 against a weight norm of ~112, a ratio of sqrt(2),
+    which is what independent draws from one distribution look like.
+
+    **This does not retroactively change the M6 artifacts.** EXP-020 to EXP-030 were
+    trained before this call existed and are not bit-reproducible from their seed;
+    the selected production checkpoints are authoritative as FILES, by sha256, not
+    as a recipe. This makes future runs reproducible; it does not rewrite history.
+
+    The explicitly seeded `torch.Generator` used in the training loop is deliberately
+    left in place - it is what keeps the noise and timestep stream independent of
+    however many times the global RNG is consumed elsewhere.
+    """
+    import random
+
+    import torch
+
+    random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+
 def lora_parameters(unet) -> list:
     return [(n, p) for n, p in unet.named_parameters() if "lora" in n.lower()]
 
@@ -522,6 +551,9 @@ def run(spec: TrainingSpec, results_path: Path) -> tuple[int, TrainingResultRow]
             [(n, p) for n, p in unet.named_parameters() if "lora" not in n.lower()][:8]
         )
 
+        # R14: seed BEFORE the adapter is constructed, because that is where the
+        # gaussian initialisation draws from the global RNG.
+        seed_everything(spec.seed)
         unet.add_adapter(
             LoraConfig(
                 r=spec.rank,

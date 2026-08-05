@@ -468,3 +468,89 @@ def test_gate_1_scoring_artifact_is_unchanged():
     assert path.is_file(), "the Gate-1 scoring artifact is missing"
     digest = hashlib.sha256(path.read_bytes()).hexdigest()
     assert digest == "cf6bf2605b7159128dc4d841ccd04cc8867211c53992d19fd0fb6856625b71ec"
+
+
+# --- R14: adapter initialisation is reproducible from the seed ----------------
+
+
+def _init_adapter_weights(seed: int) -> dict:
+    """Build a LoRA adapter the same way the runner does and read its INITIAL
+    weights back. Uses a small CPU model rather than the SD UNet: the property
+    under test is where the initialisation draws its randomness from, which does
+    not depend on the module it is attached to."""
+    import torch
+    from peft import LoraConfig, get_peft_model
+
+    class Tiny(torch.nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.to_q = torch.nn.Linear(16, 16)
+            self.to_k = torch.nn.Linear(16, 16)
+
+    train_lora.seed_everything(seed)
+    model = get_peft_model(
+        Tiny(),
+        LoraConfig(r=8, lora_alpha=8, init_lora_weights="gaussian",
+                   target_modules=["to_q", "to_k"]),
+    )
+    return {
+        name: param.detach().clone()
+        for name, param in model.named_parameters()
+        if "lora" in name.lower()
+    }
+
+
+def test_same_seed_gives_identical_initial_lora_weights():
+    """R14's fix. Before it, `init_lora_weights="gaussian"` drew from the unseeded
+    global torch RNG, so two runs of one configuration started from different
+    adapters - measured at an L2 of ~158 against a norm of ~112, the sqrt(2) ratio
+    of independent draws."""
+    import torch
+
+    a = _init_adapter_weights(42)
+    b = _init_adapter_weights(42)
+
+    assert a and set(a) == set(b)
+    for name in a:
+        assert torch.equal(a[name], b[name]), f"{name} differs at the same seed"
+
+
+def test_different_seed_changes_the_initial_lora_weights():
+    """Guards the opposite failure: seeding that pins every run to one adapter
+    regardless of the seed would also pass the test above."""
+    import torch
+
+    a = _init_adapter_weights(42)
+    c = _init_adapter_weights(1337)
+
+    trainable = [n for n in a if not torch.equal(a[n], torch.zeros_like(a[n]))]
+    assert trainable, "expected at least one non-zero-initialised LoRA tensor"
+    assert any(not torch.equal(a[n], c[n]) for n in trainable), "seed had no effect"
+
+
+def test_seeding_happens_before_adapter_construction():
+    """Order matters: seeding after `add_adapter` would leave the initialisation
+    itself unseeded and the test above would still pass for the wrong reason."""
+    source = Path(train_lora.__file__).read_text(encoding="utf-8")
+    seed_call = source.index("seed_everything(spec.seed)")
+    add_adapter = source.index("unet.add_adapter(")
+    assert seed_call < add_adapter
+
+
+def test_m6_artifacts_are_not_claimed_reproducible():
+    """The fix is forward-looking. The recorded M6 evidence predates it, and the
+    docstring must keep saying so rather than quietly implying otherwise."""
+    doc = train_lora.seed_everything.__doc__ or ""
+    assert "not bit-reproducible" in doc
+    assert "does not rewrite history" in doc
+
+
+def test_gate_2_scoring_artifact_is_unchanged():
+    """The Gate-2 scores and written decisions are evidence. If this hash moves,
+    a human score or decision was edited after approval."""
+    import hashlib
+
+    path = REPO / "docs" / "evidence" / "prototype-4" / "gate-2-scoring-form-completed.md"
+    assert path.is_file(), "the Gate-2 scoring artifact is missing"
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    assert digest == "835488f3821c4f6774546978b4e19f4d9a11b6b2e0fb88535b5796405aa16dbb"
