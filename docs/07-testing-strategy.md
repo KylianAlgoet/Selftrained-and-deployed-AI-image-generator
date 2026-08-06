@@ -1,6 +1,6 @@
 # Testing strategy
 
-**Created:** 2026-07-27 · **Updated:** 2026-07-30 (Prototype 1) · **Status:** strategy defined; **66 pytest tests exist and pass** (dataset tooling + ML inference layers). API, frontend-unit, and E2E layers arrive with their code.
+**Created:** 2026-07-27 · **Updated:** 2026-08-06 (Prototype 5) · **Status:** **371 pytest tests and 66 vitest tests exist and pass.** The API and frontend-unit layers arrived with M7; the E2E (Playwright) layer is still outstanding and belongs to M8.
 
 ## Layers
 
@@ -9,8 +9,8 @@
 | Dataset tooling | Pytest | Decode validation, hashing, duplicate detection, manifest completeness (licence fields present), split determinism, **style-label regression guards** (`retro-comic` cannot return) |
 | ML inference | Pytest | **Frozen-kit hash lock**, result-schema round-trip, output-filename encoding, memory-tier escalation, aggregation (median/min/max), resource-sampler lifecycle. Pipeline loads and seed→output-hash determinism are verified by real runs recorded in `experiments/registry.csv` rather than in CI, since they require the GPU |
 | ML training (Prototype 3, M5) | Pytest | **Smoke-kit hash lock** (`a8052f44…`), **holdout-exclusion proof** joined against `dataset-v1` rather than against the smoke manifest's own split column, deterministic sample order and its fingerprint, source-transform correctness (centre-crop geometry; `none` refuses a mismatched source), **training tier ladder** escalation/termination and its distinctness from the inference ladder, a guard that **gradient accumulation never appears as a memory tier**, gate logic (unmeasured sentinels must never satisfy a gate; `loss_decreased` must never gate), adapter artefact rejection when base-model keys are present, and **AST-parsed import boundaries** in both directions — the schema must import no torch, and neither training runner may import the CLIP similarity evaluator. Actual training, adapter reload and the combined-stack fit are verified by real GPU runs recorded in `experiments/registry.csv` (EXP-016…EXP-019), not in CI |
-| API | Pytest + FastAPI TestClient | Endpoint contracts, upload security (extension/MIME/size/path traversal rejection), error shapes, timeout behaviour |
-| Frontend units | Vitest | Form validation, state management, API client, texture-update logic |
+| API (Prototype 5, M7) | Pytest + FastAPI TestClient, **pipeline stubbed — no GPU, no model, no network** | Endpoint contracts and every status code (422/409/503/504/500); upload security with one negative test per frozen rule (bad extension, MIME/extension mismatch, undecodable bytes, truncated file, oversize, **decompression bomb**, traversal filename, a GIF renamed to `.png`); **generation-id resolution is a registry lookup, never a path join**, so traversal strings have nothing to traverse; the **single-worker guard** rejects a detectable worker count above 1; **lock discipline** — the lock is released only after the generation call returns, a second request is blocked while work is active, a later request succeeds after a controlled abort or failure, and a client disconnect does not free it; **LoRA lifecycle** across `minimal-geometric → ukiyo-e → retro-poster → minimal-geometric` asserting exactly one live adapter each time, plus a style switch after a failed generation; **reference → no-reference → reference** leaving no stale conditioning; the checkpoint integrity gate against missing, wrong-size and **same-size-wrong-content** adapters; and that metadata never contains a filesystem path. Real serving, real aborts and the real integrity gate are verified on the GPU by `scripts/validate_p5_api.py` against an actual uvicorn process, recorded in `docs/evidence/prototype-5/` |
+| Frontend units | Vitest | API client (multipart fields, busy/timeout/unavailable classification, non-JSON error bodies); form validation and the DR-008/DR-010 bounded controls; reference preflight; **texture-fit geometry** — both modes' stretch factor, uncovered fraction, canvas size and that the decal is drawn once, upright and unmirrored; **texture swapping** — the replaced texture is disposed, an object URL is revoked only *after* the replacement resolves, and a failed load keeps the previous decal; **colour space and flipY** on every deck texture |
 | End-to-end | Playwright | Full user flow: prompt + upload + style → generate (mocked model in CI-style runs; real model in the documented E2E evidence run) → 3D preview → download |
 
 ## Principles
@@ -88,3 +88,31 @@
 ## Evidence
 
 Test run outputs for milestone validations are captured in `docs/evidence/` and referenced in the process log and final report.
+
+## Principles added from Prototype 5 experience
+
+- **Test the claim a design rests on, not the fact that it runs.** The prompt-only path keeps
+  IP-Adapter resident at scale 0.0 with a constructed placeholder, which is only sound if the
+  reference content cannot influence the result. EXP-035 generated from a grey placeholder and
+  from real holdout artwork and required **byte-identical** output. "No exception was raised" would
+  have proved nothing about the thing that mattered.
+- **Verify live state instead of trusting a call that returned.** `load_lora_weights` returning
+  without raising does not mean the requested adapter is the one that will generate. Every style
+  switch re-reads the live adapter list and live module count and refuses to proceed if they
+  disagree, because generating with the previous style's adapter is indistinguishable from success
+  in the response and silently misattributes an image to a style that never produced it.
+- **A guard must be proved against a copy, never against the artifact it protects.** The checkpoint
+  integrity gate is demonstrated by corrupting a *copy* of an adapter to the same length with
+  different content. Damaging a real checkpoint to test the check would destroy a file that R14
+  makes unregenerable.
+- **Prefer evidence the measurement cannot fake over timing.** The deadline check first asserted an
+  early stop by wall clock and failed at 25.69 s on a *cold* request, where nearly all the time was
+  the model load — the service was correct and the assertion was wrong. The 504 now reports how far
+  the denoising loop got, which no amount of loading time can imitate.
+- **A suspicious screenshot is a hypothesis, not a defect.** A capture taken in the same second the
+  R3F scene finished initialising showed an empty viewer; three seconds later it rendered correctly
+  and the console was clean across both loads. Verify before reporting.
+- **Assert that a decision has NOT been made.** Where a choice belongs to the human gate, a test
+  asserts the code exports no default — `textureFit.ts` deliberately has no
+  `DEFAULT_TEXTURE_FIT_MODE`, so a default cannot appear by accident and quietly pre-empt the
+  reviewer.

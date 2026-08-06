@@ -4,6 +4,96 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-06 — M7 built and validated: the integrated MVP; STOPPED at the review gate
+
+**Objective:** put the measured generation stack behind a usable application on one 8 GB device,
+measure what nothing had measured about running it as a service, build both answers to the
+deck-geometry mismatch, and stop without choosing between them.
+
+**Plan:** approved M7 plan (Plan mode, revised twice on Kylian's corrections) — inspect the
+optional-reference path → resolver-gated dependency install → FastAPI service → API tests →
+EXP-034 residency → frontend and both texture-fit modes → capped GPU validation → evidence,
+documentation, commits → gate.
+
+**Completed work:** `apps/api` (config with a single-worker guard, production style table with a
+sha256 integrity gate, frozen upload limits, resident pipeline with a verified LoRA lifecycle,
+single-flight generation service, FastAPI app) with **82 tests**; the React generate flow with
+loading/error/busy states, reproducibility metadata, PNG + JSON download and **both texture-fit
+modes**, with **66 web tests**; **EXP-034** and **EXP-035**; end-to-end validation against a real
+uvicorn process; browser evidence; DR-011; `docs/prototypes/prototype-5.md`; the gate handover.
+
+**Two things were genuinely unknown and are now measured.**
+
+**1. Residency costs nothing, and the margin is tighter than advertised.** EXP-034 ran a frozen
+12-request matrix — six cases twice — through one long-lived process, deliberately breaking the
+one-config-per-process rule because that is the question. Allocated memory after generation was
+**3316.64 MiB in all 13 runs**: not "within the 64 MiB tolerance declared in advance", identical.
+Six unload/load cycles across three adapters left the allocator exactly where it started. Peak
+allocated was **5143.73 MiB, byte-identical to M5's EXP-019b**, so a resident service and a
+one-shot process reach the same peak. All six repeated cases were **byte-identical**. But the
+worst spare device memory is **200.0 MiB**, not the 202.0 MiB quoted from EXP-032 — every
+reference-conditioned request sits there. The margin got *tighter* under real serving, and it is
+recorded that way rather than rounded toward comfort.
+
+**2. Prototype 0's decals hid a geometry problem for four milestones.** The bundled test decals
+are **512×2000** — 1:3.906, effectively the deck's own aspect. The generator produces 512×1536,
+which is 1:3. The mismatch could not surface until real generated artwork reached the deck.
+Neither fit is correct: `full-surface` stretches by **1.3008×**, `fit-without-stretch` leaves
+**23.12 %** of the length bare (11.56 % per end). Both are built, both disclose their cost
+numerically, and **neither is selected** — a test asserts the code exports no default.
+
+**A third finding, from reading the library rather than assuming.** "Prompt-only" is not simply
+"omit the reference": with IP-Adapter resident, diffusers 0.39.0 sets `added_cond_kwargs` to
+`None` and the UNet then **raises**. The service keeps the adapter at scale 0.0 with a
+constructed grey placeholder, and **EXP-035** tested the claim that rests on — a grey placeholder
+and real holdout artwork produced **byte-identical** output, and the same bytes as EXP-034's
+prompt-only result. It is recorded that this does *not* re-establish text-only equivalence, which
+still rests on M4's separate 12/12 measurement.
+
+**Three defects found in my own work.**
+
+1. **A wrong measurement, not a wrong service.** The deadline check asserted an early stop by
+   wall clock and failed at 25.69 s — but that was a *cold* request, and nearly all of it was the
+   model load. The 504 now reports how far the loop got, so the early stop is provable from the
+   response (14 of 30 steps) independent of loading time; warmed, it returns in 6.33 s against
+   ~13 s unaborted.
+2. **A blank-deck screenshot that was not a bug.** A capture taken in the same second the scene
+   finished initialising showed an empty viewer; three seconds later it rendered correctly, with
+   no console errors on either load. Recorded because "the screenshot looks wrong" is exactly
+   what gets reported as a defect without verification.
+3. **`<output>` inside a `<label>`** is itself a labelable element, which made a control
+   ambiguous to assistive technology and to the tests. Replaced with a `<span>`.
+
+**Commands and tests:** `.venv/Scripts/python.exe -m pytest` → **371 passed** (289 pre-existing,
+unchanged, plus 82 new). `npm run test` → **66 passed**; `npm run lint` clean; `npm run build`
+succeeds. `scripts/measure_service_residency.py`, `scripts/validate_p5_api.py`,
+`scripts/measure_reference_neutralisation.py`.
+
+**Dependency gate:** `fastapi`, `uvicorn`, `python-multipart`, `pydantic` installed only after a
+parsed `--dry-run --report` proved the resolver would move **none** of torch, torchvision,
+diffusers, transformers, accelerate, safetensors, peft, pillow, typing-extensions or httpx.
+Verified afterwards by `pip check` and real imports. A starlette deprecation warning about
+`httpx2` in TestClient is accepted rather than chased, because silencing it risks a protected pin.
+
+**Budget:** the plan declared a hard cap of **25 real generations** before any ran. Final count:
+**25 of 25**, exactly. When the fit-mode screenshots were needed after the cap was reached, an
+existing decal was loaded from disk through a review control instead of generating a 26th.
+
+**Unfinished by design:** no texture-fit default chosen · M7 not declared complete · nothing
+pushed · the GitHub issue and board untouched (`gh` unavailable, and those are Kylian's) · M8 not
+begun.
+
+**Blockers:** none technical. The review gate is the intended stopping point.
+
+**Evidence:** `docs/evidence/prototype-5/` (GATE-handover.md, README.md, api-validation.jsonl,
+screenshots/), `docs/evidence/EXP-034/`, `docs/evidence/EXP-035/`, DR-011,
+`docs/prototypes/prototype-5.md`, registry rows EXP-034 and EXP-035.
+
+**Next step:** Kylian's review. The one decision required is the **production texture-fit mode**;
+the manual acceptance checklist is in the gate handover.
+
+---
+
 ## 2026-08-05 — M6 COMPLETE: gate 2 passed, production checkpoints selected, DR-010 finalised
 
 **Objective:** verify the completed Gate-2 scoring artifact, record Kylian's decisions and their provenance, resolve the selected production checkpoints from evidence, apply the authorised forward-only reproducibility fix, finalise DR-010, and close M6 in documentation.

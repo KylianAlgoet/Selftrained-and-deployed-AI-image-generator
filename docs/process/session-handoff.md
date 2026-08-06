@@ -1,8 +1,91 @@
 # Session handoff
 
-**Last updated:** 2026-08-05 (M6 / Prototype 4 **COMPLETE** — both gates passed, under Opus 5)
+**Last updated:** 2026-08-06 (M7 / Prototype 5 **BUILT AND VALIDATED — stopped at the review gate**, under Opus 5)
 
-## M6 (Prototype 4 — style learning): **COMPLETE**
+## M7 (Prototype 5 — integrated MVP): awaiting Kylian's review gate
+
+The MVP is built, measured and committed. **It is not complete**, because one decision is his.
+
+### The one decision waiting
+
+**Which texture-fit mode becomes the production default.** The generated decal is 1:3
+(512×1536); the deck UV domain is 1:3.902. `full-surface` stretches the artwork **1.3008×**;
+`fit-without-stretch` leaves **23.12 %** of the deck length bare (11.56 % per end). Both are
+built and screenshotted with the same decal and camera. **Nothing in the code picks one, and a
+test asserts no default is exported** — do not add one.
+
+Full handover, with start commands and a manual acceptance checklist:
+`docs/evidence/prototype-5/GATE-handover.md`.
+
+### ⚠️ Eight things the next session must not do
+
+1. **Do not choose the texture-fit mode**, and do not add a `DEFAULT_TEXTURE_FIT_MODE`.
+2. **Do not declare M7 complete**, close the issue, move the board, push, or begin M8.
+3. **Do not run a 26th real generation.** The declared cap of 25 was reached exactly. If more GPU
+   work is genuinely needed, that is a new decision by Kylian, recorded as a planning change.
+4. **Do not describe the margin as 202 MiB any more.** EXP-034 measured **200.0 MiB** as the worst
+   spare under real serving. It is the operative production ceiling and is **not** comfortable
+   headroom.
+5. **Do not add a second worker, Gunicorn, `WEB_CONCURRENCY > 1`, or `--reload` for real work.**
+   The busy lock is process-local and a second resident pipeline does not fit. A startup guard
+   rejects a detectable worker count above 1; separately launched processes are undetectable and
+   unsupported.
+6. **Do not "simplify" the prompt-only path by dropping the placeholder.** Diffusers 0.39.0 raises
+   if IP-Adapter is resident and no image is passed. EXP-035 proved the placeholder is inert at
+   scale 0.0.
+7. **Do not weaken the checkpoint integrity gate**, and never prove it by damaging a real adapter —
+   R14 means they cannot be regenerated. Phase B uses a corrupted *copy*.
+8. **Do not claim EXP-034's figures are comparable with EXP-016…EXP-032.** They were taken under
+   the opposite measurement rule, deliberately.
+
+### Measured position at close
+
+- **371 pytest tests** (289 pre-existing unchanged + 82 new) and **66 vitest tests** pass;
+  eslint clean; `npm run build` succeeds. **No Python linter is installed.**
+- **EXP-034:** 12/12, all eight pre-declared criteria passed. Allocated after generation
+  **3316.64 MiB in all 13 runs**, growth **0.00 MiB**. Peak allocated **5143.73 MiB** —
+  byte-identical to M5's EXP-019b. All 6 repeated cases byte-identical. **Worst spare 200.0 MiB.**
+- **EXP-035:** grey placeholder and real holdout artwork gave **byte-identical** output at scale
+  0.0, matching EXP-034's prompt-only hash `46bbf160e427…`.
+- **Phase A:** 6/6 generations, 12–13 s resident (30.54 s first). **Phase B:** corrupted copy →
+  503, then recovery → 200 with no restart. **Phase C:** 504 after **14 of 30 steps**, 6.33 s
+  warmed, lock released.
+- The three production checkpoints were re-hashed on disk on 2026-08-06 and **match** their
+  gate-2 values, 6 414 480 bytes each.
+- **Prototype 0's bundled decals are 512×2000** (1:3.906) — which is why the deck-geometry
+  mismatch stayed hidden until generated artwork reached the deck.
+
+### Start commands
+
+```
+.venv/Scripts/python.exe -m uvicorn apps.api.main:app --host 127.0.0.1 --port 8000 --workers 1
+cd apps/web && npm run dev            # http://localhost:5173
+```
+
+### Regenerate the evidence
+
+`scripts/measure_service_residency.py` (`--smoke`) · `scripts/validate_p5_api.py`
+(`--phases C`) · `scripts/measure_reference_neutralisation.py`. **All of these consume GPU
+budget** — see item 3.
+
+### Latest commits (M7)
+
+```
+<pending>  docs(process): record prototype 5 and stop at the review gate
+83e6280    feat(web): add a review-only control to load a decal from disk
+a9f5749    test(api): validate prototype 5 end to end against a real uvicorn process
+a2b9219    feat(web): add the generate flow and both deck texture-fit modes
+6d900ce    docs(experiments): record EXP-034, the resident-service residency run
+6e53a67    feat(api): add the resident single-flight generation service
+6d1b24b    docs(process): close M6 ...   <- last pushed
+```
+
+---
+
+## Prior state — M6 (Prototype 4 — style learning): **COMPLETE**, both gates passed 2026-08-05
+
+*Historical section. M6 was completed **and pushed**: `origin/main` reached `6d1b24b`. Any line
+below claiming M6 is unpushed is stale and superseded by the M7 section above.*
 
 **Both gates passed.** Kylian scored the labelled Gate-2 sheets (ChatGPT assisted the visual
 analysis; he is the final approver), selected the production checkpoints, and finalised DR-010.
@@ -459,8 +542,12 @@ None expected at handoff — verify with `git status`.
 
 ## Latest commits (M6 Phase A sequence, 2026-08-04/05)
 
-**`main` is 8 commits ahead of `origin/main`. NOTHING IS PUSHED, and no push may happen
-before Kylian approves it.** M5 ended at `9ebb7a2`, which is the last pushed commit.
+> **SUPERSEDED — this paragraph was true when written and is not true now.** The whole M6
+> sequence was pushed; `origin/main` reached `6d1b24b` on 2026-08-05. The current unpushed work
+> is M7's, listed in the M7 section at the top of this file.
+
+*Historical:* "`main` is 8 commits ahead of `origin/main`. NOTHING IS PUSHED, and no push may
+happen before Kylian approves it." M5 ended at `9ebb7a2`.
 
 ```
 0f1389e docs(process): record prototype 4 phase a and stop at the human review gate
@@ -512,9 +599,9 @@ All at memory tier 0; no tier escalation was needed anywhere.
 - **Dataset:** 148 items, splits 124/17/7, manifest `data/manifests/dataset-v1.csv`, raw images git-ignored.
 - `apps/web`: React 19 + Vite 6.4.3 + R3F viewer (M1); `npm run dev/test/build`.
 
-## Blockers
+## Blockers (historical — M6 Phase A era; superseded by the M7 section at the top)
 
-- **M6 Phase B is blocked on Kylian's gate-1 review.** This is the intended state, not a
+- ~~**M6 Phase B is blocked on Kylian's gate-1 review.**~~ **Satisfied 2026-08-05.** This is the intended state, not a
   failure: the milestone deliberately stops here. Nothing may be worked around, and no
   automated indicator may stand in for a decision he has not made.
 - **`gh` is not on PATH**, so issue #6 and #7 state could not be verified or changed from
@@ -527,7 +614,11 @@ All at memory tier 0; no tier escalation was needed anywhere.
   Trigger-token design — the third M5 open decision — **is now closed** by the frozen
   `xgeo` / `xkyo` / `xpst` family.
 
-## Next action
+## Next action (historical — M6 Phase A era)
+
+> **SUPERSEDED.** The current next action is Kylian's **M7 review gate**; see the top of this
+> file and `docs/evidence/prototype-5/GATE-handover.md`. The M6 text below was satisfied on
+> 2026-08-05 and is kept for the record only.
 
 **Wait.** Do not start Phase B, and do not do preparatory Phase B work that presumes an
 answer. When Kylian returns the scored form he must also return the **six decisions** listed

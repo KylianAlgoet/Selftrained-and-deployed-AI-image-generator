@@ -70,6 +70,31 @@ regenerated, because M7 declared a hard cap of **25 real generations** before an
 re-running passed phases to correct another phase's assertion would have spent that budget on
 nothing. `--phases` exists for exactly this.
 
+## Browser evidence (`screenshots/`)
+
+Captured from the running application — API on `--workers 1`, Vite dev server, Chrome.
+
+| file | what it shows |
+|---|---|
+| `orientation-reference.jpg` | the deck with Prototype 0's orientation decal: "NOSE" upright and **unmirrored** at the nose, arrow pointing noseward |
+| `fit-full-surface.jpg` | a **generated** ukiyo-e decal filling the deck — the 1.3008× stretch |
+| `fit-without-stretch.jpg` | the **same** decal, **same camera**, aspect preserved — the 23.12 % bare ends |
+
+The two fit screenshots differ only in the selected mode; the camera was not touched between
+them, which is also the evidence that swapping a texture does not move the viewpoint.
+
+**How they were captured without spending GPU budget.** The cap of 25 generations was already
+reached, so the decal was loaded from disk through a review-only "Load decal" control rather
+than generated afresh. That control exists because it had to: Prototype 0's bundled decals are
+**512×2000** — 1:3.906, essentially the deck's own aspect — so they cannot demonstrate a
+mismatch that only appears with 1:3 generated artwork. It also lets a reviewer inspect any
+earlier decal at the gate without spending GPU time.
+
+**One observation worth recording rather than reporting as a bug.** A screenshot taken in the
+same second the R3F scene finished initialising showed an empty viewer. Re-checking three
+seconds later showed the deck rendering correctly, and the console held no errors across either
+load. It was a capture-timing artifact.
+
 ## GPU budget
 
 | purpose | count |

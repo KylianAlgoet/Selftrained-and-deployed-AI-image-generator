@@ -20,7 +20,35 @@ The public project planning (milestones M0–M11 with objectives, acceptance cri
 
 ## Project status
 
-**Phase 0 — research and repository foundation** (started 2026-07-27). No application code exists yet; the research framework, planning, environment audit, and documentation system are being established first. See `docs/02-planning.md` for the roadmap to submission (2026-08-17).
+**M7 — Prototype 5, the integrated MVP: built and validated, awaiting the review gate**
+(2026-08-06). Prototypes 0–4 are complete: the 3D viewer, the 148-item dataset, the base-model
+benchmark (SD 1.5, DR-007), reference conditioning (IP-Adapter at 0.55, DR-008), the LoRA method
+(DR-009) and three per-style adapters at weight 0.7 (DR-010). The MVP now serves them behind a
+FastAPI service with a React UI and the 3D deck preview. See `docs/02-planning.md` for the
+roadmap to submission (2026-08-17).
+
+## Running it locally
+
+The API and the frontend are two processes.
+
+```bash
+# 1. API — ONE worker, no reload. This is a correctness requirement, not a preference:
+#    the single-flight lock is process-local, and a second resident pipeline does not fit
+#    in the 200 MiB of spare VRAM the stack leaves (see DR-011).
+.venv/Scripts/python.exe -m uvicorn apps.api.main:app --host 127.0.0.1 --port 8000 --workers 1
+
+# 2. Frontend
+cd apps/web && npm run dev        # http://localhost:5173
+```
+
+The pipeline loads on the **first** generation request, so that one takes about 30 s and every
+later one 12–13 s. `GET /api/health` reports the device, the process PID and whether the
+pipeline is resident.
+
+**Requirements:** the Python 3.11 virtual environment at the repository root (`.venv`), Node 20,
+an NVIDIA GPU with 8 GB VRAM, and the three trained adapters under `outputs/lora/` — these are
+git-ignored and are verified by sha256 on every request, so the service refuses to start
+generating without them.
 
 ## Why the process is visible
 

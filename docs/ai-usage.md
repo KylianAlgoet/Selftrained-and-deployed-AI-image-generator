@@ -10,6 +10,48 @@ Honest record of how Claude Code (Anthropic) is used in this project, per sessio
 
 ## Session log
 
+### 2026-08-06 — Prototype 5 / the integrated MVP (M7)
+
+**AI assistance:** M7 plan in Plan mode; inspection of the diffusers 0.39.0 source to settle how
+prompt-only requests must work; resolver-gated dependency install; implementation of `apps/api`
+(config and single-worker guard, production style table with the sha256 integrity gate, frozen
+upload limits, resident pipeline with a verified LoRA lifecycle, single-flight generation service,
+FastAPI app) with 82 tests; the React generate flow, both texture-fit modes and the texture-swap
+logic with 66 web tests; EXP-034 and EXP-035; end-to-end validation against a real uvicorn
+process; browser-driven screenshot capture; DR-011, the prototype report, the gate handover and
+this documentation set; atomic commits.
+
+**Student decisions.** Kylian **rejected the first plan** and returned twelve mandatory
+corrections, then **rejected the second** and returned two more. Those corrections are load-bearing
+and are visible in the result rather than in the plan alone:
+
+- the frozen **12-request** residency matrix with its eight pre-declared pass criteria — the
+  assistant's draft had described an 8-request sequence as 12 and had not enumerated what to record;
+- the **single-process invariant**, which the assistant had not identified at all: the busy lock is
+  process-local, so it is meaningless under multiple workers, and a second pipeline does not fit in
+  the margin anyway;
+- the rule that a **504 may only be returned once GPU work has actually stopped**, and that if safe
+  cancellation were unsupported the limitation must be stated rather than disguised;
+- **build both texture-fit modes and choose at the gate**, rather than the assistant selecting one;
+- the corrected response contract (JSON plus an image URL, and the 409/503/504 semantics);
+- an exact upload-limit table frozen before implementation, and an explicit GPU-generation cap.
+
+**Verification status.** Every figure quoted is from a command that actually ran on this machine.
+371 pytest tests and 66 vitest tests pass; eslint is clean and the production build succeeds. The
+25-generation cap was declared before any generation ran and finished at exactly 25 — when the
+gate needed fit screenshots afterwards, an existing decal was loaded from disk rather than a 26th
+generated. The three production checkpoints were re-hashed on disk and matched their recorded
+values. Nothing was concluded about the texture-fit default.
+
+**Defects the assistant found in its own work and recorded rather than hid:** a deadline assertion
+that measured a *cold* request's wall clock and so failed on correct behaviour, replaced by a step
+count the response reports directly; a blank-deck screenshot that was a capture-timing artifact
+rather than a bug, verified before being reported; and an `<output>` element inside a `<label>`,
+which is itself labelable and made a control ambiguous to assistive technology.
+
+**Boundary held:** the production texture-fit mode is not chosen, M7 is not declared complete,
+nothing is pushed, the GitHub issue and board are untouched, and M8 has not begun.
+
 ### 2026-08-05 — Prototype 4 gate 2: production selection and milestone closure (M6)
 
 **AI assistance:** verification of the completed Gate-2 scoring artifact against its supplied sha256; resolution of the selected checkpoint paths, hashes, byte sizes and tensor inventories from the recorded evidence; the R14 runner fix and its four regression tests; finalising DR-010 from Kylian's decisions; the documentation and registry pass; atomic commits. Executed under Claude Opus 5.
