@@ -33,6 +33,11 @@ class Settings:
     generation_timeout_seconds: float = 120.0
     default_seed: int = 42
     generated_dir: Path = field(default_factory=lambda: REPO_ROOT / GENERATED_SUBDIR)
+    # Root the adapters are resolved under. Configurable for exactly one reason:
+    # the integrity gate has to be demonstrable against a DELIBERATELY CORRUPTED
+    # COPY, because proving it by damaging a real production checkpoint would
+    # destroy an artifact that R14 makes unregenerable.
+    checkpoint_root: Path = field(default_factory=lambda: REPO_ROOT)
     # How many finished generations stay resolvable. The registry is in-memory and
     # the service is single-process, so this only bounds one process's own history.
     max_retained_generations: int = 64
@@ -91,7 +96,9 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
     assert_single_worker(env)
 
     generated = env.get("GENERATED_OUTPUT_DIR")
+    checkpoints = env.get("CHECKPOINT_ROOT")
     return Settings(
+        checkpoint_root=Path(checkpoints) if checkpoints else REPO_ROOT,
         host=env.get("API_HOST", "127.0.0.1"),
         port=int(env.get("API_PORT", "8000")),
         allowed_origins=_split_origins(env.get("ALLOWED_ORIGINS", "http://localhost:5173")),

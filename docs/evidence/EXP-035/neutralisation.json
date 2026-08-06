@@ -1,0 +1,39 @@
+{
+  "arms": [
+    {
+      "active_adapters": [
+        "minimal-geometric"
+      ],
+      "arm": "neutral-placeholder",
+      "description": "the service's own constructed 512px level-128 grey",
+      "generate_seconds": 13.13,
+      "image_sha256": "46bbf160e4270429e6692467dc6c59577e99bf3178dedd8d38193d0335fb6d7f",
+      "ip_adapter_scale_applied": 0.0,
+      "output_path": "outputs/EXP-035/EXP-035__neutral-placeholder__scale0__seed42.png"
+    },
+    {
+      "active_adapters": [
+        "minimal-geometric"
+      ],
+      "arm": "holdout-R2",
+      "description": "R2, real artwork from the holdout split, 512x1536",
+      "generate_seconds": 12.262,
+      "image_sha256": "46bbf160e4270429e6692467dc6c59577e99bf3178dedd8d38193d0335fb6d7f",
+      "ip_adapter_scale_applied": 0.0,
+      "output_path": "outputs/EXP-035/EXP-035__holdout-R2__scale0__seed42.png"
+    }
+  ],
+  "arms_byte_identical": true,
+  "exp_034_prompt_only_sha256": "46bbf160e4270429e6692467dc6c59577e99bf3178dedd8d38193d0335fb6d7f",
+  "exp_id": "EXP-035",
+  "ip_adapter_scale": 0.0,
+  "limitation": "Shows that the reference CONTENT cannot influence the output at scale 0.0 in this stack. Does NOT re-establish equivalence to the frozen text-only baseline, which has no LoRA and a different prompt and is therefore not comparable at fixed settings; that claim continues to rest on M4's separate 12/12 result.",
+  "lora_weight": 0.7,
+  "matches_exp_034_prompt_only": true,
+  "passed": true,
+  "seed": 42,
+  "style": "minimal-geometric",
+  "subject": "a mountain and a rising sun",
+  "timestamp_utc": "2026-08-06T00:18:22Z",
+  "wall_seconds": 41.58
+}

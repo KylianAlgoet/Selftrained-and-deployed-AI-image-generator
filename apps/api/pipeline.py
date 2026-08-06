@@ -51,7 +51,21 @@ NEUTRAL_REFERENCE_LEVEL = 128
 
 
 class GenerationAborted(RuntimeError):
-    """The deadline fired and the denoising loop was stopped at a step boundary."""
+    """The deadline fired and the denoising loop was stopped at a step boundary.
+
+    Carries the step counts, because "it stopped early" is a claim that should be
+    checkable from the response rather than inferred from how long the request
+    took - a cold first request spends most of its wall clock loading the model,
+    not denoising.
+    """
+
+    def __init__(self, steps_run: int, steps_total: int) -> None:
+        super().__init__(
+            f"generation exceeded its deadline and was stopped after "
+            f"{steps_run} of {steps_total} steps"
+        )
+        self.steps_run = steps_run
+        self.steps_total = steps_total
 
 
 class PipelineUnavailable(RuntimeError):
@@ -371,10 +385,7 @@ class ResidentPipeline:
                 pass
 
         if interrupted:
-            raise GenerationAborted(
-                f"generation exceeded its deadline and was stopped after "
-                f"{steps_seen['count']} of {prompt_kit.STEPS} steps"
-            )
+            raise GenerationAborted(steps_seen["count"], prompt_kit.STEPS)
 
         image = result.images[0]
         buffer = io.BytesIO()

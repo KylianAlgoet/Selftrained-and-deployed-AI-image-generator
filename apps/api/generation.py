@@ -55,7 +55,7 @@ class GenerationService:
         repo_root: Path | None = None,
     ) -> None:
         self.settings = settings
-        self.repo_root = repo_root or REPO_ROOT
+        self.repo_root = repo_root or settings.checkpoint_root or REPO_ROOT
         self.pipeline = pipeline or ResidentPipeline(self.repo_root)
         self._lock = threading.Lock()
         self._registry: OrderedDict[str, Path] = OrderedDict()

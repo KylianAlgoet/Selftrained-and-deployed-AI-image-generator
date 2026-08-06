@@ -220,10 +220,13 @@ def create_app(service: GenerationService | None = None) -> FastAPI:
             )
         except GenerationAborted as err:
             logger.warning("generation aborted by deadline: %s", err)
+            # The step counts are safe to publish and make the early stop
+            # verifiable from the response itself rather than from timing.
             return _error(
                 504,
                 "generation_timeout",
-                "Generation took too long and was stopped.",
+                f"Generation took too long and was stopped after "
+                f"{err.steps_run} of {err.steps_total} steps.",
             )
         except ValueError as err:
             return _error(422, "validation_failed", str(err), "prompt")

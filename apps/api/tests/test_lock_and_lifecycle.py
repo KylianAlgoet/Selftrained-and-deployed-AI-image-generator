@@ -113,7 +113,7 @@ def test_the_lock_is_released_only_after_the_generation_call_returns(service, fa
 
 
 def test_an_aborted_generation_releases_the_lock_after_cleanup(service, fake_pipeline):
-    fake_pipeline.fail_with = GenerationAborted("stopped after 12 of 30 steps")
+    fake_pipeline.fail_with = GenerationAborted(12, 30)
     with pytest.raises(GenerationAborted):
         service.generate(
             style_key="ukiyo-e",
@@ -126,7 +126,7 @@ def test_an_aborted_generation_releases_the_lock_after_cleanup(service, fake_pip
 
 
 def test_a_later_request_succeeds_after_a_controlled_abort(client, fake_pipeline):
-    fake_pipeline.fail_with = GenerationAborted("stopped after 12 of 30 steps")
+    fake_pipeline.fail_with = GenerationAborted(12, 30)
     assert _generate(client).status_code == 504
     assert _generate(client).status_code == 200
 

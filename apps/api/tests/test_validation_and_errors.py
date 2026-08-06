@@ -58,10 +58,28 @@ def test_pipeline_failure_is_503(client, fake_pipeline):
 
 
 def test_deadline_abort_is_504(client, fake_pipeline):
-    fake_pipeline.fail_with = GenerationAborted("stopped after 12 of 30 steps")
+    fake_pipeline.fail_with = GenerationAborted(12, 30)
     response = _generate(client)
     assert response.status_code == 504
     assert response.json()["error"] == "generation_timeout"
+
+
+def test_the_504_reports_how_far_the_generation_got(client, fake_pipeline):
+    """The step counts make "it stopped early" checkable from the response.
+
+    Wall-clock time cannot show it: a cold first request spends most of its
+    duration loading the model rather than denoising.
+    """
+    fake_pipeline.fail_with = GenerationAborted(14, 30)
+    detail = _generate(client).json()["detail"]
+    assert "14" in detail and "30" in detail
+
+
+def test_the_abort_carries_its_step_counts():
+    error = GenerationAborted(8, 30)
+    assert error.steps_run == 8
+    assert error.steps_total == 30
+    assert "8 of 30" in str(error)
 
 
 def test_unexpected_failure_is_500_with_a_safe_message(client, fake_pipeline):
