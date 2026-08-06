@@ -169,6 +169,30 @@ export default function App() {
     [applyFit],
   )
 
+  /**
+   * Review-only: put a decal already on disk onto the deck.
+   *
+   * The texture-fit comparison needs a 1:3 decal, and Prototype 0's bundled
+   * decals were authored at 512x2000 - the deck's own aspect - which is
+   * precisely why the mismatch never surfaced until generation started
+   * producing 512x1536. Without this, comparing the two fit modes would mean
+   * generating another image purely to look at it. It also lets a reviewer
+   * re-examine any earlier decal without spending GPU time.
+   */
+  const handleLocalDecal = useCallback(
+    async (file: File | null) => {
+      if (!file) return
+      try {
+        const image = await imageFromBlob(file)
+        imageRef.current = image
+        await applyFit(image, fitMode)
+      } catch {
+        setTextureError('That file could not be read as an image.')
+      }
+    },
+    [applyFit, fitMode],
+  )
+
   function download(blobUrl: string, filename: string) {
     const anchor = document.createElement('a')
     anchor.href = blobUrl
@@ -269,6 +293,14 @@ export default function App() {
                 </label>
               ))}
             </fieldset>
+            <label className="local-decal" title="Review control: put a decal from disk on the deck">
+              Load decal
+              <input
+                type="file"
+                accept=".png,.jpg,.jpeg,.webp"
+                onChange={(event) => void handleLocalDecal(event.target.files?.[0] ?? null)}
+              />
+            </label>
             <button type="button" onClick={() => controlsRef.current?.reset()}>
               Reset view
             </button>
