@@ -1,7 +1,7 @@
-import { Suspense, useEffect, useMemo, useRef } from 'react'
-import { Canvas, useLoader, useThree } from '@react-three/fiber'
+import { useEffect, useMemo, useRef } from 'react'
+import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
-import { SRGBColorSpace, TextureLoader } from 'three'
+import type { Texture } from 'three'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { createDeckGeometry } from '../deck/deckGeometry'
 
@@ -25,16 +25,17 @@ function EvidenceCaptureHook() {
 }
 
 interface DeckMeshProps {
-  decalUrl: string
+  /**
+   * The decal texture, owned and disposed by the caller (see `textureSwap.ts`).
+   * `null` renders the bare deck rather than a blank map, which is what a
+   * first load or a failed swap with no previous texture should look like.
+   */
+  texture: Texture | null
   /** Demonstration-only: renders the decal deliberately nose/tail inverted. */
   invertDemo: boolean
 }
 
-function DeckMesh({ decalUrl, invertDemo }: DeckMeshProps) {
-  const texture = useLoader(TextureLoader, decalUrl)
-  texture.colorSpace = SRGBColorSpace
-  texture.anisotropy = 8
-
+function DeckMesh({ texture, invertDemo }: DeckMeshProps) {
   const geometry = useMemo(
     () => createDeckGeometry({ invertV: invertDemo }),
     [invertDemo],
@@ -43,7 +44,12 @@ function DeckMesh({ decalUrl, invertDemo }: DeckMeshProps) {
   return (
     <mesh geometry={geometry}>
       {/* Material index 0: decal face (deck underside) */}
-      <meshStandardMaterial attach="material-0" map={texture} roughness={0.55} />
+      <meshStandardMaterial
+        attach="material-0"
+        map={texture}
+        color={texture ? '#ffffff' : '#b9b4ab'}
+        roughness={0.55}
+      />
       {/* Material index 1: top (grip tape) and rim */}
       <meshStandardMaterial attach="material-1" color="#242424" roughness={0.95} />
     </mesh>
@@ -59,8 +65,12 @@ export interface DeckViewerProps extends DeckMeshProps {
  * Interactive 3D skateboard viewer. The default camera looks at the deck
  * underside (the decal face). Orbit = drag, zoom = scroll; reset is exposed
  * through onControlsReady.
+ *
+ * The camera and the controls are mounted once and are NOT keyed on the
+ * texture, so swapping a decal leaves the user's viewpoint exactly where they
+ * put it. Remounting here would silently reset the camera on every generation.
  */
-export function DeckViewer({ decalUrl, invertDemo, onControlsReady }: DeckViewerProps) {
+export function DeckViewer({ texture, invertDemo, onControlsReady }: DeckViewerProps) {
   const controlsRef = useRef<OrbitControlsImpl | null>(null)
 
   return (
@@ -72,9 +82,7 @@ export function DeckViewer({ decalUrl, invertDemo, onControlsReady }: DeckViewer
       <ambientLight intensity={0.9} />
       <directionalLight position={[4, -6, 5]} intensity={1.6} />
       <directionalLight position={[-4, 6, -3]} intensity={0.7} />
-      <Suspense fallback={null}>
-        <DeckMesh decalUrl={decalUrl} invertDemo={invertDemo} />
-      </Suspense>
+      <DeckMesh texture={texture} invertDemo={invertDemo} />
       {import.meta.env.DEV && <EvidenceCaptureHook />}
       <OrbitControls
         ref={(instance) => {
