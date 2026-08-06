@@ -71,7 +71,7 @@ budget** — see item 3.
 ### Latest commits (M7)
 
 ```
-<pending>  docs(process): record prototype 5 and stop at the review gate
+ce90388    docs(process): record prototype 5 and stop at the review gate
 83e6280    feat(web): add a review-only control to load a decal from disk
 a9f5749    test(api): validate prototype 5 end to end against a real uvicorn process
 a2b9219    feat(web): add the generate flow and both deck texture-fit modes
