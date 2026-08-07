@@ -27,6 +27,7 @@ import {
   type TextureFitMode,
 } from './deck/textureFit'
 import { imageFromBlob, textureFromCanvas, textureFromUrl } from './viewer/deckTextures'
+import { preflightImageUpload } from './generate/referenceValidation'
 import { DECALS } from './decals'
 import { emptySlot, releaseSlot, swapTexture, type TextureSlot } from './viewer/textureSwap'
 import { isReviewMode } from './reviewMode'
@@ -37,6 +38,21 @@ type Status =
   | { kind: 'loading' }
   | { kind: 'busy' }
   | { kind: 'error'; message: string; field?: string }
+
+/**
+ * What is currently on the deck, and where it came from.
+ *
+ * This is tracked explicitly rather than inferred, because the interface makes
+ * a claim about provenance: an AI generation carries reproducibility metadata
+ * and downloads, and user-uploaded artwork carries neither. Guessing from
+ * "is there a result?" would eventually attach a generation's metadata to
+ * somebody's own artwork, which is exactly the kind of quiet misattribution
+ * the rest of this project is built to avoid.
+ */
+type DecalSource =
+  | { kind: 'starter' }
+  | { kind: 'generated' }
+  | { kind: 'upload'; name: string }
 
 interface SubmittedSnapshot {
   styleLabel: string
@@ -56,6 +72,7 @@ export default function App() {
   const [fitMode, setFitMode] = useState<TextureFitMode>(DEFAULT_TEXTURE_FIT_MODE)
   const [invertDemo, setInvertDemo] = useState(false)
   const [textureError, setTextureError] = useState<string | null>(null)
+  const [decalSource, setDecalSource] = useState<DecalSource>({ kind: 'starter' })
 
   // Frontend-owned parts of the waiting state. These are NOT reported by the
   // backend: by the time they are true the GPU has already finished, so calling
@@ -72,9 +89,14 @@ export default function App() {
 
   const controlsRef = useRef<OrbitControlsImpl | null>(null)
   const slotRef = useRef<TextureSlot<Texture>>(emptySlot<Texture>())
-  // The decoded image is retained so switching fit mode recomposes the SAME
-  // artwork rather than regenerating - the two modes must be comparable.
+  // The decoded image currently ON the deck, retained so switching fit mode
+  // recomposes the SAME artwork rather than regenerating - the two modes must
+  // be comparable.
   const imageRef = useRef<HTMLImageElement | null>(null)
+  // The last AI-generated image, kept separately so an upload can be undone
+  // and the generated decal restored without another generation.
+  const generatedImageRef = useRef<HTMLImageElement | null>(null)
+  const uploadInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -137,16 +159,18 @@ export default function App() {
 
     slotRef.current = outcome.slot
     if (outcome.ok) {
+      imageRef.current = image
       setTexture(outcome.slot.texture)
       setFit(description)
       setTextureError(null)
-    } else {
-      // The previous decal is still on the deck; say what happened rather than
-      // blanking the board.
-      setTextureError(
-        `The decal could not be applied to the deck (${outcome.error?.message ?? 'unknown error'}). The previous decal is still shown.`,
-      )
+      return true
     }
+    // The previous decal is still on the deck; say what happened rather than
+    // blanking the board.
+    setTextureError(
+      `The decal could not be applied to the deck (${outcome.error?.message ?? 'unknown error'}). The previous decal is still shown.`,
+    )
+    return false
   }, [])
 
   const generating = status.kind === 'loading'
@@ -181,14 +205,16 @@ export default function App() {
 
         const blob = await fetchGeneratedImage(response.image_url)
         const image = await imageFromBlob(blob)
-        imageRef.current = image
+        generatedImageRef.current = image
         // Only now is the request genuinely complete: the response arrived AND
         // the PNG decoded in the browser. Nothing before this point may claim
         // 100 %.
         setImageReady(true)
 
         setApplyingTexture(true)
-        await applyFit(image, fitMode)
+        // A generation replaces whatever is on the deck, including uploaded
+        // artwork, with no reload.
+        if (await applyFit(image, fitMode)) setDecalSource({ kind: 'generated' })
         setApplyingTexture(false)
 
         setStatus({ kind: 'idle' })
@@ -226,28 +252,73 @@ export default function App() {
   )
 
   /**
-   * Review-only: put a decal already on disk onto the deck.
+   * Put the user's own artwork on the deck.
    *
-   * The texture-fit comparison needs a 1:3 decal, and Prototype 0's bundled
-   * decals were authored at 512x2000 - the deck's own aspect - which is
-   * precisely why the mismatch never surfaced until generation started
-   * producing 512x1536. Without this, comparing the two fit modes would mean
-   * generating another image purely to look at it. It also lets a reviewer
-   * re-examine any earlier decal without spending GPU time.
+   * A production feature, and a wholly local one: the file is decoded in the
+   * browser and drawn onto a canvas. It does NOT call `POST /api/generate`, it
+   * does not reach the server at all, and it neither loads nor touches the
+   * model. Someone who already owns artwork can see it on the board without
+   * spending a generation - and without the GPU being involved.
+   *
+   * It is not the reference-image upload. That one is conditioning: it is sent
+   * to the server and influences what the model produces. This one is the
+   * finished decal. They are deliberately in different parts of the interface.
+   *
+   * The real validation here is the decode: `imageFromBlob` rejects anything
+   * the browser cannot decode as an image, whatever the file claims to be.
    */
-  const handleLocalDecal = useCallback(
+  const handleDecalUpload = useCallback(
     async (file: File | null) => {
       if (!file) return
+      const problem = preflightImageUpload(file)
+      if (problem) {
+        setTextureError(problem)
+        return
+      }
       try {
         const image = await imageFromBlob(file)
-        imageRef.current = image
-        await applyFit(image, fitMode)
+        if (await applyFit(image, fitMode)) {
+          setDecalSource({ kind: 'upload', name: file.name })
+        }
       } catch {
-        setTextureError('That file could not be read as an image.')
+        // The previous decal is untouched - the swap never started.
+        setTextureError(
+          'That file could not be read as an image. The previous decal is still shown.',
+        )
       }
     },
     [applyFit, fitMode],
   )
+
+  /**
+   * Go back to the generated decal, or to the starter decal when none exists.
+   *
+   * Restoring the generated artwork costs nothing: the decoded image was kept,
+   * so this never re-requests a generation.
+   */
+  const handleClearUpload = useCallback(async () => {
+    if (uploadInputRef.current) uploadInputRef.current.value = ''
+    setTextureError(null)
+
+    const generated = generatedImageRef.current
+    if (generated) {
+      if (await applyFit(generated, fitMode)) setDecalSource({ kind: 'generated' })
+      return
+    }
+
+    try {
+      const loaded = await textureFromUrl(DECALS[0].url)
+      const previous = slotRef.current
+      slotRef.current = { texture: loaded, objectUrl: null }
+      previous.texture?.dispose()
+      imageRef.current = null
+      setTexture(loaded)
+      setFit(null)
+      setDecalSource({ kind: 'starter' })
+    } catch {
+      setTextureError('The starter decal could not be reloaded. The current decal is still shown.')
+    }
+  }, [applyFit, fitMode])
 
   function download(blobUrl: string, filename: string) {
     const anchor = document.createElement('a')
@@ -340,7 +411,11 @@ export default function App() {
               metadata={result.metadata}
               warnings={result.warnings}
               imageUrl={absoluteUrl(result.image_url)}
-              fit={fit}
+              // The fit description belongs to whatever is on the deck. While
+              // uploaded artwork is shown it is not this result's, so it is
+              // withheld rather than misattributed.
+              fit={decalSource.kind === 'generated' ? fit : null}
+              onDeck={decalSource.kind === 'generated'}
               onDownloadImage={handleDownloadImage}
               onDownloadMetadata={handleDownloadMetadata}
             />
@@ -371,19 +446,6 @@ export default function App() {
                     ))}
                   </fieldset>
                   <label
-                    className="local-decal"
-                    title="Review control: put a decal from disk on the deck"
-                  >
-                    Load decal <span className="review-only">review</span>
-                    <input
-                      type="file"
-                      accept=".png,.jpg,.jpeg,.webp"
-                      onChange={(event) =>
-                        void handleLocalDecal(event.target.files?.[0] ?? null)
-                      }
-                    />
-                  </label>
-                  <label
                     className="invert-demo"
                     title="Controlled demonstration of an inverted UV layout — not a real defect"
                   >
@@ -396,11 +458,57 @@ export default function App() {
                   </label>
                 </>
               )}
+              {/* A production feature, not a review tool: local-only, and
+                  deliberately here rather than in the AI reference section. */}
+              <div className="upload-decal">
+                <input
+                  id="decal-upload"
+                  ref={uploadInputRef}
+                  className="visually-hidden"
+                  type="file"
+                  accept=".png,.jpg,.jpeg,.webp"
+                  onChange={(event) =>
+                    void handleDecalUpload(event.target.files?.[0] ?? null)
+                  }
+                />
+                <label className="file-button" htmlFor="decal-upload">
+                  {decalSource.kind === 'upload' ? 'Replace decal' : 'Upload your own decal'}
+                </label>
+              </div>
               <button type="button" onClick={() => controlsRef.current?.reset()}>
                 Reset view
               </button>
             </div>
           </div>
+
+          <p className="viewer-help">
+            Already have artwork? Upload it and preview it directly on the deck.
+          </p>
+
+          {decalSource.kind === 'upload' && (
+            <div className="decal-source" aria-label="Decal on the deck">
+              <span className="source-tag">User-uploaded artwork</span>
+              <span className="source-name mono" title={decalSource.name}>
+                {decalSource.name}
+              </span>
+              <div className="source-actions">
+                <button
+                  type="button"
+                  className="button-download"
+                  onClick={() => uploadInputRef.current?.click()}
+                >
+                  Replace
+                </button>
+                <button
+                  type="button"
+                  className="button-remove"
+                  onClick={() => void handleClearUpload()}
+                >
+                  {result ? 'Show generated decal' : 'Remove'}
+                </button>
+              </div>
+            </div>
+          )}
 
           {invertDemo && (
             <StatusMessage tone="warning">

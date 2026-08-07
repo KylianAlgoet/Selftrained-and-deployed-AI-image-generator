@@ -27,6 +27,8 @@ export interface ResultPanelProps {
   warnings: string[]
   imageUrl: string
   fit: FitDescription | null
+  /** Whether THIS result is the artwork currently on the deck. */
+  onDeck?: boolean
   onDownloadImage: () => void
   onDownloadMetadata: () => void
 }
@@ -53,6 +55,7 @@ export function ResultPanel({
   warnings,
   imageUrl,
   fit,
+  onDeck = true,
   onDownloadImage,
   onDownloadMetadata,
 }: ResultPanelProps) {
@@ -78,7 +81,11 @@ export function ResultPanel({
         </div>
 
         <div className="result-side">
-          <p className="result-applied">Applied to the deck preview →</p>
+          <p className="result-applied">
+            {onDeck
+              ? 'Applied to the deck preview →'
+              : 'Uploaded artwork is on the deck. This generation is kept here.'}
+          </p>
           {fit && <p className="fit-disclosure">{fitDisclosure(fit)}</p>}
 
           <div className="downloads">

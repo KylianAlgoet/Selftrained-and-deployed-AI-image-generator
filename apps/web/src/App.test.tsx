@@ -237,18 +237,16 @@ describe('review-only controls', () => {
     expect(screen.queryByText('Texture fit')).toBeNull()
     expect(screen.queryByText(/Inverted-UV demonstration/)).toBeNull()
     expect(screen.queryByText(/Load decal/)).toBeNull()
-    expect(screen.queryByText('Review mode')).toBeNull()
     // Reset view is a real user control and stays.
     expect(screen.getByRole('button', { name: 'Reset view' })).toBeTruthy()
   })
 
-  it('appear, all three, when review mode is on', async () => {
+  it('appear when review mode is on', async () => {
     isReviewMode.mockReturnValue(true)
     await renderApp()
     expect(screen.getByText('Full surface (stretched)')).toBeTruthy()
     expect(screen.getByText('Fit without stretching')).toBeTruthy()
     expect(screen.getByText(/Inverted-UV demonstration/)).toBeTruthy()
-    expect(screen.getByText(/Load decal/)).toBeTruthy()
     expect(screen.getByText('Review mode')).toBeTruthy()
   })
 
@@ -456,6 +454,181 @@ describe('failure handling', () => {
     await act(async () => {
       pending.resolve(RESPONSE)
     })
+  })
+})
+
+// --- upload your own decal ---------------------------------------------------
+
+describe('uploading your own decal', () => {
+  function pngFile(name = 'my-artwork.png') {
+    return new File([new Uint8Array([1, 2, 3])], name, { type: 'image/png' })
+  }
+
+  async function uploadDecal(file: File) {
+    const input = document.getElementById('decal-upload') as HTMLInputElement
+    Object.defineProperty(input, 'files', { value: [file], configurable: true })
+    await act(async () => {
+      fireEvent.change(input)
+    })
+  }
+
+  it('is offered in the production interface, near the deck', async () => {
+    await renderApp()
+    const viewer = screen.getByRole('region', { name: 'Deck preview' })
+    const control = screen.getByText('Upload your own decal')
+    expect(viewer.contains(control)).toBe(true)
+    expect(
+      screen.getByText('Already have artwork? Upload it and preview it directly on the deck.'),
+    ).toBeTruthy()
+  })
+
+  it('carries no review wording', async () => {
+    await renderApp()
+    // Note: "preview" contains "review", so this checks the badge and the
+    // review-tool labels rather than the substring.
+    expect(document.querySelectorAll('.review-only').length).toBe(0)
+    expect(screen.queryByText('Review mode')).toBeNull()
+    expect(screen.queryByText(/Load decal/)).toBeNull()
+    expect(screen.getByText('Upload your own decal')).toBeTruthy()
+  })
+
+  it('is a different control from the AI reference upload', async () => {
+    await renderApp()
+    const decalInput = document.getElementById('decal-upload') as HTMLInputElement
+    const referenceInput = screen.getByLabelText(/Reference image/) as HTMLInputElement
+    expect(decalInput).not.toBe(referenceInput)
+
+    // The reference belongs to the form; the decal upload belongs to the viewer.
+    const form = screen.getByRole('form', { name: 'Generate a decal' })
+    expect(form.contains(referenceInput)).toBe(true)
+    expect(form.contains(decalInput)).toBe(false)
+    expect(screen.getByRole('region', { name: 'Deck preview' }).contains(decalInput)).toBe(true)
+  })
+
+  it('never calls the generation API, and never loads the model', async () => {
+    await renderApp()
+    await uploadDecal(pngFile())
+
+    expect(generate).not.toHaveBeenCalled()
+    expect(fetchGeneratedImage).not.toHaveBeenCalled()
+    expect(fetchProgress).not.toHaveBeenCalled()
+  })
+
+  it('puts the uploaded artwork on the deck', async () => {
+    await renderApp()
+    await waitFor(() => expect(lastViewerTexture).toBe('starter-decal'))
+    await uploadDecal(pngFile())
+
+    await waitFor(() =>
+      expect(screen.getByTestId('deck-viewer').getAttribute('data-texture')).toBe(
+        'generated-texture',
+      ),
+    )
+  })
+
+  it('labels it honestly and shows the filename', async () => {
+    await renderApp()
+    await uploadDecal(pngFile('wave-print.png'))
+
+    await waitFor(() => expect(screen.getByText('User-uploaded artwork')).toBeTruthy())
+    expect(screen.getByText('wave-print.png')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Replace' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Remove' })).toBeTruthy()
+    // The upload control itself becomes a replace affordance.
+    expect(screen.getByText('Replace decal')).toBeTruthy()
+  })
+
+  it('creates no AI reproducibility metadata for uploaded artwork', async () => {
+    await renderApp()
+    await uploadDecal(pngFile())
+
+    await waitFor(() => expect(screen.getByText('User-uploaded artwork')).toBeTruthy())
+    expect(screen.queryByText('Reproducibility metadata')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Download PNG' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Download metadata' })).toBeNull()
+  })
+
+  it('rejects a non-image type before decoding it', async () => {
+    await renderApp()
+    await uploadDecal(new File([new Uint8Array([1])], 'notes.gif', { type: 'image/gif' }))
+
+    await waitFor(() => expect(screen.getByText(/PNG, JPEG or WEBP/)).toBeTruthy())
+    expect(screen.queryByText('User-uploaded artwork')).toBeNull()
+  })
+
+  it('preserves the previous decal when the file cannot be decoded', async () => {
+    const { imageFromBlob } = await import('./viewer/deckTextures')
+    vi.mocked(imageFromBlob).mockRejectedValueOnce(new Error('not an image'))
+
+    await renderApp()
+    await waitFor(() => expect(lastViewerTexture).toBe('starter-decal'))
+    await uploadDecal(pngFile('broken.png'))
+
+    await waitFor(() => expect(screen.getByRole('alert')).toBeTruthy())
+    expect(screen.getByRole('alert').textContent).toContain('previous decal is still shown')
+    expect(screen.getByTestId('deck-viewer').getAttribute('data-texture')).toBe('starter-decal')
+    expect(screen.queryByText('User-uploaded artwork')).toBeNull()
+  })
+
+  it('removes the upload and returns to the starter decal when nothing was generated', async () => {
+    await renderApp()
+    await uploadDecal(pngFile())
+    await waitFor(() => expect(screen.getByText('User-uploaded artwork')).toBeTruthy())
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Remove' }))
+    })
+
+    await waitFor(() => expect(screen.queryByText('User-uploaded artwork')).toBeNull())
+    expect(screen.getByTestId('deck-viewer').getAttribute('data-texture')).toBe('starter-decal')
+  })
+
+  it('offers a return to the generated decal once one exists, without regenerating', async () => {
+    await renderApp()
+    await submitPrompt()
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Download PNG' })).toBeTruthy())
+
+    await uploadDecal(pngFile())
+    await waitFor(() => expect(screen.getByText('User-uploaded artwork')).toBeTruthy())
+    // The generation is kept, and says it is not the one on the deck.
+    expect(screen.getByText(/This generation is kept here/)).toBeTruthy()
+
+    const callsBefore = generate.mock.calls.length
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Show generated decal' }))
+    })
+
+    await waitFor(() => expect(screen.queryByText('User-uploaded artwork')).toBeNull())
+    expect(screen.getByText('Applied to the deck preview →')).toBeTruthy()
+    // Restoring reused the decoded image; it did not ask for another generation.
+    expect(generate.mock.calls.length).toBe(callsBefore)
+  })
+
+  it('lets a later generation replace the uploaded decal without a reload', async () => {
+    await renderApp()
+    await uploadDecal(pngFile())
+    await waitFor(() => expect(screen.getByText('User-uploaded artwork')).toBeTruthy())
+
+    await submitPrompt()
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Download PNG' })).toBeTruthy())
+    expect(screen.queryByText('User-uploaded artwork')).toBeNull()
+    expect(screen.getByText('Applied to the deck preview →')).toBeTruthy()
+  })
+
+  it('keeps the texture-fit and inverted-UV tools review-only', async () => {
+    await renderApp()
+    expect(screen.getByText('Upload your own decal')).toBeTruthy()
+    expect(screen.queryByText('Texture fit')).toBeNull()
+    expect(screen.queryByText(/Inverted-UV demonstration/)).toBeNull()
+
+    cleanup()
+    isReviewMode.mockReturnValue(true)
+    await renderApp()
+    // Upload stays a production control in review mode; the tools come back.
+    expect(screen.getByText('Upload your own decal')).toBeTruthy()
+    expect(screen.getByText('Full surface (stretched)')).toBeTruthy()
+    expect(screen.getByText(/Inverted-UV demonstration/)).toBeTruthy()
   })
 })
 
