@@ -68,8 +68,11 @@ artwork reached the deck, which is this milestone. Neither fit is correct:
 | `full-surface` | **1.3008×** lengthwise | 100 % | 0 % |
 | `fit-without-stretch` | none | 76.88 % | **23.12 %** (11.56 % per end) |
 
-Both are built, both disclose their trade-off numerically in the UI, and **the choice is
-Kylian's at the gate.** A test asserts the code exports no default.
+Both are built and both disclose their trade-off numerically in the UI. **Kylian chose
+`full-surface` at the gate on 2026-08-07** — the bare ends read as an unfinished deck and a
+centred sticker, and the 1.3008× stretch was acceptable on the selected styles. It is now
+`DEFAULT_TEXTURE_FIT_MODE`; the other mode stays selectable. Recorded in **DR-012** and
+`docs/evidence/prototype-5/GATE-approval.md`.
 
 A caveat belonging to neither mode: the Prototype-0 UV convention already compresses the texture
 horizontally toward the tapered tips. That is pre-existing and applies to both.
@@ -108,5 +111,8 @@ scale 0.0.
 
 ## Next
 
-**Kylian's review gate** — see `docs/evidence/prototype-5/GATE-handover.md`. Nothing about the
-texture-fit default, milestone completion, the issue, or M8 proceeds before it.
+**The gate is partly answered.** The texture-fit default was returned on 2026-08-07 and is
+implemented (DR-012, `GATE-approval.md`). **M7 is still open:** asked whether the milestone could
+be declared complete, Kylian answered *"Not yet — I'll walk the checklist"*. The 12-item manual
+acceptance checklist in `GATE-handover.md` §12 is unwalked, so **milestone completion, the issue,
+the board and M8 all still wait on him.**

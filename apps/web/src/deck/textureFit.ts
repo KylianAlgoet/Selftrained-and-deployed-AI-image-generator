@@ -11,9 +11,8 @@ import { DECK_LENGTH, DECK_WIDTH } from './deckGeometry'
  *
  * There is no fit that is simply correct. Filling the surface stretches the
  * artwork lengthwise by ~1.30×; preserving the artwork leaves ~23 % of the deck
- * length uncovered. Both are implemented, both are measured here rather than
- * described, and **the production default is Kylian's decision at the M7 human
- * gate** — nothing in this file picks one.
+ * length uncovered. Both are implemented and both are measured here rather than
+ * described.
  *
  * A caveat that belongs to neither mode: the Prototype-0 UV convention already
  * compresses the texture horizontally toward the tapered nose and tail, because
@@ -27,6 +26,18 @@ export const TEXTURE_FIT_MODES: readonly TextureFitMode[] = [
   'full-surface',
   'fit-without-stretch',
 ] as const
+
+/**
+ * The production default, selected by Kylian at the M7 review gate on
+ * 2026-08-07 from the two screenshots in
+ * `docs/evidence/prototype-5/screenshots/`. Recorded in DR-012.
+ *
+ * This is a chosen trade-off, not a correct fit: it accepts a 1.3008×
+ * lengthwise stretch in exchange for a fully covered deck. The other mode
+ * remains selectable, and `fitDisclosure` states the cost of whichever is
+ * active — the stretch is disclosed to the user, never hidden.
+ */
+export const DEFAULT_TEXTURE_FIT_MODE: TextureFitMode = 'full-surface'
 
 export const TEXTURE_FIT_LABELS: Record<TextureFitMode, string> = {
   'full-surface': 'Full surface (stretched)',

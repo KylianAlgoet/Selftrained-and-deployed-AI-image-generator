@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { DECK_LENGTH, DECK_WIDTH } from './deckGeometry'
 import {
   DECK_UV_ASPECT,
+  DEFAULT_TEXTURE_FIT_MODE,
   TEXTURE_FIT_MODES,
   UNCOVERED_BAND_COLOR,
   composeDeckTexture,
@@ -41,7 +42,7 @@ describe('deck aspect', () => {
     expect(DECK_UV_ASPECT).not.toBeCloseTo(3, 2)
   })
 
-  it('offers exactly the two modes, with neither marked as the default', () => {
+  it('offers exactly the two modes, in a fixed order', () => {
     expect([...TEXTURE_FIT_MODES]).toEqual(['full-surface', 'fit-without-stretch'])
   })
 })
@@ -172,12 +173,29 @@ describe('composition', () => {
   })
 })
 
-describe('the default is not chosen in code', () => {
-  it('exposes no exported default mode', async () => {
+describe('the production default (DR-012)', () => {
+  it('is full-surface, as selected at the M7 review gate', () => {
+    expect(DEFAULT_TEXTURE_FIT_MODE).toBe('full-surface')
+  })
+
+  it('is one of the offered modes, not a third value', () => {
+    expect(TEXTURE_FIT_MODES).toContain(DEFAULT_TEXTURE_FIT_MODE)
+  })
+
+  it('leaves the other mode selectable rather than removing it', () => {
+    expect([...TEXTURE_FIT_MODES]).toHaveLength(2)
+    expect(TEXTURE_FIT_MODES).toContain('fit-without-stretch')
+  })
+
+  it('discloses the stretch it accepts instead of hiding it', () => {
+    const fit = describeFit(DEFAULT_TEXTURE_FIT_MODE, DECAL_WIDTH, DECAL_HEIGHT)
+    expect(fit.stretchFactor).toBeGreaterThan(1)
+    expect(fitDisclosure(fit)).toContain('Stretched')
+  })
+
+  it('is a real module export, not a test stub', async () => {
     const module = await import('./textureFit')
-    const exported = Object.keys(module)
-    expect(exported).not.toContain('DEFAULT_TEXTURE_FIT_MODE')
-    expect(exported).not.toContain('PRODUCTION_TEXTURE_FIT_MODE')
     expect(vi.isMockFunction(module.describeFit)).toBe(false)
+    expect(module.DEFAULT_TEXTURE_FIT_MODE).toBe(DEFAULT_TEXTURE_FIT_MODE)
   })
 })

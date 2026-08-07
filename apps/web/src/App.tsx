@@ -14,6 +14,7 @@ import {
   type StylesResponse,
 } from './api/client'
 import {
+  DEFAULT_TEXTURE_FIT_MODE,
   TEXTURE_FIT_LABELS,
   TEXTURE_FIT_MODES,
   composeDeckTexture,
@@ -39,7 +40,7 @@ export default function App() {
   const [result, setResult] = useState<GenerateResponse | null>(null)
   const [texture, setTexture] = useState<Texture | null>(null)
   const [fit, setFit] = useState<FitDescription | null>(null)
-  const [fitMode, setFitMode] = useState<TextureFitMode>('full-surface')
+  const [fitMode, setFitMode] = useState<TextureFitMode>(DEFAULT_TEXTURE_FIT_MODE)
   const [invertDemo, setInvertDemo] = useState(false)
   const [textureError, setTextureError] = useState<string | null>(null)
 
@@ -277,9 +278,7 @@ export default function App() {
         <section className="viewer-column">
           <div className="viewer-controls">
             <fieldset className="fit-modes">
-              <legend>
-                Texture fit <span className="review-only">review control</span>
-              </legend>
+              <legend>Texture fit</legend>
               {TEXTURE_FIT_MODES.map((mode) => (
                 <label key={mode}>
                   <input
@@ -294,7 +293,7 @@ export default function App() {
               ))}
             </fieldset>
             <label className="local-decal" title="Review control: put a decal from disk on the deck">
-              Load decal
+              Load decal <span className="review-only">review control</span>
               <input
                 type="file"
                 accept=".png,.jpg,.jpeg,.webp"
@@ -340,8 +339,9 @@ export default function App() {
 
       <footer>
         <p>
-          Deck geometry is a self-created project asset. Drag to orbit, scroll to zoom. The
-          texture-fit selector is a review control for the M7 gate, not a production setting.
+          Deck geometry is a self-created project asset. Drag to orbit, scroll to zoom. Texture fit
+          defaults to full surface (DR-012), which stretches the decal 1.3008× along the deck; the
+          alternative preserves the artwork and leaves the ends bare.
         </p>
       </footer>
     </main>

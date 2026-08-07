@@ -106,11 +106,14 @@ exists where a response is sent while GPU work continues.
 - `retro-poster` ships as a **partial pass** and returns its limitation as a warning on every
   request, so H4 reaches the user rather than only the documentation.
 
-## Deliberately left open
+## Deliberately left open — now closed by DR-012
 
-**The production texture-fit mode is NOT decided here.** The generated decal is 1:3 and the deck
+**The production texture-fit mode was NOT decided here.** The generated decal is 1:3 and the deck
 UV domain is 1:3.902, and there is no fit that is simply correct: `full-surface` stretches the
 artwork by **1.3008×**, `fit-without-stretch` leaves **23.12 %** of the deck length bare
-(11.56 % per end). Both are implemented, both are measured, and both are screenshotted with the
-same decal. **Kylian selects the default at the M7 human gate**; nothing in the code picks one,
-and a test asserts no default is exported.
+(11.56 % per end). Both were implemented, both measured, and both screenshotted with the same
+decal, with nothing in the code picking one.
+
+**Kylian selected `full-surface` at the M7 review gate on 2026-08-07.** See **DR-012** and
+`docs/evidence/prototype-5/GATE-approval.md`. That closes the item; every other decision in this
+record is unaffected.

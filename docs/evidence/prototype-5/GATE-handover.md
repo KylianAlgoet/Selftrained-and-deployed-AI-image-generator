@@ -5,6 +5,10 @@
 
 One decision is yours, and everything else in this document is evidence for it.
 
+> **UPDATE 2026-08-07 — the decision in §1 was returned: `full-surface`.** See
+> `GATE-approval.md` and **DR-012**. The rest of this handover is unchanged and still stands:
+> **M7 is not complete**, and the §12 checklist is still unwalked.
+
 ---
 
 ## 1. The decision you need to make
@@ -220,7 +224,9 @@ Start both processes, open http://localhost:5173, then:
 
 ## 13. What I have NOT done, and will not do before you review
 
-- **Not chosen the texture-fit mode.** No default is exported and a test enforces that.
+- ~~**Not chosen the texture-fit mode.** No default is exported and a test enforces that.~~
+  **Superseded 2026-08-07:** you chose `full-surface`, and it is now the exported default
+  (DR-012). Everything below is **still in force.**
 - **Not declared M7 complete.** Planning still shows it in progress.
 - **Not pushed.** `main` is ahead of `origin/main`.
 - **Not touched the GitHub issue or project board** — `gh` is unavailable and those are yours.

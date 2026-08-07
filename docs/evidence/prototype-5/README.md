@@ -81,7 +81,9 @@ Captured from the running application — API on `--workers 1`, Vite dev server,
 | `fit-without-stretch.jpg` | the **same** decal, **same camera**, aspect preserved — the 23.12 % bare ends |
 
 The two fit screenshots differ only in the selected mode; the camera was not touched between
-them, which is also the evidence that swapping a texture does not move the viewpoint.
+them, which is also the evidence that swapping a texture does not move the viewpoint. **They are
+the review material the gate decision was made on** — Kylian selected `full-surface` on
+2026-08-07 (DR-012, `GATE-approval.md`).
 
 **How they were captured without spending GPU budget.** The cap of 25 generations was already
 reached, so the decal was loaded from disk through a review-only "Load decal" control rather
