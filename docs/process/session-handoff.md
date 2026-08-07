@@ -81,7 +81,8 @@ budget** — see item 3.
 ### Latest commits (M7)
 
 ```
-(this session)  feat(web): adopt full surface as the production texture-fit default
+0c756e1    docs(process): record the m7 texture-fit gate decision
+3b12188    feat(web): adopt full surface as the production texture-fit default
 0835c61    docs(process): record the prototype 5 commit hash in the session handoff
 ce90388    docs(process): record prototype 5 and stop at the review gate
 83e6280    feat(web): add a review-only control to load a decal from disk
