@@ -165,13 +165,28 @@ export function GenerateForm({
           </span>
           <label htmlFor={`${ids}-reference`}>Reference image (optional)</label>
         </div>
-        <input
-          id={`${ids}-reference`}
-          ref={referenceInputRef}
-          type="file"
-          accept=".png,.jpg,.jpeg,.webp"
-          onChange={(event) => handleReference(event.target.files?.[0] ?? null)}
-        />
+        {/* The native control is kept - it is the accessible, keyboard-operable
+            file picker and the label still points at it - but it is visually
+            replaced. Chrome renders "Choose file / No file chosen" in the OS
+            language, which on this machine produced Dutch text in an
+            English-only interface. The visible affordance is ours; the input
+            underneath is untouched. */}
+        <div className="file-field">
+          <input
+            id={`${ids}-reference`}
+            ref={referenceInputRef}
+            className="visually-hidden"
+            type="file"
+            accept=".png,.jpg,.jpeg,.webp"
+            onChange={(event) => handleReference(event.target.files?.[0] ?? null)}
+          />
+          <label className="file-button" htmlFor={`${ids}-reference`}>
+            Choose image
+          </label>
+          <span className="file-state">
+            {referenceImage ? 'Image attached' : 'No image attached'}
+          </span>
+        </div>
         {referenceImage && (
           <p className="reference-chip">
             <span className="reference-name" title={referenceImage.name}>

@@ -88,7 +88,12 @@ export function ProgressPanel({ view, submitted }: ProgressPanelProps) {
       )}
 
       <div className="progress-timing">
-        {view.etaLabel && <span className="progress-eta">{view.etaLabel}</span>}
+        {/* For stages with no estimate the two slots would otherwise print the
+            same sentence twice - "Loading the local generation model…" as both
+            the stage and the time remaining. One statement, once. */}
+        {view.etaLabel && view.etaLabel !== view.stageLabel && (
+          <span className="progress-eta">{view.etaLabel}</span>
+        )}
         <span className="progress-elapsed">{view.elapsedLabel}</span>
       </div>
 

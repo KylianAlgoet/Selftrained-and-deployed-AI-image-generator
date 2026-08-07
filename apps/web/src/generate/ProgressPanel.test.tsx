@@ -117,8 +117,9 @@ describe('what the panel shows while denoising', () => {
 describe('cold model loading', () => {
   it('names the wait and shows no percentage at all', () => {
     renderPanel({ telemetry: telemetry({ stage: 'loading-model', current_step: 0 }) })
-    // Stage line, estimate slot and announcement all say the same true thing.
-    expect(screen.getAllByText('Loading the local generation model…').length).toBe(3)
+    // Said once as the stage, and once more only for the screen reader - the
+    // estimate slot stays empty rather than echoing the stage sentence.
+    expect(screen.getAllByText('Loading the local generation model…').length).toBe(2)
     expect(screen.queryByText(/Diffusion step/)).toBeNull()
     expect(screen.queryByText(/%/)).toBeNull()
     expect(screen.getByText('No step percentage at this stage')).toBeTruthy()
@@ -146,7 +147,7 @@ describe('after the last diffusion step', () => {
     renderPanel({
       telemetry: telemetry({ stage: 'decoding', current_step: 30, denoising_fraction: 1 }),
     })
-    expect(screen.getAllByText('Finalising the decal…').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Finalising the decal…').length).toBe(2)
     expect(screen.queryByText(/Diffusion step/)).toBeNull()
     expect(screen.queryByText(/100%/)).toBeNull()
     expect(screen.queryByText('DECAL GENERATED')).toBeNull()
@@ -157,7 +158,7 @@ describe('after the last diffusion step', () => {
       telemetry: telemetry({ stage: 'saving', current_step: 30, denoising_fraction: 1 }),
       etaExpired: true,
     })
-    expect(screen.getAllByText('Finishing the artwork…').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Finishing the artwork…').length).toBe(2)
     expect(screen.queryByText(/-\d/)).toBeNull()
   })
 })
