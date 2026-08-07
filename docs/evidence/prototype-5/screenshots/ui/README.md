@@ -36,7 +36,21 @@ The real measurements live in `docs/evidence/EXP-034/`, `docs/evidence/prototype
 | `06-error-timeout.jpg` | 504 | the existing error text, unchanged; **previous decal preserved**; retry available |
 | `07-responsive-1024-768.jpg` | 1024 px and 768 px | single-column stack, no horizontal scroll, viewer still 360 px |
 | `08-responsive-1440-390.jpg` | 1440 px and 390 px | two-column desktop, and a usable narrow layout |
-| `09-review-mode.jpg` | `?review=1` | the three evidence tools return, `full-surface` still selected |
+| `09-review-mode.jpg` | `?review=1` | the review tools return, `full-surface` still selected |
+| `10-upload-own-decal.jpg` | user's own artwork on the deck | `Upload your own decal` in the production UI, the `User-uploaded artwork` provenance strip with the filename, Replace/Remove — and **no AI metadata or downloads**, because none exists for it |
+| `11-upload-failure-preserves-decal.jpg` | undecodable upload | the actionable error **and the previously uploaded decal still on the board** |
+
+### 10 and 11 are real, not mocked
+
+Unlike `02`–`06`, these two involve no mock at all. The artwork was drawn in the browser to a
+canvas, exported as a genuine PNG and fed through the real `#decal-upload` control; the failure
+case is a file declaring `image/png` whose bytes are not an image, so the **decode** is what
+rejects it.
+
+**The upload path made zero API requests**, which is checked from the server rather than asserted:
+across both uploads the access log's `POST /api/generate` count stayed at **1** (Kylian's own
+generation), the progress-poll count stayed at **48**, and `/api/health` still reported
+`allocated_mb: 3316.64` — unchanged, so no GPU work happened.
 
 ## How the narrow viewports were captured
 

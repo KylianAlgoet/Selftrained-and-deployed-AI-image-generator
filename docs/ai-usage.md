@@ -10,6 +10,33 @@ Honest record of how Claude Code (Anthropic) is used in this project, per sessio
 
 ## Session log
 
+### 2026-08-07 — Prototype 5 visual review: telemetry verification and decal upload (M7)
+
+**AI assistance:** verification of the live generation against the retained telemetry and the
+uvicorn access log; the local decal-upload feature with its provenance model and 13 tests; live
+browser verification; documentation. Executed under Claude Opus 5.
+
+**Student decisions.** The product decision is entirely Kylian's: keep local decal upload as a
+normal production feature, clearly separate from the AI reference upload, with an explicit
+constraint that it must not call the generation API, load the model or use the GPU. He also
+reviewed the interface live and passed it, and he ran the one real generation.
+
+**Verification status, including its limit.** The telemetry confirms operation `cHWlV0J6Qgh2BKze`
+reached `current_step 30 / total_steps 30` across **48** polls and one POST — real diffusion steps
+were tracked and delivered. It does **not** confirm which strings the browser painted, because the
+server logs requests and not rendered text. That distinction is stated in the report and the
+process log rather than collapsed into "verified". No defect was found, so nothing was changed.
+
+**The upload path was checked from the server, not asserted:** across every upload the access log's
+POST count stayed at 1 and `allocated_mb` at 3316.64 — no API request, no GPU work.
+
+**Honesty note.** Two screenshots in this pass are **not** mocked, and the evidence README now
+distinguishes them from the seven that are.
+
+**Boundary held:** no model, prompt, setting, metadata or API contract changed; M7 not declared
+complete; nothing pushed; issue and board untouched; M8 not begun.
+
+
 ### 2026-08-07 — Prototype 5 interface pass and generation progress (M7)
 
 **AI assistance:** the progress telemetry (tracker, endpoint, callback composition) and its 35

@@ -165,6 +165,68 @@ Interface states are evidenced in `docs/evidence/prototype-5/screenshots/ui/`, *
 mocked telemetry and labelled as such** — no 26th generation was run, and the API reported
 `pipeline_loaded: false` afterwards as the independent check.
 
+## What the live progress run actually established (2026-08-07)
+
+Kylian ran **one real generation** through the reviewed interface — the **26th**, past the declared
+cap of 25, and his decision. Recorded as a planning change rather than absorbed silently.
+
+**Confirmed from the retained telemetry** (operation `cHWlV0J6Qgh2BKze`):
+
+```
+status completed · stage completed · current_step 30 · total_steps 30
+denoising_fraction 1.0 · elapsed_seconds 40.83 · pipeline_loaded true
+```
+
+**Confirmed from the API access log:** **1** `POST /api/generate` → 200, and **48**
+`GET /api/generation-progress` polls across the request. At 750 ms that is continuous polling for
+the whole ~41 s, so the browser was receiving snapshots throughout — including the denoising
+window, whose snapshots carried `stage: denoising` and `total_steps: 30`.
+
+**What the server cannot establish:** which strings the browser painted. The access log records
+requests, not rendered text. Rendering those snapshots as `Diffusion step N of 30` and an
+approximate remaining time is covered by tests, and no defect was found in the path — but "the
+data was produced and delivered" is not the same claim as "he saw it", and the two are not merged
+here.
+
+**Two reasons a stage could be present and still be missed**, both measured rather than guessed:
+
+- The request was a **cold start**: 40.83 s total against a ~13 s warm generation, so roughly
+  **28 s of it was model loading**, and denoising occupied only about the last twelve seconds.
+- **`Finalising the decal…` is genuinely brief.** It is shown from the last denoising callback
+  until the response arrives — the VAE decode, the PNG encode and the file write, on the order of
+  a second. It is not padded, and it will not be: delaying a finished result to make a label
+  linger is the kind of dishonesty this whole feature exists to avoid.
+
+**No fix was made, because no defect was found.** A warm generation is the decisive check: at
+~13 s with no model load, the step counter is the dominant display for most of the wait.
+
+## Upload your own decal (2026-08-07)
+
+A **production** feature, added at Kylian's request: someone who already owns artwork can preview
+it on the deck without spending a generation.
+
+It is **wholly local**. The file is decoded in the browser and drawn onto a canvas — it never
+reaches the server, never calls `POST /api/generate`, and never loads or touches the model. That
+is checked from the server rather than asserted: across the upload tests the access log's POST
+count stayed at 1 and `allocated_mb` stayed at 3316.64.
+
+It is deliberately **not** the reference-image upload, and they sit in different parts of the
+interface: the reference is *conditioning*, sent to the server to influence what the model
+produces; this is the *finished decal*.
+
+Honesty rules it inherits from the rest of the project:
+
+- uploaded artwork is labelled **`User-uploaded artwork`** with its filename;
+- it gets **no reproducibility metadata**, because there is none to give — and the AI PNG and
+  metadata downloads continue to refer only to the generated result;
+- when an upload is on the deck, the result panel says so rather than claiming the generation is
+  applied;
+- a failed decode **preserves the previous decal** and says what happened.
+
+It uses the `full-surface` mapping (DR-012) and the existing orientation, colour-space,
+texture-disposal and camera-state behaviour, unchanged. The review-only "Load decal" control it
+supersedes was removed; texture-fit and inverted-UV remain review-only.
+
 ## Next
 
 **The gate is partly answered.** The texture-fit default was returned on 2026-08-07 and is

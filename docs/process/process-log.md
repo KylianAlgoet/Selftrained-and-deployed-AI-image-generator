@@ -4,6 +4,61 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-07 — M7 visual review: progress verified from telemetry, and decal upload shipped
+
+**Objective:** answer, from real telemetry rather than by inference, what Kylian's live generation
+displayed; then add "upload your own decal" as a production feature.
+
+**Completed work.** Verification of the live run against the retained telemetry and the uvicorn
+access log. Then the upload feature: a production control in the deck workspace, a shared image
+preflight, provenance state tracked explicitly (`starter` / `generated` / `upload`), replace,
+remove, return-to-generated, and a result panel that stops claiming the deck shows the generation
+when it does not. **13 new frontend tests.** The superseded review-only "Load decal" control was
+removed.
+
+**Unfinished by design:** M7 not closed · nothing pushed · issue and board untouched · M8 not
+begun.
+
+**Decisions:** none of mine. The product decision — keep local decal upload as a normal feature,
+clearly separate from the AI reference upload — is Kylian's.
+
+**Real results — what the live run establishes.** Operation `cHWlV0J6Qgh2BKze`:
+`current_step 30 / total_steps 30`, `denoising_fraction 1.0`, `elapsed_seconds 40.83`, status
+`completed`. Access log: **1** `POST /api/generate` → 200 and **48** progress polls, i.e.
+continuous polling across the whole request. **Real diffusion steps were tracked and delivered.**
+
+**What it does not establish, stated rather than smoothed over:** the server logs requests, not
+rendered text, so it cannot confirm which strings the browser painted. No defect was found in the
+render path and it is covered by tests, but "produced and delivered" is not "observed", and the
+two are kept apart. Two measured reasons a stage could be present and missed: the request was a
+**cold start** (≈28 s of its 40.83 s was model loading, so denoising was only the last ~12 s), and
+**`Finalising the decal…` lasts about a second** — the VAE decode plus PNG encode. **No fix was
+made because no defect was found**, and the finalising stage will not be padded: delaying a
+finished result to make a label linger is exactly the dishonesty the feature exists to avoid.
+
+**Real results — the upload feature.** **vitest 152 → 165**, all pass; eslint clean; build
+succeeds; pytest **406** unchanged. Verified live in Chrome with a PNG drawn in the browser and
+fed through the real control: provenance strip reads `User-uploaded artwork · my-own-artwork.png`,
+no AI metadata panel, no AI downloads. A file declaring `image/png` whose bytes are not an image
+was rejected by the **decode** with the previous decal left on the board; a GIF declaring
+`image/gif` was rejected by the preflight before decoding.
+
+**The check that matters, taken from the server rather than asserted:** across every upload the
+access log's `POST /api/generate` count stayed at **1** and the poll count at **48**, and
+`/api/health` still reported `allocated_mb: 3316.64`. **The upload path made no API request and
+no GPU work happened.**
+
+**Planning change:** the M7 GPU cap of 25 was exceeded — Kylian ran a **26th** generation during
+his review. His decision, recorded rather than absorbed.
+
+**Evidence:** `docs/evidence/prototype-5/screenshots/ui/10-upload-own-decal.jpg` and
+`11-upload-failure-preserves-decal.jpg`. **Unlike states 02–06 these two involve no mock at all**,
+and the README says so.
+
+**Next step:** Kylian's final visual review of the upload feature.
+
+---
+
 ## 2026-08-07 — M7 interface pass: a deck studio and real generation progress; M7 still OPEN
 
 **Objective:** one focused professional UI/UX pass and an honest generation-progress experience,

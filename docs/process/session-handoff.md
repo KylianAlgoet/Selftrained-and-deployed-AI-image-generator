@@ -1,6 +1,6 @@
 # Session handoff
 
-**Last updated:** 2026-08-07 (M7 / Prototype 5 — **walkthrough passed, interface pass done; stopped at the FINAL VISUAL REVIEW GATE**, under Opus 5)
+**Last updated:** 2026-08-07 (M7 / Prototype 5 — **visual review passed; decal upload shipped; stopped at the FINAL VISUAL REVIEW GATE**, under Opus 5)
 
 ## M7 (Prototype 5 — integrated MVP): stopped at the final visual review gate
 
@@ -17,12 +17,32 @@ and closing it is Kylian's call.
 3. **One interface pass** rebuilt the UI as a deck studio and added real generation progress
    (**DR-013**). No model, prompt assembly, generation setting, metadata field or API contract
    changed.
+4. **Kylian reviewed the interface live and passed it**, running **one real generation** — the
+   **26th**, past the declared cap of 25. His decision, recorded as a planning change.
+5. **"Upload your own decal" shipped as a production feature.** Wholly local: decoded in the
+   browser, never sent to the server, never touches the model. It is **not** the AI reference
+   upload and sits in the deck workspace, not in the form.
+
+### What the live run proved, and what it did not
+
+**Proved, from the retained telemetry and the access log:** operation `cHWlV0J6Qgh2BKze` reached
+`current_step 30 / total_steps 30`, across **48** progress polls and **1** POST — real diffusion
+steps were tracked and delivered continuously.
+
+**Not proved:** which strings the browser painted. The server logs requests, not rendered text.
+**Do not upgrade this to "verified displayed".** No defect was found and the render path is
+covered by tests, but the two claims are different.
+
+Two measured reasons a stage can be present and still be missed: the run was a **cold start**
+(≈28 s of 40.83 s was model loading), and **`Finalising the decal…` lasts about a second**. **Do
+not pad it** — delaying a finished result to make a label linger is the dishonesty the whole
+feature exists to avoid. A **warm** generation is the decisive visual check.
 
 ### What is still waiting
 
-**Kylian's final visual review.** Nine labelled interface states are in
-`docs/evidence/prototype-5/screenshots/ui/` (read its README first — they use **mocked
-telemetry**). Until he approves, **M7 stays in progress**.
+**Kylian's final visual review of the upload feature.** Eleven interface states are in
+`docs/evidence/prototype-5/screenshots/ui/` — read its README first: **states 02–06 use mocked
+telemetry; states 10–11 are real and mock nothing.** Until he approves, **M7 stays in progress**.
 
 ### The one qualitative finding from the walkthrough — preserve it
 
@@ -48,8 +68,9 @@ change the LoRA weight default, change prompt assembly, or add automatic prompt 
    mode.**
 2. **Do not declare M7 complete**, close the issue, move the board, push, or begin M8 — the
    checklist is unwalked and no claim may be made about its items.
-3. **Do not run a 26th real generation.** The declared cap of 25 was reached exactly. If more GPU
-   work is genuinely needed, that is a new decision by Kylian, recorded as a planning change.
+3. ~~Do not run a 26th real generation.~~ **Superseded 2026-08-07:** Kylian ran the 26th himself
+   during his review, and it is recorded as a planning change. **The rule that still stands: an
+   assistant does not run GPU work.** Every generation past the cap is Kylian's own decision.
 4. **Do not describe the margin as 202 MiB any more.** EXP-034 measured **200.0 MiB** as the worst
    spare under real serving. It is the operative production ceiling and is **not** comfortable
    headroom.
@@ -67,12 +88,13 @@ change the LoRA weight default, change prompt assembly, or add automatic prompt 
 
 ### Measured position at close
 
-- **406 pytest tests** and **152 vitest tests** pass; eslint clean; `npm run build` succeeds.
+- **406 pytest tests** and **165 vitest tests** pass; eslint clean; `npm run build` succeeds.
   **No Python linter is installed.** Counts moved on 2026-08-07: pytest 371 → 406 (+35 progress
-  tests), vitest 66 → 70 (texture-fit default) → 152 (+82 progress and production-state tests).
-- **No GPU work has run since M7's cap was reached.** It stands at **25 of 25**. The interface
-  screenshots intercepted `POST /api/generate` in the browser, and the API reported
-  `pipeline_loaded: false` afterwards — the independent check that the model never loaded.
+  tests), vitest 66 → 70 (texture-fit default) → 152 (+82 progress and production-state tests) → 165 (+13 decal-upload tests).
+- **The GPU cap of 25 was exceeded: Kylian ran a 26th generation during his review.** His
+  decision. **No generation has been run by an assistant**; the interface screenshots intercepted
+  `POST /api/generate` in the browser, and every upload test left the access log's POST count at 1
+  and `allocated_mb` at 3316.64 — checked from the server, not asserted.
 - **Responsive, measured in real nested viewports:** 1920/1440 px two columns (viewer 722/631 px);
   1024/768/390 px single column (viewer 360 px); **no horizontal scroll at any width.**
 - **EXP-034:** 12/12, all eight pre-declared criteria passed. Allocated after generation
@@ -95,10 +117,13 @@ change the LoRA weight default, change prompt assembly, or add automatic prompt 
 cd apps/web && npm run dev            # http://localhost:5173
 ```
 
-**`http://localhost:5173/?review=1`** restores the three evidence tools — the texture-fit
-selector, the inverted-UV demonstration and load-from-disk. They are hidden from the production
-interface but **not deleted**: the fit comparison is the evidence behind DR-012.
-`VITE_REVIEW_MODE=1` does the same for a dev server.
+**`http://localhost:5173/?review=1`** restores the **two** review tools — the texture-fit
+selector and the inverted-UV demonstration. They are hidden from the production interface but
+**not deleted**: the fit comparison is the evidence behind DR-012. `VITE_REVIEW_MODE=1` does the
+same for a dev server.
+
+**Load-from-disk is no longer a review tool.** It became the production feature *Upload your own
+decal*, available to everyone in the deck workspace, and the review-only duplicate was removed.
 
 ### Regenerate the evidence
 
@@ -109,7 +134,8 @@ budget** — see item 3.
 ### Latest commits (M7)
 
 ```
-(interface pass — see the process log entry of 2026-08-07)
+(visual review — see the process log entries of 2026-08-07)
+<upload>    feat(web): add upload your own decal as a production feature
 1526714    test(web): cover generation progress and the polished production states
 732e735    feat(web): rebuild the creation workspace and wire in live progress
 acb5b36    feat(web): add the generation progress client, model and print panel
