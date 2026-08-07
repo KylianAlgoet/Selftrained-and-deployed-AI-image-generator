@@ -1,264 +1,846 @@
-.app {
-  max-width: 1280px;
+/*
+ * DeckForge AI — studio layout.
+ *
+ * The workspace is a two-column creation desk: a fixed-width control rail on the
+ * left, and the deck preview taking everything else. The viewer is the product
+ * output, so it gets the space; the controls are a rail, not a competing panel.
+ *
+ * On desktop the shell is exactly one viewport tall and the rail scrolls inside
+ * itself, so generating a decal never pushes the deck off screen. Below 1100px
+ * the columns stack and the page scrolls normally, with the viewer given a fixed
+ * usable height rather than being squeezed to nothing.
+ *
+ * Every value here comes from the token set in `index.css`. Magic numbers appear
+ * only where a shape is genuinely one-off: the deck silhouette's clip path and
+ * the print-registration marks.
+ */
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  max-width: 1800px;
   margin: 0 auto;
-  padding: 1rem 1.5rem;
-  text-align: left;
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  gap: var(--space-4);
 }
 
-.layout {
+/* --- header -------------------------------------------------------------- */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* The mark is a deck seen end-on: two ink bars and the gap between them. Drawn
+   in CSS so the identity needs no asset, no icon font and no external file. */
+.brand-mark {
+  width: 14px;
+  height: 34px;
+  flex: none;
+  background: linear-gradient(
+    to bottom,
+    var(--accent) 0 26%,
+    transparent 26% 34%,
+    var(--text) 34% 66%,
+    transparent 66% 74%,
+    var(--accent) 74% 100%
+  );
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+
+.brand-tagline {
+  margin: 2px 0 0;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.build-tag {
+  display: flex;
+  gap: var(--space-2);
+  margin: 0;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: 3px var(--space-2);
+}
+
+.tag-review {
+  color: var(--accent);
+  border-color: var(--accent-line);
+  background: var(--accent-quiet);
+}
+
+.app-alert {
+  margin: 0;
+}
+
+/* --- workspace ----------------------------------------------------------- */
+
+.workspace {
   display: grid;
-  grid-template-columns: minmax(320px, 380px) 1fr;
-  gap: 1.5rem;
-  align-items: start;
+  grid-template-columns: minmax(340px, 400px) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
 }
 
-@media (max-width: 900px) {
-  .layout {
-    grid-template-columns: 1fr;
+.control-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: var(--space-2);
+}
+
+.viewer-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  min-height: 0;
+}
+
+@media (max-width: 1100px) {
+  .app-shell {
+    height: auto;
+  }
+
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .control-column {
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  /* Stacked, the viewer keeps a usable height instead of collapsing. */
+  .viewer-wrapper {
+    height: 58vh;
+    min-height: 340px;
   }
 }
 
-.panel {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+@media (max-width: 640px) {
+  .app-shell {
+    padding: var(--space-3);
+    gap: var(--space-3);
+  }
+
+  .viewer-wrapper {
+    height: 48vh;
+    min-height: 280px;
+  }
 }
+
+/* --- form ---------------------------------------------------------------- */
 
 .generate-form {
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-panel);
 }
 
 .generate-form .field {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: var(--space-2);
+}
+
+.field-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* The step number is decorative reinforcement of an order the labels already
+   carry, so it is hidden from assistive technology rather than read out. */
+.step-index {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
+  display: grid;
+  place-items: center;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--accent);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--radius);
 }
 
 .generate-form label {
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  color: var(--text-secondary);
 }
 
 .generate-form .value {
-  font-weight: 400;
-  color: #646cff;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--accent);
 }
 
 .generate-form textarea,
 .generate-form select,
 .generate-form input[type='number'] {
-  padding: 0.45rem 0.6rem;
-  border: 1px solid #bbb;
-  border-radius: 6px;
-  font: inherit;
+  padding: var(--space-2) var(--space-3);
   width: 100%;
-  box-sizing: border-box;
+}
+
+.generate-form select,
+.generate-form input[type='number'] {
+  height: var(--control-height);
+}
+
+.generate-form textarea {
+  resize: vertical;
+  min-height: 5rem;
+  line-height: 1.5;
+}
+
+.generate-form input[type='file'] {
+  padding: var(--space-2);
+  font-size: 0.8125rem;
+  width: 100%;
+}
+
+.generate-form input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent);
+  background: none;
+  border: none;
+  padding: 0;
 }
 
 .generate-form .hint {
+  display: flex;
+  gap: var(--space-2);
   margin: 0;
-  font-size: 0.78rem;
-  color: #777;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.counter {
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+}
+
+.counter-low {
+  color: var(--warning);
 }
 
 .generate-form .field-error {
   margin: 0;
-  font-size: 0.82rem;
-  color: #a1231b;
+  font-size: 0.8125rem;
+  color: var(--error);
 }
 
-.generate-form .limitation {
+.reference-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
   margin: 0;
-  font-size: 0.8rem;
-  color: #7a5d00;
-  background: #fff3cd;
-  border: 1px solid #e0c368;
-  border-radius: 6px;
-  padding: 0.4rem 0.55rem;
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  font-size: 0.8125rem;
 }
 
-.generate-form .advanced summary {
+.reference-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.advanced {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+  background: var(--surface-2);
+}
+
+.advanced summary {
   cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  color: var(--text-secondary);
 }
 
-.generate-form button[type='submit'] {
-  padding: 0.6rem 1rem;
-  font-weight: 600;
+.advanced[open] summary {
+  margin-bottom: var(--space-3);
 }
 
-.banner {
-  margin: 0;
-  padding: 0.55rem 0.75rem;
-  border-radius: 6px;
-  font-size: 0.88rem;
-  background: #eef1ff;
-  border: 1px solid #c6cdf5;
+.advanced .field + .field {
+  margin-top: var(--space-3);
 }
 
-.banner.busy {
-  background: #fff3cd;
-  border-color: #e0c368;
-  color: #7a5d00;
+/* --- buttons ------------------------------------------------------------- */
+
+.button-primary {
+  min-height: 3rem;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--text-on-accent);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
 }
 
-.banner.error {
-  background: #fdecea;
-  border-color: #e6b3ad;
-  color: #a1231b;
+.button-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 
-.result-panel {
-  border-top: 1px solid #ddd;
-  padding-top: 1rem;
+/* Disabled does not mean unreadable: this button spends ~13 s in this state
+   saying "Generating…", which is the moment its text matters most. */
+.button-primary:disabled {
+  background: var(--surface-raised);
+  border-color: var(--border-strong);
+  color: var(--text);
+  opacity: 1;
+}
+
+.button-download,
+.button-remove {
+  font-size: 0.8125rem;
+  min-height: 2.25rem;
+  padding: 0 var(--space-3);
+}
+
+.button-remove {
+  color: var(--error);
+  border-color: var(--border-strong);
+  background: transparent;
+}
+
+.button-remove:hover:not(:disabled) {
+  border-color: var(--error);
+  background: var(--error-bg);
+}
+
+/* --- status messages ----------------------------------------------------- */
+
+.status-message {
   display: flex;
   flex-direction: column;
-  gap: 0.7rem;
+  gap: 2px;
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--border-strong);
+  border-radius: var(--radius);
+  font-size: 0.8125rem;
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+/* The tone word is what keeps meaning off colour alone. */
+.status-tone {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+}
+
+.status-info {
+  background: var(--info-bg);
+  border-left-color: var(--info);
+}
+.status-info .status-tone {
+  color: var(--info);
+}
+
+.status-busy {
+  background: var(--warning-bg);
+  border-left-color: var(--warning);
+}
+.status-busy .status-tone {
+  color: var(--warning);
+}
+
+.status-warning {
+  background: var(--warning-bg);
+  border-left-color: var(--warning);
+}
+.status-warning .status-tone {
+  color: var(--warning);
+}
+
+.status-error {
+  background: var(--error-bg);
+  border-left-color: var(--error);
+}
+.status-error .status-tone {
+  color: var(--error);
+}
+
+.status-success {
+  background: var(--success-bg);
+  border-left-color: var(--success);
+}
+.status-success .status-tone {
+  color: var(--success);
+}
+
+/* --- progress panel ------------------------------------------------------ */
+
+.progress-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+}
+
+.progress-panel.is-complete {
+  border-color: var(--success);
+}
+
+.progress-headline {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+}
+
+.progress-panel.is-complete .progress-headline {
+  color: var(--success);
+}
+
+/* The print stage: a deck silhouette filling with ink from tail to nose, and
+   the registration marks a screen printer lines a job up with. */
+.print-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+}
+
+.print-marks {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  background:
+    linear-gradient(var(--text-muted), var(--text-muted)) center / 100% 1px no-repeat,
+    linear-gradient(var(--text-muted), var(--text-muted)) center / 1px 100% no-repeat;
+}
+
+.print-deck {
+  position: relative;
+  width: 52px;
+  height: 150px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-strong);
+  /* A deck outline: rounded nose and tail, waisted middle. */
+  clip-path: polygon(
+    50% 0%,
+    78% 4%,
+    88% 12%,
+    88% 88%,
+    78% 96%,
+    50% 100%,
+    22% 96%,
+    12% 88%,
+    12% 12%,
+    22% 4%
+  );
+  overflow: hidden;
+}
+
+.print-ink {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, var(--accent) 0%, var(--accent-hover) 100%);
+  /* Fills from the tail upward, driven ONLY by the reported step fraction. */
+  transform-origin: bottom center;
+  transform: scaleY(0);
+  transition: transform 0.4s linear;
+}
+
+.diffusion-track {
+  height: 4px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.diffusion-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.4s linear;
+}
+
+.progress-stage {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.progress-pass {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.progress-steps {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.progress-steps-none {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.progress-timing {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: 0.8125rem;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border);
+}
+
+.progress-eta {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.progress-elapsed {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.progress-submitted {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--space-2) var(--space-3);
+  margin: 0;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border);
+  font-size: 0.75rem;
+}
+
+.progress-submitted dt {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  font-size: 0.625rem;
+}
+
+.progress-submitted dd {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+/* With reduced motion the ink still moves to its real position — the value is
+   information — it simply does not animate its way there. */
+@media (prefers-reduced-motion: reduce) {
+  .print-ink,
+  .diffusion-fill {
+    transition: none;
+  }
+}
+
+/* --- result panel -------------------------------------------------------- */
+
+.result-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.result-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.result-head h2 {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  color: var(--text-secondary);
+}
+
+.result-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: 0.8125rem;
+}
+
+.result-style {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.dot {
+  color: var(--text-muted);
+}
+
+.result-body {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.result-preview {
+  position: relative;
+  flex: none;
+  width: 96px;
 }
 
 .result-preview img {
   width: 100%;
-  max-width: 220px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
   display: block;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface-sunken);
 }
 
-.result-panel .warning {
+.result-dimensions {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.result-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  flex: 1;
+}
+
+.result-applied {
   margin: 0;
-  font-size: 0.82rem;
-  color: #7a5d00;
-  background: #fff3cd;
-  border: 1px solid #e0c368;
-  border-radius: 6px;
-  padding: 0.4rem 0.55rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }
 
 .fit-disclosure {
   margin: 0;
-  font-size: 0.82rem;
-  color: #555;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
 }
 
 .downloads {
   display: flex;
-  gap: 0.5rem;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
 .metadata summary {
   cursor: pointer;
-  font-size: 0.88rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  color: var(--text-secondary);
 }
 
 .metadata dl {
-  margin: 0.5rem 0 0;
-  font-size: 0.8rem;
+  margin: var(--space-3) 0 0;
+  font-size: 0.75rem;
 }
 
 .meta-row {
   display: grid;
-  grid-template-columns: 8.5rem 1fr;
-  gap: 0.5rem;
-  padding: 0.2rem 0;
-  border-bottom: 1px solid #eee;
+  grid-template-columns: 8rem minmax(0, 1fr);
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+  border-bottom: 1px solid var(--border);
 }
 
 .meta-row dt {
-  color: #777;
+  color: var(--text-muted);
 }
 
 .meta-row dd {
   margin: 0;
-  word-break: break-word;
+  overflow-wrap: anywhere;
+  color: var(--text-secondary);
 }
 
-.fit-modes {
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  padding: 0.4rem 0.7rem 0.55rem;
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.95em;
+  color: var(--text);
+}
+
+.truncate {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
+/* --- viewer -------------------------------------------------------------- */
+
+.viewer-bar {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: center;
+  gap: var(--space-3);
 }
 
-.fit-modes legend {
-  font-size: 0.8rem;
-  font-weight: 600;
-  padding: 0 0.3rem;
-}
-
-.fit-modes label {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.85rem;
-}
-
-.review-only {
-  font-weight: 400;
-  color: #a1231b;
+.viewer-title {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 800;
   text-transform: uppercase;
-  font-size: 0.65rem;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--label-tracking);
+  color: var(--text-secondary);
 }
 
-.app header h1 {
-  font-size: 1.6rem;
-  margin-bottom: 0.2rem;
-}
-
-.app header p {
-  margin-top: 0;
-  color: #555;
-}
-
-.viewer-controls {
+.viewer-actions {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem;
-  margin: 0.75rem 0;
-}
-
-.viewer-controls button {
-  padding: 0.45rem 0.9rem;
-}
-
-.viewer-controls button.active {
-  outline: 2px solid #646cff;
-}
-
-.invert-demo {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.9rem;
-  color: #777;
-}
-
-.demo-banner {
-  background: #fff3cd;
-  border: 1px solid #e0c368;
-  color: #7a5d00;
-  padding: 0.5rem 0.75rem;
-  border-radius: 6px;
+  gap: var(--space-3);
 }
 
 .viewer-wrapper {
-  height: 70vh;
-  min-height: 420px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+  flex: 1;
+  min-height: 360px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
   overflow: hidden;
+  background: var(--surface-sunken);
 }
 
-.app footer p {
-  color: #777;
-  font-size: 0.85rem;
+.viewer-note {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* --- review-only controls ------------------------------------------------ */
+
+.fit-modes {
+  border: 1px solid var(--accent-line);
+  border-radius: var(--radius);
+  padding: var(--space-1) var(--space-3) var(--space-2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  background: var(--accent-quiet);
+}
+
+.fit-modes legend {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  color: var(--text-secondary);
+  padding: 0 var(--space-1);
+}
+
+.fit-modes label,
+.local-decal,
+.invert-demo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.local-decal input[type='file'] {
+  max-width: 170px;
+  font-size: 0.75rem;
+  padding: var(--space-1);
+}
+
+.review-only {
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  font-size: 0.5625rem;
+  letter-spacing: var(--label-tracking);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--radius);
+  padding: 1px 4px;
+}
+
+/* --- utilities ----------------------------------------------------------- */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

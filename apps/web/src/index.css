@@ -1,65 +1,183 @@
+/*
+ * DeckForge AI design tokens.
+ *
+ * The interface is a skateboard-decal studio that happens to run a locally
+ * trained generation stack - not an AI product with a deck attached. The palette
+ * is taken from the workshop rather than from the model: charcoal like a printed
+ * deck's underside, warm off-white like uncoated stock, and ONE ink colour.
+ *
+ * Deliberately absent: violet-to-blue gradients, glow, glass, and anything that
+ * would read as a generic AI demo.
+ *
+ * The application commits to a dark surface at both colour schemes. The previous
+ * stylesheet inherited Vite's `color-scheme: light dark`, which is what produced
+ * the unreadable status banner - white body text landing on a pale banner
+ * background whenever the OS was in dark mode. Contrast is now a property of the
+ * tokens instead of a property of the visitor's settings.
+ */
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
+  /* --- surfaces ---------------------------------------------------------- */
+  --app-bg: #131313;
+  --surface: #1b1b1b;
+  --surface-2: #212121;
+  --surface-raised: #282828;
+  --surface-sunken: #0e0e0e;
+
+  /* --- text -------------------------------------------------------------- */
+  /* #f2efe9 on #131313 is 15.9:1; --text-muted is 5.6:1. Both clear AA. */
+  --text: #f2efe9;
+  --text-secondary: #b9b3a8;
+  --text-muted: #8d877c;
+  --text-on-accent: #1a1206;
+
+  /* --- ink --------------------------------------------------------------- */
+  /* Screen-print orange: one accent, used for the primary action, the active
+     state and the print progress. Not used to carry meaning on its own. */
+  --accent: #ff6a13;
+  --accent-hover: #ff8438;
+  --accent-quiet: rgba(255, 106, 19, 0.14);
+  --accent-line: rgba(255, 106, 19, 0.42);
+
+  /* --- status ------------------------------------------------------------ */
+  --info: #7fb4d8;
+  --info-bg: rgba(127, 180, 216, 0.12);
+  --warning: #e8b552;
+  --warning-bg: rgba(232, 181, 82, 0.13);
+  --error: #f0866f;
+  --error-bg: rgba(240, 134, 111, 0.13);
+  --success: #86c47f;
+  --success-bg: rgba(134, 196, 127, 0.13);
+
+  /* --- lines and focus --------------------------------------------------- */
+  --border: #333130;
+  --border-strong: #4a4744;
+  --focus: #ffd08a;
+
+  /* --- metrics ----------------------------------------------------------- */
+  --control-height: 2.5rem;
+  --radius: 2px;
+  --radius-lg: 4px;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  /* --- type -------------------------------------------------------------- */
+  --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif;
+  /* Monospace is reserved for values a reader may need to copy or compare
+     character by character: hashes, seeds, revisions, model identifiers. */
+  --font-mono: ui-monospace, 'Cascadia Mono', 'Consolas', 'DejaVu Sans Mono', monospace;
+  --label-tracking: 0.08em;
+
+  /* --- depth ------------------------------------------------------------- */
+  /* Two shadows only, both for genuinely floating surfaces. Panels are
+     separated by borders, not by drop shadows. */
+  --shadow-panel: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
+  --shadow-raised: 0 8px 24px rgba(0, 0, 0, 0.45);
+
+  font-family: var(--font-sans);
+  line-height: 1.55;
   font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
+  color-scheme: dark;
+  color: var(--text);
+  background-color: var(--app-bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  background-color: var(--app-bg);
+  color: var(--text);
 }
 
 #root {
   width: 100%;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+a {
+  color: var(--accent);
+  text-decoration: none;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
+a:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+/* --- controls ------------------------------------------------------------ */
+
+button {
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  min-height: var(--control-height);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-raised);
+  color: var(--text);
+  cursor: pointer;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+button:hover:not(:disabled) {
+  background: #323232;
+  border-color: var(--text-muted);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  /* Readable, not ghosted: a disabled Generate button still has to say what it
+     is doing during the 13 seconds it spends disabled. */
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--text-secondary);
+}
+
+/* Focus is never removed, only replaced with something more visible. */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: 0.9375rem;
+  color: var(--text);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* --- motion -------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
   }
 }

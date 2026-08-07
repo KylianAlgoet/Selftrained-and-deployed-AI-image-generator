@@ -1,9 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Texture } from 'three'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { DeckViewer } from './viewer/DeckViewer'
 import { GenerateForm, type GenerateFormValues } from './generate/GenerateForm'
 import { ResultPanel } from './generate/ResultPanel'
+import { ProgressPanel } from './generate/ProgressPanel'
+import { buildProgressView } from './generate/progressModel'
+import { useGenerationProgress } from './generate/useGenerationProgress'
+import { StatusMessage } from './ui/StatusMessage'
 import {
   ApiError,
   absoluteUrl,
@@ -25,6 +29,7 @@ import {
 import { imageFromBlob, textureFromCanvas, textureFromUrl } from './viewer/deckTextures'
 import { DECALS } from './decals'
 import { emptySlot, releaseSlot, swapTexture, type TextureSlot } from './viewer/textureSwap'
+import { isReviewMode } from './reviewMode'
 import './App.css'
 
 type Status =
@@ -32,6 +37,14 @@ type Status =
   | { kind: 'loading' }
   | { kind: 'busy' }
   | { kind: 'error'; message: string; field?: string }
+
+interface SubmittedSnapshot {
+  styleLabel: string
+  referencePresent: boolean
+  seed: number | undefined
+  width: number
+  height: number
+}
 
 export default function App() {
   const [styles, setStyles] = useState<StylesResponse | null>(null)
@@ -43,6 +56,19 @@ export default function App() {
   const [fitMode, setFitMode] = useState<TextureFitMode>(DEFAULT_TEXTURE_FIT_MODE)
   const [invertDemo, setInvertDemo] = useState(false)
   const [textureError, setTextureError] = useState<string | null>(null)
+
+  // Frontend-owned parts of the waiting state. These are NOT reported by the
+  // backend: by the time they are true the GPU has already finished, so calling
+  // them generation progress would be a lie about where the time went.
+  const [submitted, setSubmitted] = useState<SubmittedSnapshot | null>(null)
+  const [imageReady, setImageReady] = useState(false)
+  const [applyingTexture, setApplyingTexture] = useState(false)
+
+  const progress = useGenerationProgress()
+
+  // Review tools are resolved once, at mount: the production interface must not
+  // depend on a URL the user could stumble into mid-session.
+  const reviewMode = useMemo(() => isReviewMode(), [])
 
   const controlsRef = useRef<OrbitControlsImpl | null>(null)
   const slotRef = useRef<TextureSlot<Texture>>(emptySlot<Texture>())
@@ -123,9 +149,25 @@ export default function App() {
     }
   }, [])
 
+  const generating = status.kind === 'loading'
+
   const handleSubmit = useCallback(
     async (values: GenerateFormValues) => {
+      if (generating) return // a second submit cannot start a second generation
+      const styleLabel =
+        styles?.styles.find((item) => item.key === values.style)?.label ?? values.style
+      setSubmitted({
+        styleLabel,
+        referencePresent: Boolean(values.referenceImage),
+        seed: values.seed,
+        width: styles?.width ?? 512,
+        height: styles?.height ?? 1536,
+      })
+      setImageReady(false)
+      setApplyingTexture(false)
       setStatus({ kind: 'loading' })
+      progress.begin()
+
       try {
         const response = await generate({
           prompt: values.prompt,
@@ -140,10 +182,18 @@ export default function App() {
         const blob = await fetchGeneratedImage(response.image_url)
         const image = await imageFromBlob(blob)
         imageRef.current = image
+        // Only now is the request genuinely complete: the response arrived AND
+        // the PNG decoded in the browser. Nothing before this point may claim
+        // 100 %.
+        setImageReady(true)
+
+        setApplyingTexture(true)
         await applyFit(image, fitMode)
+        setApplyingTexture(false)
 
         setStatus({ kind: 'idle' })
       } catch (error) {
+        setApplyingTexture(false)
         if (error instanceof ApiError && error.isBusy) {
           setStatus({ kind: 'busy' })
           return
@@ -156,9 +206,14 @@ export default function App() {
               : 'Generation failed. Check that the service is running.',
           field: error instanceof ApiError ? error.field : undefined,
         })
+      } finally {
+        // Polling stops on every exit - success, refusal, timeout or crash.
+        // It never held anything on the server, so stopping frees nothing but
+        // the browser's own timer.
+        progress.end()
       }
     },
-    [applyFit, fitMode],
+    [applyFit, fitMode, generating, progress, styles],
   )
 
   const handleFitMode = useCallback(
@@ -221,49 +276,66 @@ export default function App() {
     URL.revokeObjectURL(url)
   }
 
+  const progressView = buildProgressView({
+    telemetry: progress.telemetry,
+    telemetryUnavailable: progress.unavailable,
+    elapsedMs: progress.elapsedMs,
+    etaExpired: progress.etaExpired,
+    imageReady,
+    applyingTexture,
+  })
+
+  const showProgress = generating && submitted !== null
+
   return (
-    <main className="app">
-      <header>
-        <h1>DeckForge AI</h1>
-        <p>
-          Describe a skateboard decal, generate it with a locally trained style, and see it on
-          the deck.
+    <div className="app-shell">
+      <header className="app-header">
+        <div className="brand">
+          <span className="brand-mark" aria-hidden="true" />
+          <div>
+            <h1>DeckForge AI</h1>
+            <p className="brand-tagline">
+              Design a decal. Generate it locally. Preview it on the deck.
+            </p>
+          </div>
+        </div>
+        <p className="build-tag">
+          <span className="tag">Local generation</span>
+          <span className="tag">Research prototype</span>
+          {reviewMode && <span className="tag tag-review">Review mode</span>}
         </p>
       </header>
 
       {stylesError && (
-        <p className="banner error" role="alert">
-          {stylesError}
-        </p>
+        <div className="app-alert">
+          <StatusMessage tone="error">{stylesError}</StatusMessage>
+        </div>
       )}
 
-      <div className="layout">
-        <aside className="panel">
+      <main className="workspace">
+        <aside className="control-column" aria-label="Create a decal">
           <GenerateForm
             styles={styles}
-            busy={status.kind === 'loading'}
+            busy={generating}
             disabled={Boolean(stylesError)}
-            fieldError={status.kind === 'error' ? { field: status.field, message: status.message } : null}
+            fieldError={
+              status.kind === 'error' ? { field: status.field, message: status.message } : null
+            }
             onSubmit={handleSubmit}
           />
 
           {status.kind === 'busy' && (
-            <p className="banner busy" role="status">
+            <StatusMessage tone="busy">
               The GPU is finishing another decal. Try again in a moment.
-            </p>
-          )}
-          {status.kind === 'loading' && (
-            <p className="banner" role="status">
-              Generating at 512×1536 — this takes around 15 seconds.
-            </p>
+            </StatusMessage>
           )}
           {status.kind === 'error' && !status.field && (
-            <p className="banner error" role="alert">
-              {status.message}
-            </p>
+            <StatusMessage tone="error">{status.message}</StatusMessage>
           )}
 
-          {result && (
+          {showProgress && <ProgressPanel view={progressView} submitted={submitted} />}
+
+          {result && !showProgress && (
             <ResultPanel
               metadata={result.metadata}
               warnings={result.warnings}
@@ -275,55 +347,68 @@ export default function App() {
           )}
         </aside>
 
-        <section className="viewer-column">
-          <div className="viewer-controls">
-            <fieldset className="fit-modes">
-              <legend>Texture fit</legend>
-              {TEXTURE_FIT_MODES.map((mode) => (
-                <label key={mode}>
-                  <input
-                    type="radio"
-                    name="fit-mode"
-                    value={mode}
-                    checked={fitMode === mode}
-                    onChange={() => handleFitMode(mode)}
-                  />
-                  {TEXTURE_FIT_LABELS[mode]}
-                </label>
-              ))}
-            </fieldset>
-            <label className="local-decal" title="Review control: put a decal from disk on the deck">
-              Load decal <span className="review-only">review control</span>
-              <input
-                type="file"
-                accept=".png,.jpg,.jpeg,.webp"
-                onChange={(event) => void handleLocalDecal(event.target.files?.[0] ?? null)}
-              />
-            </label>
-            <button type="button" onClick={() => controlsRef.current?.reset()}>
-              Reset view
-            </button>
-            <label className="invert-demo" title="Controlled demonstration of an inverted UV layout — not a real defect">
-              <input
-                type="checkbox"
-                checked={invertDemo}
-                onChange={(event) => setInvertDemo(event.target.checked)}
-              />
-              Inverted-UV demonstration
-            </label>
+        <section className="viewer-column" aria-label="Deck preview">
+          <div className="viewer-bar">
+            <h2 className="viewer-title">Deck preview</h2>
+            <div className="viewer-actions">
+              {reviewMode && (
+                <>
+                  <fieldset className="fit-modes">
+                    <legend>
+                      Texture fit <span className="review-only">review</span>
+                    </legend>
+                    {TEXTURE_FIT_MODES.map((mode) => (
+                      <label key={mode}>
+                        <input
+                          type="radio"
+                          name="fit-mode"
+                          value={mode}
+                          checked={fitMode === mode}
+                          onChange={() => handleFitMode(mode)}
+                        />
+                        {TEXTURE_FIT_LABELS[mode]}
+                      </label>
+                    ))}
+                  </fieldset>
+                  <label
+                    className="local-decal"
+                    title="Review control: put a decal from disk on the deck"
+                  >
+                    Load decal <span className="review-only">review</span>
+                    <input
+                      type="file"
+                      accept=".png,.jpg,.jpeg,.webp"
+                      onChange={(event) =>
+                        void handleLocalDecal(event.target.files?.[0] ?? null)
+                      }
+                    />
+                  </label>
+                  <label
+                    className="invert-demo"
+                    title="Controlled demonstration of an inverted UV layout — not a real defect"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={invertDemo}
+                      onChange={(event) => setInvertDemo(event.target.checked)}
+                    />
+                    Inverted-UV demonstration <span className="review-only">review</span>
+                  </label>
+                </>
+              )}
+              <button type="button" onClick={() => controlsRef.current?.reset()}>
+                Reset view
+              </button>
+            </div>
           </div>
 
           {invertDemo && (
-            <p className="demo-banner">
+            <StatusMessage tone="warning">
               Controlled demonstration: the decal is deliberately rendered with an inverted UV
               layout to show what an orientation defect would look like.
-            </p>
+            </StatusMessage>
           )}
-          {textureError && (
-            <p className="banner error" role="alert">
-              {textureError}
-            </p>
-          )}
+          {textureError && <StatusMessage tone="error">{textureError}</StatusMessage>}
 
           <div className="viewer-wrapper">
             <DeckViewer
@@ -334,16 +419,14 @@ export default function App() {
               }}
             />
           </div>
-        </section>
-      </div>
 
-      <footer>
-        <p>
-          Deck geometry is a self-created project asset. Drag to orbit, scroll to zoom. Texture fit
-          defaults to full surface (DR-012), which stretches the decal 1.3008× along the deck; the
-          alternative preserves the artwork and leaves the ends bare.
-        </p>
-      </footer>
-    </main>
+          <p className="viewer-note">
+            Drag to orbit, scroll to zoom. The deck geometry is a self-created project asset.
+            The decal fills the whole surface (DR-012), which stretches it 1.3008× along the
+            board.
+          </p>
+        </section>
+      </main>
+    </div>
   )
 }
