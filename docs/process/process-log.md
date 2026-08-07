@@ -4,6 +4,62 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-07 — M7 review gate: the texture-fit default decided; M7 still OPEN
+
+**Objective:** put the one open decision to Kylian, implement whichever mode he selects, and
+record the decision — without closing the milestone on the strength of that single answer.
+
+**Plan:** present the measured trade-off and both screenshots → take the decision → implement the
+default and replace the test that asserted no default existed → ask for the rationale rather than
+write one → DR-012 and a gate approval record → documentation → commit → stop.
+
+**Completed work:** `DEFAULT_TEXTURE_FIT_MODE = 'full-surface'` exported from
+`apps/web/src/deck/textureFit.ts`; `App.tsx` reads it for its initial state; the texture-fit
+selector is no longer badged *review control* (that badge moved to the "Load decal" control,
+which really is one) and the footer now states the default and its cost. The
+"exposes no exported default mode" test was replaced by five tests: the default is
+`full-surface`, it is one of the offered modes, the rejected mode survives, its stretch is
+disclosed, and the export is real rather than a stub. **DR-012** written and **DR-011's**
+"deliberately left open" section closed against it; `docs/evidence/prototype-5/GATE-approval.md`
+added; the handover, prototype report, evidence README, testing strategy, planning log,
+traceability matrix and `ai-usage.md` updated.
+
+**Unfinished by design:** M7 is **not** closed · the 12-item manual acceptance checklist is
+**unwalked** · nothing pushed · the GitHub issue and board untouched · M8 not begun · no 26th
+generation.
+
+**Blockers:** none. M7's closure waits on Kylian's checklist walk, which is the intended state.
+
+**Decisions:** **DR-012 — `full-surface` is the production texture-fit default.** Kylian's, at the
+gate, with his rationale quoted verbatim rather than paraphrased: the bare ends made the deck look
+unfinished and the artwork look like a centred rectangular sticker, and the measured 1.3008×
+stretch was acceptable on the selected production styles. Asked separately whether M7 could be
+declared complete, he answered **"Not yet — I'll walk the checklist"**, and the milestone stayed
+open.
+
+**Commands and tests:** `.venv/Scripts/python.exe -m pytest -q` · `npm run test -- --run` ·
+`npm run lint` · `npm run build`.
+
+**Real results:** **371 pytest passed**, exit 0 — unchanged by this edit, as expected for a
+frontend-only change. **70 vitest passed** (66 before: five tests added, one removed). eslint
+clean. `npm run build` succeeded in 5.80 s. **No GPU work ran**; the cap stands at 25 of 25.
+
+**Evidence:** `docs/evidence/prototype-5/GATE-approval.md`,
+`docs/evidence/prototype-5/screenshots/`, `docs/decisions/DR-012-deck-texture-fit.md`.
+
+**Worth recording.** The technique from the previous session — *a test that asserts a decision has
+not been made* — is what forced this to be a documented decision. Selecting the default meant
+deleting an assertion that said "nobody has selected the default", which cannot be done absently.
+Two further options were screened and recorded rather than silently ignored: regenerating at
+512×1998 to match the deck (rejected — it changes the DR-007 generation geometry every memory
+figure from EXP-016 onward was taken at, and the LoRAs were trained at 1:3) and reshaping the deck
+to 1:3 (rejected — distorting the board to suit the image inverts the problem).
+
+**Next step:** Kylian walks `GATE-handover.md` §12 against the running app. If it passes, M7 closes
+with the standard milestone report; if an item fails, it becomes a defect to fix before closure.
+
+---
+
 ## 2026-08-06 — M7 built and validated: the integrated MVP; STOPPED at the review gate
 
 **Objective:** put the measured generation stack behind a usable application on one 8 GB device,

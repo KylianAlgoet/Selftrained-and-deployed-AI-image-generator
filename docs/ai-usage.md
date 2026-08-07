@@ -10,6 +10,29 @@ Honest record of how Claude Code (Anthropic) is used in this project, per sessio
 
 ## Session log
 
+### 2026-08-07 — Prototype 5 review gate: the texture-fit decision (M7)
+
+**AI assistance:** presented the two fit screenshots and the measured trade-off; after the answer,
+implemented `DEFAULT_TEXTURE_FIT_MODE`, replaced the "no default is exported" test with five
+tests covering the chosen default, wrote DR-012 and the gate approval record, and updated the
+affected documentation. Executed under Claude Opus 5.
+
+**Student decisions.** Both of them, and neither was inferred:
+
+- **the production texture-fit mode** — Kylian selected `full-surface` and supplied his own
+  rationale, quoted verbatim in DR-012 rather than paraphrased. The assistant asked for the
+  reason explicitly instead of writing a plausible one, because a decision record with an
+  invented justification is worse than one with none;
+- **whether M7 could be declared complete** — asked directly, he answered *"Not yet — I'll walk
+  the checklist"*, so the milestone stayed open.
+
+**Verification status.** After the change: **371 pytest** tests pass (unchanged by this edit),
+**70 vitest** tests pass (five added, one removed), eslint is clean, `npm run build` succeeds.
+**No 26th generation was run** — the gate reused the existing screenshots.
+
+**Boundary held:** M7 is not declared complete, the 12-item manual checklist is recorded as
+**unwalked**, nothing is pushed, the GitHub issue and board are untouched, and M8 has not begun.
+
 ### 2026-08-06 — Prototype 5 / the integrated MVP (M7)
 
 **AI assistance:** M7 plan in Plan mode; inspection of the diffusers 0.39.0 source to settle how

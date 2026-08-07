@@ -1,26 +1,35 @@
 # Session handoff
 
-**Last updated:** 2026-08-06 (M7 / Prototype 5 **BUILT AND VALIDATED — stopped at the review gate**, under Opus 5)
+**Last updated:** 2026-08-07 (M7 / Prototype 5 — **texture-fit decided; M7 still OPEN on Kylian's checklist walk**, under Opus 5)
 
-## M7 (Prototype 5 — integrated MVP): awaiting Kylian's review gate
+## M7 (Prototype 5 — integrated MVP): one gate answer in, milestone still open
 
-The MVP is built, measured and committed. **It is not complete**, because one decision is his.
+The MVP is built, measured and committed. **It is still not complete** — but for a different
+reason than yesterday.
 
-### The one decision waiting
+### What changed on 2026-08-07
 
-**Which texture-fit mode becomes the production default.** The generated decal is 1:3
-(512×1536); the deck UV domain is 1:3.902. `full-surface` stretches the artwork **1.3008×**;
-`fit-without-stretch` leaves **23.12 %** of the deck length bare (11.56 % per end). Both are
-built and screenshotted with the same decal and camera. **Nothing in the code picks one, and a
-test asserts no default is exported** — do not add one.
+**The texture-fit decision was returned: `full-surface`.** Kylian selected it at the gate, and it
+is now `DEFAULT_TEXTURE_FIT_MODE` in `apps/web/src/deck/textureFit.ts`. His rationale is quoted
+verbatim in **DR-012** and `docs/evidence/prototype-5/GATE-approval.md`: the bare ends made the
+deck look unfinished and the artwork look like a centred rectangular sticker, and the 1.3008×
+stretch was acceptable on the selected production styles. **`fit-without-stretch` was kept
+selectable, not deleted.**
 
-Full handover, with start commands and a manual acceptance checklist:
-`docs/evidence/prototype-5/GATE-handover.md`.
+### What is still waiting
+
+**Kylian's 12-item manual acceptance checklist**, `docs/evidence/prototype-5/GATE-handover.md`
+§12. Asked directly whether M7 could be declared complete, he answered **"Not yet — I'll walk the
+checklist"**. Until he reports the result, **M7 stays in progress**. If it passes, M7 closes with
+the standard milestone report; if an item fails, that is a defect to fix before closure.
 
 ### ⚠️ Eight things the next session must not do
 
-1. **Do not choose the texture-fit mode**, and do not add a `DEFAULT_TEXTURE_FIT_MODE`.
-2. **Do not declare M7 complete**, close the issue, move the board, push, or begin M8.
+1. ~~Do not choose the texture-fit mode.~~ **Satisfied 2026-08-07** — he chose `full-surface`,
+   DR-012 records it, and it is implemented. **Do not revisit it, and do not remove the other
+   mode.**
+2. **Do not declare M7 complete**, close the issue, move the board, push, or begin M8 — the
+   checklist is unwalked and no claim may be made about its items.
 3. **Do not run a 26th real generation.** The declared cap of 25 was reached exactly. If more GPU
    work is genuinely needed, that is a new decision by Kylian, recorded as a planning change.
 4. **Do not describe the margin as 202 MiB any more.** EXP-034 measured **200.0 MiB** as the worst
@@ -40,8 +49,9 @@ Full handover, with start commands and a manual acceptance checklist:
 
 ### Measured position at close
 
-- **371 pytest tests** (289 pre-existing unchanged + 82 new) and **66 vitest tests** pass;
-  eslint clean; `npm run build` succeeds. **No Python linter is installed.**
+- **371 pytest tests** (289 pre-existing unchanged + 82 new) and **70 vitest tests** pass;
+  eslint clean; `npm run build` succeeds. **No Python linter is installed.** The vitest count
+  moved 66 → 70 on 2026-08-07: five tests for the chosen default, one obsolete test removed.
 - **EXP-034:** 12/12, all eight pre-declared criteria passed. Allocated after generation
   **3316.64 MiB in all 13 runs**, growth **0.00 MiB**. Peak allocated **5143.73 MiB** —
   byte-identical to M5's EXP-019b. All 6 repeated cases byte-identical. **Worst spare 200.0 MiB.**
@@ -71,6 +81,8 @@ budget** — see item 3.
 ### Latest commits (M7)
 
 ```
+(this session)  feat(web): adopt full surface as the production texture-fit default
+0835c61    docs(process): record the prototype 5 commit hash in the session handoff
 ce90388    docs(process): record prototype 5 and stop at the review gate
 83e6280    feat(web): add a review-only control to load a decal from disk
 a9f5749    test(api): validate prototype 5 end to end against a real uvicorn process
