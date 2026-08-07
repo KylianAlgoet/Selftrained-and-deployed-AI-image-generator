@@ -205,6 +205,9 @@ disk through a review control, rather than by generating a new one.
 
 ## 12. Manual acceptance checklist
 
+> **COMPLETED 2026-08-07 — 12 of 12 PASS.** The authoritative filled-in record is
+> `FINAL-GATE-approval.md` §2. The unticked boxes below are the original blank form.
+
 Start both processes, open http://localhost:5173, then:
 
 - [ ] The style list shows three styles; `retro-poster` is marked *(partial)*.

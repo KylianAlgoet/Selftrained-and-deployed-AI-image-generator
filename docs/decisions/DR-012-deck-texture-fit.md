@@ -1,6 +1,8 @@
 # DR-012 — Production texture-fit mode for the deck preview
 
 **Status:** accepted · **Date:** 2026-08-07 · **Milestone:** M7 (Prototype 5)
+**Re-confirmed** at the final visual gate on 2026-08-07 with the mode running in the
+production interface (`docs/evidence/prototype-5/FINAL-GATE-approval.md`).
 **Answers:** how a 1:3 generated decal is mapped onto a 1:3.902 deck surface by default.
 **Related:** DR-005 (deck geometry), DR-007 (512×1536 generation format), DR-011 (service
 architecture, which left exactly this item open)

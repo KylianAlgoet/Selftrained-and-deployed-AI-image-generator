@@ -1,6 +1,10 @@
 # Prototype 5 — M7 review gate approval record
 
-**Milestone:** M7 (Prototype 5 — integrated MVP) · **Gate:** 1 of 1 · **M7 NOT CLOSED**
+**Milestone:** M7 (Prototype 5 — integrated MVP) · **Gate:** 1 of 2 · **M7 was not closed here**
+
+> **SUPERSEDED for milestone status 2026-08-07:** the final visual gate passed and M7 is now
+> closed locally. See `FINAL-GATE-approval.md`. Everything below remains accurate as the
+> record of the texture-fit decision.
 **Final human approver:** Kylian Algoet · **Date:** 2026-08-07
 
 ## 1. What the gate asked

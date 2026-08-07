@@ -1,6 +1,9 @@
 # DR-013 — How the interface reports generation progress
 
 **Status:** accepted · **Date:** 2026-08-07 · **Milestone:** M7 (Prototype 5)
+**Approved at the final human visual gate on 2026-08-07**, against a real generation whose
+telemetry reached 30/30 steps across 48 polls
+(`docs/evidence/prototype-5/FINAL-GATE-approval.md`).
 **Answers:** how a browser waiting on a synchronous 12–13 s generation is told what is happening,
 without changing what the generation does.
 **Related:** DR-011 (synchronous endpoint, single-flight lock, one process — all preserved here)
