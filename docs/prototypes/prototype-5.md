@@ -99,6 +99,33 @@ scale 0.0.
 3. **`<output>` inside a `<label>` made a control ambiguous** to assistive technology and to the
    tests. Replaced with a `<span>`.
 
+## The human walkthrough (2026-08-07) — one qualitative finding
+
+Kylian walked the complete application workflow and it **passed**: prompt-only generation,
+deterministic repeat at identical settings, reference-conditioned generation, style switching,
+the 2D result panel, the decal applied to the interactive deck, camera/orbit/zoom, PNG and
+metadata download, correct metadata, visible `retro-poster` warnings, invalid-upload handling,
+UV orientation, and the selection of `full-surface` as the production fit.
+
+**The finding worth recording is not a defect.** One tested prompt was:
+
+> `A futuristic city skyline with a skateboarder jumping over neon buildings`
+
+The result was **clearly `minimal-geometric` and usable as a deck graphic**, but **the skyline and
+the skateboarder were not clearly represented.** Strong style conditioning dominated detailed
+prompt content.
+
+This is a **known prompt-adherence limitation of the trained style**, not a frontend or
+integration failure — the request, the metadata and the applied texture were all correct. It is
+consistent with M6's measured result, where prompt adherence fell from 4 to 3 at step 600 for two
+of three styles while style consistency held at 5, and it is why two of the three production
+checkpoints are step 300 rather than 600.
+
+**Nothing was changed in response to it.** No retraining, no change to the LoRA weight default, no
+change to prompt assembly, and no automatic prompt rewriting — an interface that silently rewrote
+the user's prompt would hide exactly this finding. The application does not claim perfect prompt
+adherence anywhere.
+
 ## Limitations to carry forward
 
 - **Single process, by design.** Scaling is not a config change (DR-011).
@@ -108,11 +135,39 @@ scale 0.0.
 - **EXP-035 does not re-establish text-only equivalence** — that stack has no LoRA and a
   different prompt, and the claim still rests on M4's separate 12/12 result.
 - **`retro-poster` remains a partial pass** and says so on every request.
+- **Prompt adherence can be weaker than style adherence.** Detailed content in a prompt may not
+  survive strong style conditioning; see the walkthrough finding above.
+- **The first request of a process has no honest progress estimate.** Model loading is ~30 s with
+  no measurable progress, so the interface names the stage and offers no number (DR-013).
+- **The remaining-time estimate covers measured denoising only** — not decoding, saving, transfer
+  or texture application — and is labelled approximate.
+
+## The interface pass (2026-08-07)
+
+After the walkthrough passed, one focused UI/UX pass rebuilt the interface as a deck studio and
+replaced the static "this takes around 15 seconds" line with real progress from the pipeline
+(DR-013). **No model, prompt assembly, generation setting or output behaviour changed**, and the
+`POST /api/generate` request and response contracts are byte-for-byte the same shape.
+
+Three defects were found and fixed during it, two of which no test could have caught:
+
+1. The desktop shell **overflowed the viewport by 70 px**, pushing the deck below the fold.
+2. A **horizontal scrollbar** on every page, from a `width: 100%` rule beating `.visually-hidden`
+   and stretching a hidden file input to 1992 px.
+3. The poll loop **restarted on every render** when the hook was given inline options, firing a
+   request per render instead of one per interval. Found while writing the estimate-expiry test.
+
+The status-readability defect was fixed at its cause: the stylesheet inherited Vite's
+`color-scheme: light dark`, so a pale banner background met near-white inherited text whenever the
+OS was in dark mode. Contrast is now a property of the tokens.
+
+Interface states are evidenced in `docs/evidence/prototype-5/screenshots/ui/`, **captured with
+mocked telemetry and labelled as such** — no 26th generation was run, and the API reported
+`pipeline_loaded: false` afterwards as the independent check.
 
 ## Next
 
 **The gate is partly answered.** The texture-fit default was returned on 2026-08-07 and is
-implemented (DR-012, `GATE-approval.md`). **M7 is still open:** asked whether the milestone could
-be declared complete, Kylian answered *"Not yet — I'll walk the checklist"*. The 12-item manual
-acceptance checklist in `GATE-handover.md` §12 is unwalked, so **milestone completion, the issue,
-the board and M8 all still wait on him.**
+implemented (DR-012, `GATE-approval.md`), and the functional walkthrough passed. **M7 is still
+open:** the interface pass above stops at a **final visual human-review gate**. Milestone
+completion, the issue, the board and M8 all still wait on Kylian.

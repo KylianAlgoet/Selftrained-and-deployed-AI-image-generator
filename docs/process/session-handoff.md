@@ -1,29 +1,47 @@
 # Session handoff
 
-**Last updated:** 2026-08-07 (M7 / Prototype 5 — **texture-fit decided; M7 still OPEN on Kylian's checklist walk**, under Opus 5)
+**Last updated:** 2026-08-07 (M7 / Prototype 5 — **walkthrough passed, interface pass done; stopped at the FINAL VISUAL REVIEW GATE**, under Opus 5)
 
-## M7 (Prototype 5 — integrated MVP): one gate answer in, milestone still open
+## M7 (Prototype 5 — integrated MVP): stopped at the final visual review gate
 
-The MVP is built, measured and committed. **It is still not complete** — but for a different
-reason than yesterday.
+The MVP is built, measured, walked through, polished and committed. **It is still not complete**,
+and closing it is Kylian's call.
 
-### What changed on 2026-08-07
+### What happened on 2026-08-07, in order
 
-**The texture-fit decision was returned: `full-surface`.** Kylian selected it at the gate, and it
-is now `DEFAULT_TEXTURE_FIT_MODE` in `apps/web/src/deck/textureFit.ts`. His rationale is quoted
-verbatim in **DR-012** and `docs/evidence/prototype-5/GATE-approval.md`: the bare ends made the
-deck look unfinished and the artwork look like a centred rectangular sticker, and the 1.3008×
-stretch was acceptable on the selected production styles. **`fit-without-stretch` was kept
-selectable, not deleted.**
+1. **The texture-fit decision was returned: `full-surface`** — now `DEFAULT_TEXTURE_FIT_MODE`,
+   with his rationale quoted verbatim in **DR-012** and
+   `docs/evidence/prototype-5/GATE-approval.md`. `fit-without-stretch` was kept selectable.
+2. **The functional walkthrough passed** — all thirteen behaviours, including deterministic
+   repeats, style switching, downloads and invalid uploads.
+3. **One interface pass** rebuilt the UI as a deck studio and added real generation progress
+   (**DR-013**). No model, prompt assembly, generation setting, metadata field or API contract
+   changed.
 
 ### What is still waiting
 
-**Kylian's 12-item manual acceptance checklist**, `docs/evidence/prototype-5/GATE-handover.md`
-§12. Asked directly whether M7 could be declared complete, he answered **"Not yet — I'll walk the
-checklist"**. Until he reports the result, **M7 stays in progress**. If it passes, M7 closes with
-the standard milestone report; if an item fails, that is a defect to fix before closure.
+**Kylian's final visual review.** Nine labelled interface states are in
+`docs/evidence/prototype-5/screenshots/ui/` (read its README first — they use **mocked
+telemetry**). Until he approves, **M7 stays in progress**.
 
-### ⚠️ Eight things the next session must not do
+### The one qualitative finding from the walkthrough — preserve it
+
+A prompt for *"A futuristic city skyline with a skateboarder jumping over neon buildings"*
+produced a **clearly `minimal-geometric` and usable** deck graphic in which **the skyline and the
+skateboarder were not clearly represented**. Strong style conditioning dominated detailed content.
+
+This is a **known prompt-adherence limitation**, consistent with M6's measured drop in prompt
+adherence at step 600 — **not** a frontend or integration failure. **Do not** hide it, retrain,
+change the LoRA weight default, change prompt assembly, or add automatic prompt rewriting.
+
+### ⚠️ Nine things the next session must not do
+
+0. **Do not add a fake or weighted progress percentage.** Only denoising has a real denominator.
+   Model loading, LoRA loading, decoding and saving publish a stage name and a **null** estimate,
+   and a test enumerates every non-denoising stage to prove no percentage is produced. **Do not
+   show 100 % before the PNG has decoded in the browser**, and do not replace the deadline
+   callback — `compose_step_callbacks` threads progress through it, and passing a progress
+   callback directly would silently remove the abort that makes a 504 truthful (DR-013).
 
 1. ~~Do not choose the texture-fit mode.~~ **Satisfied 2026-08-07** — he chose `full-surface`,
    DR-012 records it, and it is implemented. **Do not revisit it, and do not remove the other
@@ -49,9 +67,14 @@ the standard milestone report; if an item fails, that is a defect to fix before 
 
 ### Measured position at close
 
-- **371 pytest tests** (289 pre-existing unchanged + 82 new) and **70 vitest tests** pass;
-  eslint clean; `npm run build` succeeds. **No Python linter is installed.** The vitest count
-  moved 66 → 70 on 2026-08-07: five tests for the chosen default, one obsolete test removed.
+- **406 pytest tests** and **152 vitest tests** pass; eslint clean; `npm run build` succeeds.
+  **No Python linter is installed.** Counts moved on 2026-08-07: pytest 371 → 406 (+35 progress
+  tests), vitest 66 → 70 (texture-fit default) → 152 (+82 progress and production-state tests).
+- **No GPU work has run since M7's cap was reached.** It stands at **25 of 25**. The interface
+  screenshots intercepted `POST /api/generate` in the browser, and the API reported
+  `pipeline_loaded: false` afterwards — the independent check that the model never loaded.
+- **Responsive, measured in real nested viewports:** 1920/1440 px two columns (viewer 722/631 px);
+  1024/768/390 px single column (viewer 360 px); **no horizontal scroll at any width.**
 - **EXP-034:** 12/12, all eight pre-declared criteria passed. Allocated after generation
   **3316.64 MiB in all 13 runs**, growth **0.00 MiB**. Peak allocated **5143.73 MiB** —
   byte-identical to M5's EXP-019b. All 6 repeated cases byte-identical. **Worst spare 200.0 MiB.**
@@ -65,12 +88,17 @@ the standard milestone report; if an item fails, that is a defect to fix before 
 - **Prototype 0's bundled decals are 512×2000** (1:3.906) — which is why the deck-geometry
   mismatch stayed hidden until generated artwork reached the deck.
 
-### Start commands
+### Start commands, plus the review flag
 
 ```
 .venv/Scripts/python.exe -m uvicorn apps.api.main:app --host 127.0.0.1 --port 8000 --workers 1
 cd apps/web && npm run dev            # http://localhost:5173
 ```
+
+**`http://localhost:5173/?review=1`** restores the three evidence tools — the texture-fit
+selector, the inverted-UV demonstration and load-from-disk. They are hidden from the production
+interface but **not deleted**: the fit comparison is the evidence behind DR-012.
+`VITE_REVIEW_MODE=1` does the same for a dev server.
 
 ### Regenerate the evidence
 
@@ -81,6 +109,12 @@ budget** — see item 3.
 ### Latest commits (M7)
 
 ```
+(interface pass — see the process log entry of 2026-08-07)
+1526714    test(web): cover generation progress and the polished production states
+732e735    feat(web): rebuild the creation workspace and wire in live progress
+acb5b36    feat(web): add the generation progress client, model and print panel
+ce9818d    feat(api): expose read-only generation progress telemetry
+4107c6b    docs(process): record the texture-fit gate commit hashes in the session handoff
 0c756e1    docs(process): record the m7 texture-fit gate decision
 3b12188    feat(web): adopt full surface as the production texture-fit default
 0835c61    docs(process): record the prototype 5 commit hash in the session handoff

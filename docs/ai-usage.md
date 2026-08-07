@@ -10,6 +10,48 @@ Honest record of how Claude Code (Anthropic) is used in this project, per sessio
 
 ## Session log
 
+### 2026-08-07 — Prototype 5 interface pass and generation progress (M7)
+
+**AI assistance:** the progress telemetry (tracker, endpoint, callback composition) and its 35
+tests; the interface rebuild (tokens, layout, status system, form, result panel, review gating)
+and the progress experience with its 82 tests; browser verification against a real uvicorn process
+with mocked generation; DR-013; the evidence README and this documentation set; atomic commits.
+Executed under Claude Opus 5.
+
+**Student decisions and constraints.** Kylian set the whole boundary before any code was written,
+and the boundary is what shaped the result:
+
+- **no new dependency, no SSE, no WebSocket, no job queue, no second process or worker** — which
+  is why the design is one read-only endpoint and one polling loop rather than a streaming
+  protocol;
+- **"this must not be a fake progress bar"**, stated explicitly. That single constraint produced
+  the rule the whole feature rests on: only denoising has a real denominator, so every other stage
+  gets a stage name and no number;
+- **a strict non-regression list** naming generation settings, prompt assembly, metadata, lock and
+  timeout behaviour as protected — so the pass had to be visual, accessible and additive only;
+- **stop at a visual review gate**, and do not close M7.
+
+**Verification status.** Every figure is from a command that ran here. **406 pytest** (371
+before) and **152 vitest** (70 before) pass; eslint clean; build succeeds. The three production
+checkpoints were re-hashed on disk and match. **No generation ran** — `POST /api/generate` was
+intercepted in the browser and the API still reported `pipeline_loaded: false` afterwards, which
+is the independent check rather than the assistant's own assurance.
+
+**Defects the assistant found in its own work and recorded rather than hid:** a desktop shell that
+overflowed the viewport by 70 px; a page-wide horizontal scrollbar caused by a CSS specificity
+conflict with the visually-hidden file input; and a polling loop that restarted on every render
+because its options were in the effect dependency array. **None of the three was visible to any
+test** — they were found by measuring the live document, which is why the browser pass happened at
+all.
+
+**Honesty note on the screenshots.** The nine interface screenshots use **mocked telemetry**, and
+their README says so first, states that no image was generated, and states that the numbers in
+them must never be cited as measurements.
+
+**Boundary held:** no model, prompt, setting, metadata or contract changed; M7 is not declared
+complete; nothing is pushed; the issue and board are untouched; M8 has not begun; the GPU cap
+stands at 25 of 25.
+
 ### 2026-08-07 — Prototype 5 review gate: the texture-fit decision (M7)
 
 **AI assistance:** presented the two fit screenshots and the measured trade-off; after the answer,

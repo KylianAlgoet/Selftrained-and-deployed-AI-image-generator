@@ -4,6 +4,74 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-07 — M7 interface pass: a deck studio and real generation progress; M7 still OPEN
+
+**Objective:** one focused professional UI/UX pass and an honest generation-progress experience,
+without restarting model research, changing generated output, or spending GPU budget.
+
+**Plan:** baseline → inspect the whole frontend and the relevant backend → progress telemetry
+behind one read-only endpoint → rebuild the workspace → tests → browser verification with mocked
+telemetry → documentation → commits → stop at a visual review gate.
+
+**Completed work.** Backend: `apps/api/progress.py` (thread-safe tracker, opaque operation ids,
+EMA estimate on a monotonic clock), `GET /api/generation-progress`, and `compose_step_callbacks`
+so progress reporting is threaded through the existing deadline callback instead of replacing it.
+Frontend: a token system, a studio layout, one status-message system, a four-step form, a
+compacted result panel, review-only controls moved behind `?review=1`, and the print-progress
+panel with its pure presentation model and single polling loop. **82 new frontend tests and 35 new
+backend tests.**
+
+**Unfinished by design:** M7 is **not** closed · nothing pushed · issue and board untouched · M8
+not begun · **no generation ran** and the cap stands at 25 of 25.
+
+**Blockers:** none. The pass stops at Kylian's visual review, which is the intended state.
+
+**Decisions:** **DR-013 — read-only progress endpoint polled by the client.** SSE, WebSocket and
+an async job id were screened and rejected without implementation; the reasons are recorded. The
+rule the decision turns on: **only denoising has a real denominator**, so every other stage gets a
+stage name and no number, and no weighted overall percentage exists anywhere.
+
+**Commands and tests:** `.venv/Scripts/python.exe -m pytest -q` · `npm run test -- --run` ·
+`npm run lint` · `npm run build` · `git diff --check` · tracked-weight, large-file, secret and
+frozen-artifact scans · a real `uvicorn --workers 1` process with a browser-side interceptor.
+
+**Real results.** **pytest 371 → 406**, all pass. **vitest 70 → 152**, all pass. eslint clean;
+build succeeds in 5.65 s. The three production checkpoints re-hashed on disk and **match** their
+gate-2 values, 6 414 480 bytes each. 38 frozen-artifact tests pass. No tracked model weights; the
+largest tracked file is the pre-existing 316 KB `EXP-031/final-matrix.jsonl`. **No GPU work ran:**
+`POST /api/generate` was intercepted in the browser, and the API's own endpoint still reported
+`pipeline_loaded: false` afterwards — an independent check that the model was never loaded.
+
+**Responsive readings (measured in real nested viewports).** 1920 px and 1440 px: two columns,
+viewer 722 px and 631 px. 1024 px, 768 px and 390 px: single column, viewer 360 px. **No
+horizontal scroll at any width**, and no vertical page scroll on desktop.
+
+**Three defects found in my own work.** (1) The desktop shell overflowed the viewport by 70 px —
+`min-height: 100vh` let the flex column grow past the viewport, putting the deck below the fold.
+(2) A horizontal scrollbar on every page: `.generate-form input[type='file'] { width: 100% }` beat
+`.visually-hidden` on specificity and stretched the hidden file input to 1992 px. **Neither was
+visible to any test** — both were found only by measuring the live document, which is the argument
+for browser verification over screenshots alone. (3) The poll loop restarted on every render when
+the hook received inline options, firing a request per render instead of one per interval; the
+collaborators now live in refs.
+
+**A defect the browser also surfaced:** Chrome renders the native file input's text in the OS
+language, which put Dutch ("Bestand kiezen") into an English-only interface. The native control is
+kept for accessibility and visually replaced.
+
+**Evidence:** `docs/evidence/prototype-5/screenshots/ui/` — nine states, **all with mocked
+telemetry and labelled as interface verification, not measurements**, with the reason the numbers
+in them must never be quoted.
+
+**Worth recording.** `resize_window` could not produce narrow viewports: the window was maximised
+on a 1536 px screen at 80 % zoom, so the CSS viewport stayed at 1920 px whatever was requested.
+The narrow layouts were rendered in **iframes of the exact target widths** instead — an iframe is
+a real viewport, so its media queries are the genuine ones, unlike a scaled screenshot.
+
+**Next step:** Kylian's final visual review of the nine states and the running application.
+
+---
+
 ## 2026-08-07 — M7 review gate: the texture-fit default decided; M7 still OPEN
 
 **Objective:** put the one open decision to Kylian, implement whichever mode he selects, and
