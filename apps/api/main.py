@@ -41,6 +41,7 @@ from apps.api.schemas import (
     MAX_PROMPT_CHARS,
     ErrorResponse,
     GenerateResponse,
+    GenerationProgressResponse,
     HealthResponse,
     StyleInfo,
     StylesResponse,
@@ -105,6 +106,30 @@ def create_app(service: GenerationService | None = None) -> FastAPI:
             device_used_mb=report.get("device_used_mb"),
             allocated_mb=report.get("allocated_mb"),
             single_worker_guard="enforced",
+        )
+
+    @app.get("/api/generation-progress", response_model=GenerationProgressResponse)
+    def generation_progress() -> GenerationProgressResponse:
+        """Observe the in-flight generation. Never touches it.
+
+        This endpoint is read-only in the strongest sense available here: it
+        acquires no generation lock, starts nothing, cancels nothing, and cannot
+        change the pipeline. Polling it during a generation is safe by
+        construction, and a client that stops polling changes nothing on the
+        server - `POST /api/generate` remains the authoritative request.
+        """
+        svc: GenerationService = app.state.service
+        snapshot = svc.progress_snapshot()
+        return GenerationProgressResponse(
+            operation_id=snapshot.operation_id,
+            status=snapshot.status,
+            stage=snapshot.stage,
+            current_step=snapshot.current_step,
+            total_steps=snapshot.total_steps,
+            denoising_fraction=snapshot.denoising_fraction,
+            elapsed_seconds=snapshot.elapsed_seconds,
+            estimated_remaining_seconds=snapshot.estimated_remaining_seconds,
+            pipeline_loaded=snapshot.pipeline_loaded,
         )
 
     @app.get("/api/styles", response_model=StylesResponse)

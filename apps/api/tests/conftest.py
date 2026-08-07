@@ -33,6 +33,15 @@ class FakePipeline:
         self.fail_with: Exception | None = None
         self.before_generate = None
         self.scale_history: list[float] = []
+        # The progress reporter the service handed to the last generation.
+        # Captured before `before_generate` blocks, so a gated test can drive
+        # telemetry from the outside exactly as the real pipeline would from the
+        # inside - without a GPU, a model, or a callback.
+        self.last_reporter = None
+
+    @property
+    def is_loaded(self) -> bool:
+        return self.loaded
 
     def device_report(self) -> dict:
         import os
@@ -54,6 +63,7 @@ class FakePipeline:
         return style
 
     def generate(self, **kwargs) -> GenerationOutcome:
+        self.last_reporter = kwargs.get("progress")
         self.loaded = True
         if self.before_generate is not None:
             self.before_generate()

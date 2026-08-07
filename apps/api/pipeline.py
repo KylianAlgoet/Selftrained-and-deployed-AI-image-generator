@@ -26,6 +26,15 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from apps.api.config import GENERATION_HEIGHT, GENERATION_WIDTH, REPO_ROOT
+from apps.api.progress import (
+    STAGE_DECODING,
+    STAGE_DENOISING,
+    STAGE_LOADING_MODEL,
+    STAGE_LOADING_STYLE,
+    STAGE_PREPARING_REFERENCE,
+    STAGE_SAVING,
+    NullReporter,
+)
 from apps.api.styles import (
     DEFAULT_IP_ADAPTER_SCALE,
     CheckpointUnavailable,
@@ -127,6 +136,33 @@ def neutral_reference():
         (NEUTRAL_REFERENCE_SIZE, NEUTRAL_REFERENCE_SIZE),
         (NEUTRAL_REFERENCE_LEVEL,) * 3,
     )
+
+
+def compose_step_callbacks(*callbacks):
+    """Chain `callback_on_step_end` handlers without any of them shadowing another.
+
+    Diffusers accepts exactly ONE `callback_on_step_end`, and the deadline that
+    makes a 504 truthful lives in it. Adding progress reporting by passing a
+    second function would have silently replaced the abort - the generation
+    would look instrumented and would no longer be interruptible.
+
+    The contract each callback must honour is the diffusers one: it receives
+    `(pipe, step_index, timestep, callback_kwargs)` and returns the kwargs dict
+    the loop should continue with. Here they are threaded in order, and a
+    callback returning `None` (a convention diffusers itself tolerates) leaves
+    the kwargs untouched rather than destroying them. The deadline callback is
+    passed first so nothing can run before the decision to interrupt.
+    """
+
+    def composed(inner_pipe, step_index, timestep, callback_kwargs):
+        kwargs = callback_kwargs
+        for callback in callbacks:
+            returned = callback(inner_pipe, step_index, timestep, kwargs)
+            if returned is not None:
+                kwargs = returned
+        return kwargs
+
+    return composed
 
 
 class ResidentPipeline:
@@ -307,12 +343,18 @@ class ResidentPipeline:
         deadline_seconds: float | None = None,
         width: int = GENERATION_WIDTH,
         height: int = GENERATION_HEIGHT,
+        progress=None,
     ) -> GenerationOutcome:
         """Run one generation. Raises `GenerationAborted` if the deadline fires.
 
         The caller holds the busy lock for the whole of this call and releases it
         only after this returns or raises - by then the GPU work has genuinely
         stopped.
+
+        `progress` is an optional write-only reporter (see `apps.api.progress`).
+        It observes and never steers: it cannot cancel, cannot reach the lock,
+        and cannot touch latents, prompts or conditioning. Omitting it changes
+        nothing about the generation.
         """
         import psutil
         import torch
@@ -320,10 +362,21 @@ class ResidentPipeline:
         from apps.api.styles import build_prompt
         from ml.inference.reference_conditioning import preprocess_for_adapter
 
+        reporter = progress if progress is not None else NullReporter()
+
+        # Split into two reported stages because they cost wildly different
+        # amounts: the first request pays ~30 s of model load, every later one
+        # pays only the LoRA swap. A user waiting on a cold start deserves to be
+        # told that is what they are waiting for.
+        if not self.is_loaded:
+            reporter.stage(STAGE_LOADING_MODEL)
+            self.ensure_loaded()
+        reporter.stage(STAGE_LOADING_STYLE)
         style = self.activate_style(style_key)
         pipe = self._pipe
         assert pipe is not None  # activate_style guarantees this
 
+        reporter.stage(STAGE_PREPARING_REFERENCE)
         reference_present = reference_image is not None
         if reference_present:
             prepared, reference_note = preprocess_for_adapter(reference_image.convert("RGB"))
@@ -357,6 +410,23 @@ class ResidentPipeline:
                 inner_pipe._interrupt = True
             return callback_kwargs
 
+        def report_step(_inner_pipe, step_index, _timestep, callback_kwargs):
+            # Reads the loop's own counter and writes a number into a lock of its
+            # own. It touches no tensor and returns the kwargs unchanged, so the
+            # generated image cannot differ because telemetry was watching.
+            current = step_index + 1
+            reporter.step(current)
+            if current >= prompt_kit.STEPS:
+                # The last callback fires BEFORE the VAE decode that follows the
+                # loop, so this is the honest moment to stop showing a denoising
+                # percentage. The remaining wall-clock is decoding, and decoding
+                # reports no progress of its own.
+                reporter.stage(STAGE_DECODING)
+            return callback_kwargs
+
+        reporter.total_steps(prompt_kit.STEPS)
+        reporter.stage(STAGE_DENOISING)
+
         generator = torch.Generator(device="cuda").manual_seed(int(seed))
         started = time.perf_counter()
         try:
@@ -370,7 +440,7 @@ class ResidentPipeline:
                 height=height,
                 generator=generator,
                 cross_attention_kwargs={"scale": float(lora_weight)},
-                callback_on_step_end=on_step_end,
+                callback_on_step_end=compose_step_callbacks(on_step_end, report_step),
             )
             generate_seconds = round(time.perf_counter() - started, 3)
             interrupted = bool(getattr(pipe, "_interrupt", False))
@@ -387,6 +457,7 @@ class ResidentPipeline:
         if interrupted:
             raise GenerationAborted(steps_seen["count"], prompt_kit.STEPS)
 
+        reporter.stage(STAGE_SAVING)
         image = result.images[0]
         buffer = io.BytesIO()
         image.save(buffer, format="PNG")
@@ -430,5 +501,6 @@ __all__ = [
     "GenerationOutcome",
     "PipelineUnavailable",
     "ResidentPipeline",
+    "compose_step_callbacks",
     "neutral_reference",
 ]

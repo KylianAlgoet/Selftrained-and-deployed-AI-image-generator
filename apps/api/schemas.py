@@ -100,6 +100,30 @@ class StylesResponse(BaseModel):
     height: int
 
 
+class GenerationProgressResponse(BaseModel):
+    """Read-only telemetry for the generation currently holding the GPU.
+
+    Every field is a number, a short enumerated string, or null. There is no
+    path, filename, prompt, image or model object here, and nothing in this
+    shape can be used to steer a generation.
+
+    `estimated_remaining_seconds` is null far more often than it is set, and
+    that is the point: it is published only while real denoising steps are being
+    timed. Model loading and VAE decoding expose no progress signal, so no
+    estimate is offered for them rather than a guess dressed up as a measurement.
+    """
+
+    operation_id: str | None = None
+    status: str
+    stage: str
+    current_step: int
+    total_steps: int
+    denoising_fraction: float
+    elapsed_seconds: float
+    estimated_remaining_seconds: float | None = None
+    pipeline_loaded: bool
+
+
 class HealthResponse(BaseModel):
     status: str
     pid: int

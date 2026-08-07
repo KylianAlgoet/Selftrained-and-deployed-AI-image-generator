@@ -32,6 +32,7 @@ from apps.api.pipeline import (
     PipelineUnavailable,
     ResidentPipeline,
 )
+from apps.api.progress import STAGE_SAVING, ProgressSnapshot, ProgressTracker
 from apps.api.schemas import GenerationMetadata
 from apps.api.styles import CheckpointUnavailable, production_style
 from ml.evaluation import prompt_kit
@@ -60,12 +61,25 @@ class GenerationService:
         self._lock = threading.Lock()
         self._registry: OrderedDict[str, Path] = OrderedDict()
         self._metadata: OrderedDict[str, GenerationMetadata] = OrderedDict()
+        self.progress = ProgressTracker()
 
     # --- state ---------------------------------------------------------------
 
     @property
     def busy(self) -> bool:
         return self._lock.locked()
+
+    def progress_snapshot(self) -> ProgressSnapshot:
+        """Telemetry for the current or most recent generation.
+
+        Deliberately does NOT consult the busy lock, in either direction. It
+        takes only the tracker's own lock, so polling this while the GPU is
+        working cannot block a denoising step, cannot be refused, and cannot
+        change whose turn it is. `busy` remains the single source of truth for
+        whether a generation may start.
+        """
+        loaded = bool(getattr(self.pipeline, "is_loaded", False))
+        return self.progress.snapshot().with_pipeline_loaded(loaded)
 
     def resolve(self, generation_id: str) -> Path | None:
         """Registry lookup, never a path join.
@@ -114,7 +128,11 @@ class GenerationService:
         denoising loop, so a 504 means the work actually stopped.
         """
         if not self._lock.acquire(blocking=False):
+            # Note the ordering: a refused request never reaches `progress.begin`,
+            # so a 409 cannot reset the telemetry of the generation it collided
+            # with. The client that is actually waiting keeps its numbers.
             raise GenerationBusy("a generation is already running")
+        reporter = self.progress.begin()
         try:
             style = production_style(style_key)
             outcome = self.pipeline.generate(
@@ -125,8 +143,10 @@ class GenerationService:
                 ip_adapter_scale=ip_adapter_scale,
                 reference_image=reference_image,
                 deadline_seconds=self.settings.generation_timeout_seconds,
+                progress=reporter,
             )
 
+            reporter.stage(STAGE_SAVING)
             generation_id = self._new_generation_id()
             self.settings.generated_dir.mkdir(parents=True, exist_ok=True)
             path = self.settings.generated_dir / f"{generation_id}.png"
@@ -174,7 +194,16 @@ class GenerationService:
                 image_sha256=outcome.image_sha256,
             )
             self._retain(generation_id, path, metadata)
+            reporter.completed()
             return metadata, warnings
+        except BaseException:
+            # Every exit that is not a completed generation is a failure for
+            # telemetry purposes, including the deadline abort (504) and an
+            # unavailable checkpoint (503). The exception itself is re-raised
+            # untouched - the HTTP layer still decides what the client is told,
+            # and no failure detail reaches the progress endpoint.
+            reporter.failed()
+            raise
         finally:
             # Reached only after the generation call has returned or raised. By
             # this point no GPU work from this request is still running.
