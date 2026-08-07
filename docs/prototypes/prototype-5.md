@@ -1,8 +1,11 @@
 # Prototype 5 — the integrated MVP
 
-**Milestone:** M7 · **Dates:** 2026-08-06 (planned Aug 10–13; started early on M6's buffer)
-**Status:** built and validated; **awaiting Kylian's review gate.**
-**Decision record:** DR-011 · **Experiments:** EXP-034, EXP-035 · **Evidence:** `docs/evidence/prototype-5/`
+**Milestone:** M7 · **Dates:** 2026-08-06 to 2026-08-07 (planned Aug 10–13; started early on M6's buffer)
+**Status: COMPLETE.** Final human visual gate **APPROVED by Kylian Algoet on 2026-08-07**
+(`docs/evidence/prototype-5/FINAL-GATE-approval.md`, 12 of 12 checklist items PASS).
+Closed **locally only** — nothing pushed, the remote issue and project board untouched.
+**Decision records:** DR-011, DR-012, DR-013 · **Experiments:** EXP-034, EXP-035
+**Evidence:** `docs/evidence/prototype-5/`
 
 ## Research question
 
@@ -227,9 +230,45 @@ It uses the `full-surface` mapping (DR-012) and the existing orientation, colour
 texture-disposal and camera-state behaviour, unchanged. The review-only "Load decal" control it
 supersedes was removed; texture-fit and inverted-UV remain review-only.
 
+## Conclusion
+
+**Prototype 5 answers its research question: yes.** The measured stack — SD 1.5 + one per-style
+LoRA at 0.7 + IP-Adapter at 0.55 at 512×1536 — runs as a usable application on one 8 GB device,
+with residency costing nothing measurable (0.00 MiB growth across six adapter cycles) and peak
+allocation byte-identical to M5's EXP-019b. The application generates, previews on an interactive
+deck, downloads, and reports its own provenance.
+
+Three decisions were taken here and all three are human: **DR-011** (service architecture),
+**DR-012** (`full-surface`), **DR-013** (progress telemetry). Two were left deliberately open
+until Kylian could see them, and a test enforced that the code had not pre-empted him.
+
+**Approved at the final visual gate on 2026-08-07, 12 of 12 checklist items PASS.**
+
+## Accepted limitations, carried into M8 and the report
+
+These were **approved as limitations**, not deferred as defects:
+
+1. **Cold model loading has no honest percentage** — ~30 s with no progress signal; the stage is
+   named instead.
+2. **The ETA is approximate and mainly covers denoising** — not loading, decoding, saving,
+   transfer or texture application.
+3. **Finalising may be visible only briefly** (~1 s). **It must not be artificially delayed.**
+4. **Prompt adherence can be weaker than style adherence.**
+5. **The physical GPU margin is approximately 200 MiB** — not comfortable headroom.
+6. **One API process and one worker only.**
+
+## Generation budget — final
+
+**26 total.** The research budget closed at **25 / 25**; generation **26** was a manual
+human-review run performed by Kylian during the final interface review, **outside the frozen
+research matrix**. It is deliberately **not** in EXP-034 and **not** in `experiments/registry.csv`
+— it produced no research result and was not run under the pre-declared measurement conditions.
+
 ## Next
 
-**The gate is partly answered.** The texture-fit default was returned on 2026-08-07 and is
-implemented (DR-012, `GATE-approval.md`), and the functional walkthrough passed. **M7 is still
-open:** the interface pass above stops at a **final visual human-review gate**. Milestone
-completion, the issue, the board and M8 all still wait on Kylian.
+**M8 — testing, deployment and demo.** It has **not** begun. It inherits a single-process service
+by design, the ~200 MiB ceiling, `full-surface`, `retro-poster` as a named partial pass, and the
+prompt-adherence limitation above.
+
+Still Kylian's, and still outstanding: the **push**, the **GitHub issue** and the **project
+board**. `gh` is unavailable in this environment.

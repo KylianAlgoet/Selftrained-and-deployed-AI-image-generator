@@ -1,6 +1,6 @@
 # Testing strategy
 
-**Created:** 2026-07-27 · **Updated:** 2026-08-06 (Prototype 5) · **Status:** **371 pytest tests and 66 vitest tests exist and pass.** The API and frontend-unit layers arrived with M7; the E2E (Playwright) layer is still outstanding and belongs to M8.
+**Created:** 2026-07-27 · **Updated:** 2026-08-07 (M7 closure) · **Status:** **406 pytest tests and 165 vitest tests exist and pass.** The API and frontend-unit layers arrived with M7; the E2E (Playwright) layer is still outstanding and belongs to M8.
 
 ## Layers
 
@@ -10,8 +10,24 @@
 | ML inference | Pytest | **Frozen-kit hash lock**, result-schema round-trip, output-filename encoding, memory-tier escalation, aggregation (median/min/max), resource-sampler lifecycle. Pipeline loads and seed→output-hash determinism are verified by real runs recorded in `experiments/registry.csv` rather than in CI, since they require the GPU |
 | ML training (Prototype 3, M5) | Pytest | **Smoke-kit hash lock** (`a8052f44…`), **holdout-exclusion proof** joined against `dataset-v1` rather than against the smoke manifest's own split column, deterministic sample order and its fingerprint, source-transform correctness (centre-crop geometry; `none` refuses a mismatched source), **training tier ladder** escalation/termination and its distinctness from the inference ladder, a guard that **gradient accumulation never appears as a memory tier**, gate logic (unmeasured sentinels must never satisfy a gate; `loss_decreased` must never gate), adapter artefact rejection when base-model keys are present, and **AST-parsed import boundaries** in both directions — the schema must import no torch, and neither training runner may import the CLIP similarity evaluator. Actual training, adapter reload and the combined-stack fit are verified by real GPU runs recorded in `experiments/registry.csv` (EXP-016…EXP-019), not in CI |
 | API (Prototype 5, M7) | Pytest + FastAPI TestClient, **pipeline stubbed — no GPU, no model, no network** | Endpoint contracts and every status code (422/409/503/504/500); upload security with one negative test per frozen rule (bad extension, MIME/extension mismatch, undecodable bytes, truncated file, oversize, **decompression bomb**, traversal filename, a GIF renamed to `.png`); **generation-id resolution is a registry lookup, never a path join**, so traversal strings have nothing to traverse; the **single-worker guard** rejects a detectable worker count above 1; **lock discipline** — the lock is released only after the generation call returns, a second request is blocked while work is active, a later request succeeds after a controlled abort or failure, and a client disconnect does not free it; **LoRA lifecycle** across `minimal-geometric → ukiyo-e → retro-poster → minimal-geometric` asserting exactly one live adapter each time, plus a style switch after a failed generation; **reference → no-reference → reference** leaving no stale conditioning; the checkpoint integrity gate against missing, wrong-size and **same-size-wrong-content** adapters; and that metadata never contains a filesystem path. Real serving, real aborts and the real integrity gate are verified on the GPU by `scripts/validate_p5_api.py` against an actual uvicorn process, recorded in `docs/evidence/prototype-5/` |
-| Frontend units | Vitest | API client (multipart fields, busy/timeout/unavailable classification, non-JSON error bodies); form validation and the DR-008/DR-010 bounded controls; reference preflight; **texture-fit geometry** — both modes' stretch factor, uncovered fraction, canvas size and that the decal is drawn once, upright and unmirrored, plus the **DR-012 production default** (`full-surface`, still one of the two offered modes, with its stretch disclosed); **texture swapping** — the replaced texture is disposed, an object URL is revoked only *after* the replacement resolves, and a failed load keeps the previous decal; **colour space and flipY** on every deck texture |
+| Frontend units | Vitest | API client (multipart fields, busy/timeout/unavailable classification, non-JSON error bodies); form validation and the DR-008/DR-010 bounded controls; reference preflight; **decal provenance** — that `Upload your own decal` is a production control distinct from the AI reference input, that it calls no generation API, that uploaded artwork gets no reproducibility metadata, and that a failed decode preserves the previous texture; **texture-fit geometry** — both modes' stretch factor, uncovered fraction, canvas size and that the decal is drawn once, upright and unmirrored, plus the **DR-012 production default** (`full-surface`, still one of the two offered modes, with its stretch disclosed); **texture swapping** — the replaced texture is disposed, an object URL is revoked only *after* the replacement resolves, and a failed load keeps the previous decal; **colour space and flipY** on every deck texture |
 | End-to-end | Playwright | Full user flow: prompt + upload + style → generate (mocked model in CI-style runs; real model in the documented E2E evidence run) → 3D preview → download |
+
+## Suite sizes at M7 closure (2026-08-07)
+
+| suite | count | gate |
+|---|---:|---|
+| pytest (`ml` + `apps/api`) | **406** | all pass; **no Python linter is installed**, so pytest is the Python gate |
+| vitest (`apps/web`) | **165** | all pass |
+| eslint | — | clean |
+| `npm run build` | — | succeeds |
+
+Growth during M7: pytest 289 → 371 (API) → **406** (+35 progress telemetry); vitest 66 → 70
+(texture-fit default) → 152 (+82 progress and production states) → **165** (+13 decal upload).
+
+**Playwright E2E remains M8 work and has not been written.** The end-to-end evidence M7 owns is a
+real `uvicorn --workers 1` process driven by `scripts/validate_p5_api.py`, plus browser
+verification — not an automated E2E suite, and it is not claimed as one.
 
 ## Principles
 

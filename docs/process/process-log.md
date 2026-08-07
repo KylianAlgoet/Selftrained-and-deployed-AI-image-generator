@@ -4,6 +4,94 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-07 — M7 CLOSED: final human visual gate APPROVED
+
+### Milestone report
+
+**MILESTONE:** M7 — Prototype 5, the integrated MVP.
+
+**STATUS:** **COMPLETE**, closed **locally only**. Nothing pushed; the remote GitHub issue and the
+project board are untouched and remain Kylian's.
+
+**BRANCH:** `main`, 18 commits ahead of `origin/main` at gate time.
+
+**RESEARCH QUESTION:** can the measured stack — SD 1.5 + one per-style LoRA at 0.7 + IP-Adapter at
+0.55 at 512×1536 — be exposed as a usable application on one 8 GB device without breaking the
+margin it depends on? **Answered: yes.**
+
+**WORK COMPLETED:** the FastAPI single-flight service with upload security, a checkpoint integrity
+gate and an in-loop deadline · EXP-034 residency and EXP-035 reference neutralisation · the React
+generate flow · both texture-fit modes, decided at a human gate · a professional interface pass ·
+read-only progress telemetry with an honest ETA · `Upload your own decal` as a production feature ·
+DR-011, DR-012, DR-013 · eleven evidence screenshots.
+
+**FILES CHANGED:** 41 files across the interface pass and 5 more for the upload feature; full list
+in the two entries below.
+
+**TESTS AND VALIDATION:** `pytest` **406** · `vitest` **165** · eslint clean · `npm run build`
+succeeds · `git diff --check` clean · no tracked model weights · frozen dataset and evaluation
+kits unchanged · all three production LoRA sha256 values re-verified on disk.
+
+**ACTUAL RESULTS:** residency accumulates nothing (allocated after generation **3316.64 MiB in all
+13 runs**, growth **0.00 MiB**); peak allocated **5143.73 MiB**, byte-identical to M5's EXP-019b;
+worst spare **200.0 MiB**, *tighter* than the 202.0 MiB carried since M5; 6 of 6 repeated cases
+byte-identical; a 504 stops the loop at **14 of 30 steps**; the grey placeholder is inert at scale
+0.0 (EXP-035, byte-identical output).
+
+**EVIDENCE:** `docs/evidence/prototype-5/` — `FINAL-GATE-approval.md` (12/12 PASS),
+`GATE-approval.md`, `GATE-handover.md`, `api-validation.jsonl`, `screenshots/` and
+`screenshots/ui/`; `docs/evidence/EXP-034/`, `docs/evidence/EXP-035/`.
+
+**DECISIONS:** DR-011 accepted · DR-012 `full-surface`, Kylian's, re-confirmed at this gate ·
+DR-013 progress telemetry, approved at this gate.
+
+**COMMITS:** 18 M7 commits, listed in the session handoff, plus the closure commits from this
+entry.
+
+**RISKS OR BLOCKERS:** none blocking. **R12 stands at 200.0 MiB** and is the operative production
+ceiling for M8.
+
+**PLANNING CHANGES:** M7 delivered 2026-08-06/07 against a planned Aug 10–13. **The GPU budget
+closed at 26 total generations, not 25** — see below.
+
+**NEXT ACTION:** Kylian's push, GitHub issue and project board. Then **M8**, which has not begun.
+
+### The gate
+
+**Reviewer and approver: Kylian Algoet. Result: APPROVED. Final visual gate PASSED, 12 of 12
+manual acceptance items.** He approved the redesigned production interface, the real progress and
+ETA implementation, `Upload your own decal` as a production feature, and re-confirmed
+`full-surface`. Full record with his findings: `docs/evidence/prototype-5/FINAL-GATE-approval.md`.
+
+### Generation budget — final wording
+
+**26 total generations.** The research budget closed at **25 / 25**. **Generation 26 was a manual
+human-review run**, performed by Kylian himself during the final interface review, **outside the
+frozen research matrix**.
+
+It is deliberately **not** added to EXP-034, **not** registered in `experiments/registry.csv`, and
+**not** treated as a new experiment: it produced no research result and was not run under the
+pre-declared measurement conditions. Registering it would have contaminated a frozen matrix with a
+run that answers a different question. Its telemetry is cited only as evidence that the interface
+behaved correctly. **No further GPU generation is authorised for M7 closure.**
+
+### Accepted limitations — approved, not deferred
+
+Cold model loading has no honest percentage · the ETA is approximate and mainly covers denoising ·
+finalising may be visible only briefly and **must not be artificially delayed** · prompt adherence
+can be weaker than style adherence · the physical GPU margin remains ~200 MiB · one API process and
+one worker only.
+
+### Closure housekeeping
+
+Both local servers were stopped cleanly (API pid 25748, frontend pid 476); ports 8000 and 5173
+released; a process scan confirmed **no duplicate uvicorn or vite process** remained. **No GPU
+inference was run for closure.**
+
+**Next step:** M8 has not begun. The push, the issue and the board are Kylian's.
+
+---
+
 ## 2026-08-07 — M7 visual review: progress verified from telemetry, and decal upload shipped
 
 **Objective:** answer, from real telemetry rather than by inference, what Kylian's live generation

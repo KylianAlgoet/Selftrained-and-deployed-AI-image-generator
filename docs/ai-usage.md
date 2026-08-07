@@ -10,6 +10,34 @@ Honest record of how Claude Code (Anthropic) is used in this project, per sessio
 
 ## Session log
 
+### 2026-08-07 — M7 closure at the final human visual gate
+
+**AI assistance:** stopping the review servers and verifying the ports were released; recording
+the completed 12-item acceptance checklist and the gate approval; the milestone report; updating
+the prototype report, DR-012/DR-013 status lines, traceability, testing strategy, risk register,
+planning change log and session handoff; the final non-GPU verification pass; atomic commits.
+Executed under Claude Opus 5.
+
+**Student decisions — all of them.** Kylian performed the live visual and functional review and
+returned the approval: the redesigned interface, the progress/ETA implementation,
+`Upload your own decal` as a production feature, `full-surface` re-confirmed, and M7 may close
+locally. He also set the generation-budget wording. **The assistant recorded the decision; it did
+not make or infer any part of it.**
+
+**Verification status.** **406 pytest** and **165 vitest** pass; eslint clean; build succeeds. The
+three production LoRA checkpoints were re-hashed on disk at closure and match. No tracked model
+weights; frozen dataset and evaluation kits unchanged. **No GPU inference was run for closure.**
+
+**Generation budget, stated honestly.** Final count **26**. The research budget closed at 25/25;
+**generation 26 was Kylian's own manual review run, outside the frozen research matrix.** It is
+deliberately not added to EXP-034 and not registered in `experiments/registry.csv` — registering a
+run made under different conditions would contaminate a frozen matrix, and the temptation to tidy
+the number to 25 or to absorb 26 into the experiment record was refused in both directions.
+
+**Boundary held:** M7 is closed **locally only**. Nothing was pushed, the remote GitHub issue was
+not closed, the project board was not changed, and M8 has not begun — all four remain Kylian's.
+
+
 ### 2026-08-07 — Prototype 5 visual review: telemetry verification and decal upload (M7)
 
 **AI assistance:** verification of the live generation against the retained telemetry and the

@@ -1,114 +1,83 @@
 # Session handoff
 
-**Last updated:** 2026-08-07 (M7 / Prototype 5 — **visual review passed; decal upload shipped; stopped at the FINAL VISUAL REVIEW GATE**, under Opus 5)
+**Last updated:** 2026-08-07 (M7 / Prototype 5 — **COMPLETE**, final human visual gate APPROVED, closed locally, under Opus 5)
 
-## M7 (Prototype 5 — integrated MVP): stopped at the final visual review gate
+## M7 (Prototype 5 — integrated MVP): COMPLETE
 
-The MVP is built, measured, walked through, polished and committed. **It is still not complete**,
-and closing it is Kylian's call.
+**Approved by Kylian Algoet at the final human visual gate on 2026-08-07 — 12 of 12 manual
+acceptance items PASS.** Record: `docs/evidence/prototype-5/FINAL-GATE-approval.md`.
 
-### What happened on 2026-08-07, in order
+Approved: the redesigned production interface · the real generation-progress and ETA
+implementation (DR-013) · `Upload your own decal` as a production feature · `full-surface` as the
+production texture-fit default (DR-012, re-confirmed).
 
-1. **The texture-fit decision was returned: `full-surface`** — now `DEFAULT_TEXTURE_FIT_MODE`,
-   with his rationale quoted verbatim in **DR-012** and
-   `docs/evidence/prototype-5/GATE-approval.md`. `fit-without-stretch` was kept selectable.
-2. **The functional walkthrough passed** — all thirteen behaviours, including deterministic
-   repeats, style switching, downloads and invalid uploads.
-3. **One interface pass** rebuilt the UI as a deck studio and added real generation progress
-   (**DR-013**). No model, prompt assembly, generation setting, metadata field or API contract
-   changed.
-4. **Kylian reviewed the interface live and passed it**, running **one real generation** — the
-   **26th**, past the declared cap of 25. His decision, recorded as a planning change.
-5. **"Upload your own decal" shipped as a production feature.** Wholly local: decoded in the
-   browser, never sent to the server, never touches the model. It is **not** the AI reference
-   upload and sits in the deck workspace, not in the form.
+**M7 is closed LOCALLY ONLY.** Four things remain Kylian's and are **not** done:
 
-### What the live run proved, and what it did not
-
-**Proved, from the retained telemetry and the access log:** operation `cHWlV0J6Qgh2BKze` reached
-`current_step 30 / total_steps 30`, across **48** progress polls and **1** POST — real diffusion
-steps were tracked and delivered continuously.
-
-**Not proved:** which strings the browser painted. The server logs requests, not rendered text.
-**Do not upgrade this to "verified displayed".** No defect was found and the render path is
-covered by tests, but the two claims are different.
-
-Two measured reasons a stage can be present and still be missed: the run was a **cold start**
-(≈28 s of 40.83 s was model loading), and **`Finalising the decal…` lasts about a second**. **Do
-not pad it** — delaying a finished result to make a label linger is the dishonesty the whole
-feature exists to avoid. A **warm** generation is the decisive visual check.
-
-### What is still waiting
-
-**Kylian's final visual review of the upload feature.** Eleven interface states are in
-`docs/evidence/prototype-5/screenshots/ui/` — read its README first: **states 02–06 use mocked
-telemetry; states 10–11 are real and mock nothing.** Until he approves, **M7 stays in progress**.
-
-### The one qualitative finding from the walkthrough — preserve it
-
-A prompt for *"A futuristic city skyline with a skateboarder jumping over neon buildings"*
-produced a **clearly `minimal-geometric` and usable** deck graphic in which **the skyline and the
-skateboarder were not clearly represented**. Strong style conditioning dominated detailed content.
-
-This is a **known prompt-adherence limitation**, consistent with M6's measured drop in prompt
-adherence at step 600 — **not** a frontend or integration failure. **Do not** hide it, retrain,
-change the LoRA weight default, change prompt assembly, or add automatic prompt rewriting.
+1. **the push** — `main` is ahead of `origin/main`;
+2. **the GitHub issue** — not closed (`gh` is unavailable here);
+3. **the project board** — not moved;
+4. **M8** — not begun.
 
 ### ⚠️ Nine things the next session must not do
 
-0. **Do not add a fake or weighted progress percentage.** Only denoising has a real denominator.
-   Model loading, LoRA loading, decoding and saving publish a stage name and a **null** estimate,
-   and a test enumerates every non-denoising stage to prove no percentage is produced. **Do not
-   show 100 % before the PNG has decoded in the browser**, and do not replace the deadline
-   callback — `compose_step_callbacks` threads progress through it, and passing a progress
-   callback directly would silently remove the abort that makes a 504 truthful (DR-013).
+1. **Do not push, close the remote issue, move the board, or start M8** without Kylian saying so.
+   M7 being complete does not authorise any of them.
+2. **Do not run GPU inference.** The budget is closed at **26** and no further generation is
+   authorised. Every generation past 25 is Kylian's own decision, not an assistant's.
+3. **Do not add generation 26 to EXP-034 or to `experiments/registry.csv`.** It was a manual
+   human-review run outside the frozen research matrix, made under different conditions. Adding it
+   would contaminate a frozen matrix; quietly reporting the total as 25 would be worse.
+4. **Do not add a fake or weighted progress percentage.** Only denoising has a real denominator.
+   Loading, decoding and saving publish a stage name and a **null** estimate, a test enumerates
+   every non-denoising stage to prove it, and **100 % waits for the PNG to decode in the browser**.
+   Do not replace the deadline callback — `compose_step_callbacks` threads progress through it, and
+   passing a progress callback directly would silently remove the abort behind a truthful 504.
+5. **Do not artificially delay "Finalising the decal…".** It is ~1 s and Kylian approved it that
+   way. Padding a finished result to make a label linger is the dishonesty the feature exists to
+   avoid.
+6. **Do not describe the margin as 202 MiB.** EXP-034 measured **200.0 MiB** worst spare under real
+   serving. It is the operative production ceiling and is **not** comfortable headroom.
+7. **Do not add a second worker, Gunicorn, `WEB_CONCURRENCY > 1`, or `--reload` for real work.**
+   The busy lock is process-local and a second resident pipeline does not fit.
+8. **Do not "simplify" the prompt-only path by dropping the placeholder.** Diffusers 0.39.0 raises
+   if IP-Adapter is resident and no image is passed; EXP-035 proved the placeholder inert at 0.0.
+9. **Do not weaken the checkpoint integrity gate**, and never prove it by damaging a real adapter —
+   R14 means they cannot be regenerated. Phase B used a corrupted *copy*.
 
-1. ~~Do not choose the texture-fit mode.~~ **Satisfied 2026-08-07** — he chose `full-surface`,
-   DR-012 records it, and it is implemented. **Do not revisit it, and do not remove the other
-   mode.**
-2. **Do not declare M7 complete**, close the issue, move the board, push, or begin M8 — the
-   checklist is unwalked and no claim may be made about its items.
-3. ~~Do not run a 26th real generation.~~ **Superseded 2026-08-07:** Kylian ran the 26th himself
-   during his review, and it is recorded as a planning change. **The rule that still stands: an
-   assistant does not run GPU work.** Every generation past the cap is Kylian's own decision.
-4. **Do not describe the margin as 202 MiB any more.** EXP-034 measured **200.0 MiB** as the worst
-   spare under real serving. It is the operative production ceiling and is **not** comfortable
-   headroom.
-5. **Do not add a second worker, Gunicorn, `WEB_CONCURRENCY > 1`, or `--reload` for real work.**
-   The busy lock is process-local and a second resident pipeline does not fit. A startup guard
-   rejects a detectable worker count above 1; separately launched processes are undetectable and
-   unsupported.
-6. **Do not "simplify" the prompt-only path by dropping the placeholder.** Diffusers 0.39.0 raises
-   if IP-Adapter is resident and no image is passed. EXP-035 proved the placeholder is inert at
-   scale 0.0.
-7. **Do not weaken the checkpoint integrity gate**, and never prove it by damaging a real adapter —
-   R14 means they cannot be regenerated. Phase B uses a corrupted *copy*.
-8. **Do not claim EXP-034's figures are comparable with EXP-016…EXP-032.** They were taken under
-   the opposite measurement rule, deliberately.
+### The prompt-adherence limitation — accepted, must remain documented
+
+A prompt for *"A futuristic city skyline with a skateboarder jumping over neon buildings"* produced
+a **clearly `minimal-geometric` and usable** deck graphic in which **the skyline and the
+skateboarder were not clearly represented**. Strong style conditioning dominated detailed content.
+
+Consistent with M6's measured drop in prompt adherence at step 600 — **not** a frontend failure.
+**Do not** hide it, retrain, change the LoRA weight default, change prompt assembly, or add
+automatic prompt rewriting.
+
+### Accepted limitations carried into M8
+
+1. Cold model loading has **no honest percentage**.
+2. The ETA is **approximate and mainly covers denoising**.
+3. **Finalising may be visible only briefly** and must not be delayed.
+4. **Prompt adherence can be weaker than style adherence.**
+5. The physical GPU margin is **~200 MiB**.
+6. **One API process and one worker only.**
 
 ### Measured position at close
 
-- **406 pytest tests** and **165 vitest tests** pass; eslint clean; `npm run build` succeeds.
-  **No Python linter is installed.** Counts moved on 2026-08-07: pytest 371 → 406 (+35 progress
-  tests), vitest 66 → 70 (texture-fit default) → 152 (+82 progress and production-state tests) → 165 (+13 decal-upload tests).
-- **The GPU cap of 25 was exceeded: Kylian ran a 26th generation during his review.** His
-  decision. **No generation has been run by an assistant**; the interface screenshots intercepted
-  `POST /api/generate` in the browser, and every upload test left the access log's POST count at 1
-  and `allocated_mb` at 3316.64 — checked from the server, not asserted.
-- **Responsive, measured in real nested viewports:** 1920/1440 px two columns (viewer 722/631 px);
-  1024/768/390 px single column (viewer 360 px); **no horizontal scroll at any width.**
-- **EXP-034:** 12/12, all eight pre-declared criteria passed. Allocated after generation
-  **3316.64 MiB in all 13 runs**, growth **0.00 MiB**. Peak allocated **5143.73 MiB** —
-  byte-identical to M5's EXP-019b. All 6 repeated cases byte-identical. **Worst spare 200.0 MiB.**
-- **EXP-035:** grey placeholder and real holdout artwork gave **byte-identical** output at scale
-  0.0, matching EXP-034's prompt-only hash `46bbf160e427…`.
-- **Phase A:** 6/6 generations, 12–13 s resident (30.54 s first). **Phase B:** corrupted copy →
-  503, then recovery → 200 with no restart. **Phase C:** 504 after **14 of 30 steps**, 6.33 s
-  warmed, lock released.
-- The three production checkpoints were re-hashed on disk on 2026-08-06 and **match** their
-  gate-2 values, 6 414 480 bytes each.
-- **Prototype 0's bundled decals are 512×2000** (1:3.906) — which is why the deck-geometry
-  mismatch stayed hidden until generated artwork reached the deck.
+- **406 pytest** and **165 vitest** pass; eslint clean; `npm run build` succeeds. **No Python
+  linter is installed.**
+- **Generation budget: 26 total.** Research budget closed at 25/25; #26 was Kylian's manual
+  review run. **No generation was ever run by an assistant.**
+- The three production checkpoints were re-hashed on disk at closure and **match**, 6 414 480
+  bytes each.
+- **EXP-034:** allocated after generation **3316.64 MiB in all 13 runs**, growth **0.00 MiB**; peak
+  **5143.73 MiB**, byte-identical to M5's EXP-019b; **worst spare 200.0 MiB**.
+- **EXP-035:** grey placeholder and real holdout artwork **byte-identical** at scale 0.0.
+- **Phase A:** 6/6, 12–13 s resident (30.54 s first). **Phase B:** corrupted copy → 503, recovery →
+  200 with no restart. **Phase C:** 504 after **14 of 30 steps**, lock released.
+- **Both review servers were stopped cleanly** (API pid 25748, frontend pid 476); ports 8000 and
+  5173 released; no duplicate uvicorn or vite process remained.
 
 ### Start commands, plus the review flag
 
@@ -117,41 +86,49 @@ change the LoRA weight default, change prompt assembly, or add automatic prompt 
 cd apps/web && npm run dev            # http://localhost:5173
 ```
 
-**`http://localhost:5173/?review=1`** restores the **two** review tools — the texture-fit
-selector and the inverted-UV demonstration. They are hidden from the production interface but
-**not deleted**: the fit comparison is the evidence behind DR-012. `VITE_REVIEW_MODE=1` does the
-same for a dev server.
+**`http://localhost:5173/?review=1`** restores the **two** review tools — the texture-fit selector
+and the inverted-UV demonstration. Hidden from production but **not deleted**: the fit comparison
+is the evidence behind DR-012. `VITE_REVIEW_MODE=1` does the same for a dev server.
 
 **Load-from-disk is no longer a review tool.** It became the production feature *Upload your own
-decal*, available to everyone in the deck workspace, and the review-only duplicate was removed.
+decal*; the review-only duplicate was removed.
 
 ### Regenerate the evidence
 
-`scripts/measure_service_residency.py` (`--smoke`) · `scripts/validate_p5_api.py`
-(`--phases C`) · `scripts/measure_reference_neutralisation.py`. **All of these consume GPU
-budget** — see item 3.
+`scripts/measure_service_residency.py` (`--smoke`) · `scripts/validate_p5_api.py` (`--phases C`) ·
+`scripts/measure_reference_neutralisation.py`. **All consume GPU budget — see item 2.**
 
-### Latest commits (M7)
+### M7 commits, in order
 
 ```
-(visual review — see the process log entries of 2026-08-07)
-<upload>    feat(web): add upload your own decal as a production feature
-1526714    test(web): cover generation progress and the polished production states
-732e735    feat(web): rebuild the creation workspace and wire in live progress
-acb5b36    feat(web): add the generation progress client, model and print panel
-ce9818d    feat(api): expose read-only generation progress telemetry
-4107c6b    docs(process): record the texture-fit gate commit hashes in the session handoff
-0c756e1    docs(process): record the m7 texture-fit gate decision
-3b12188    feat(web): adopt full surface as the production texture-fit default
-0835c61    docs(process): record the prototype 5 commit hash in the session handoff
-ce90388    docs(process): record prototype 5 and stop at the review gate
-83e6280    feat(web): add a review-only control to load a decal from disk
-a9f5749    test(api): validate prototype 5 end to end against a real uvicorn process
-a2b9219    feat(web): add the generate flow and both deck texture-fit modes
-6d900ce    docs(experiments): record EXP-034, the resident-service residency run
-6e53a67    feat(api): add the resident single-flight generation service
-6d1b24b    docs(process): close M6 ...   <- last pushed
+6e53a67 feat(api): add the resident single-flight generation service
+6d900ce docs(experiments): record EXP-034, the resident-service residency run
+a2b9219 feat(web): add the generate flow and both deck texture-fit modes
+a9f5749 test(api): validate prototype 5 end to end against a real uvicorn process
+83e6280 feat(web): add a review-only control to load a decal from disk
+ce90388 docs(process): record prototype 5 and stop at the review gate
+0835c61 docs(process): record the prototype 5 commit hash in the session handoff
+3b12188 feat(web): adopt full surface as the production texture-fit default
+0c756e1 docs(process): record the m7 texture-fit gate decision
+4107c6b docs(process): record the texture-fit gate commit hashes in the session handoff
+ce9818d feat(api): expose read-only generation progress telemetry
+acb5b36 feat(web): add the generation progress client, model and print panel
+732e735 feat(web): rebuild the creation workspace and wire in live progress
+1526714 test(web): cover generation progress and the polished production states
+46f893d fix(web): correct three layout and language defects found in the browser
+f38e41b docs(m7): record the interface pass, DR-013 and the walkthrough finding
+b294d37 feat(web): add upload your own decal as a production feature
+c471060 docs(m7): record the telemetry verification and the decal upload
 ```
+
+Closure commits are appended by the closure session; verify the real list with
+`git log --oneline origin/main..HEAD` rather than trusting this block.
+
+### Next milestone
+
+**M8 — testing, deployment and demo. NOT STARTED.** It inherits a single-process service by
+design, the **~200 MiB** ceiling, `full-surface`, `retro-poster` as a named partial pass, the
+prompt-adherence limitation, and a **Playwright E2E layer that does not exist yet**.
 
 ---
 
