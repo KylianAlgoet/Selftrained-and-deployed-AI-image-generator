@@ -14,7 +14,7 @@
 | CUDA toolkit (`nvcc`) | **Not installed** | Not required for PyTorch binary wheels; note for any custom kernels |
 | Python | 3.14.0 (default via `py`), **3.11 also installed** | PyTorch does not support 3.14 → use Python 3.11 for all ML work |
 | pip | 26.0 (via `py -m pip`) | `pip`/`python` not on PATH; use `py` launcher or venv activation |
-| Node.js / npm | v20.18.0 / 10.8.2 | Meets Vite/React/Three.js requirements |
+| Node.js / npm | v20.18.0 / 10.8.2 — **superseded, see the 2026-08-09 update below** | Meets Vite/React/Three.js requirements |
 | Git | 2.42.0.windows.2 | OK; user configured (KylianAlgoet / kylian.algoet@student.ehb.be) |
 | Docker | 29.1.3 (Docker Desktop, WSL2 backend running) | Docker Compose deployment option is viable |
 | FFmpeg | **Not installed** | Only needed for demo-video work; install later if required |
@@ -164,6 +164,42 @@ Structured evidence: `docs/evidence/EXP-001/cuda-smoke-test.json`, `pip-freeze.t
 2. **The audit's phrasing "CUDA UMD 13.3 → supports current PyTorch CUDA builds" was right for the wrong reason, and is corrected here.** The CUDA version `nvidia-smi` prints is the **driver's maximum supported CUDA API version**, not a toolkit version PyTorch must match. PyTorch wheels bundle their own CUDA runtime — this install runs a **CUDA 12.6** runtime on a driver advertising 13.3, which is correct and expected via CUDA minor-version compatibility. No CUDA toolkit (`nvcc`) is needed, as the audit already noted.
 3. **bfloat16 works** on this Ada (sm_89) GPU, so bf16 is available as a documented fallback if fp16 misbehaves in a pipeline.
 4. **pip had to be upgraded before PyTorch would install.** The venv shipped pip 22.3 (Python 3.11.0, Oct 2022), which rejects wheels whose metadata name is normalized with underscores and failed to resolve `torch` at all (`expected 'typing-extensions', but metadata has 'typing_extensions'`). Upgraded to pip 26.2; the install then succeeded. Recorded in `ml/requirements-inference.txt`.
+
+## Update 2026-08-09 (M8): the Node toolchain drifted, and it was found rather than reported
+
+The M8 baseline re-measurement queried the toolchain instead of trusting this document, and the
+Node row above turned out to be stale.
+
+| component | audited 2026-07-27 | measured 2026-08-09 |
+|---|---|---|
+| Node.js | v20.18.0 | **v24.18.0** (`C:\Program Files\nodejs\node.exe`) |
+| npm | 10.8.2 | **11.16.0** |
+
+Node was upgraded on this machine at some point between the two dates. **When is not recorded
+anywhere, and it is not reconstructed here** — no log in this repository captures it, so the only
+honest statement is that the change happened between 2026-07-27 and 2026-08-09. The original
+values are preserved above rather than overwritten.
+
+**Two consequences, both verified rather than assumed.**
+
+1. **Nothing broke.** All four gates were re-run on Node 24.18.0 and match the M7 closure figures
+   exactly: 406 pytest, 165 vitest, eslint clean, `npm run build` succeeds. Evidence:
+   `docs/evidence/M8/baseline/test-baseline.md`. Because the upgrade date is unknown, it cannot be
+   said whether M7's own numbers were produced on Node 20 or Node 24 — which is precisely why the
+   baseline was re-measured before any M8 work began instead of being carried forward on trust.
+2. **A justification in the code was stale.** `apps/web/vite.config.ts` pinned jsdom to 26.x citing
+   *"jsdom 27's CSS chain requires Node >= 20.19 (audited Node is 20.18.0)"*. That constraint no
+   longer binds on Node 24. **The pin itself was deliberately not changed** — M8 is a hardening
+   milestone, and moving a working dependency to chase a now-obsolete rationale would be a change
+   with no defect behind it. The comment was corrected to state the real current reason.
+
+Unchanged and re-confirmed on the same date: driver **610.88** (as corrected on 2026-07-30, not the
+610.74 in the table above), RTX 4060 Laptop GPU, 8188 MiB, Git 2.42.0.windows.2, Python 3.11.0 in
+`.venv`, and every protected ML pin (torch 2.13.0+cu126, torchvision 0.28.0+cu126, diffusers 0.39.0,
+transformers 5.14.1, accelerate 1.14.0, safetensors 0.8.0, peft 0.20.0).
+
+**Constraint 4 above ("Node 20 covers the frontend") is superseded.** The deployment requirement
+recorded in M8 is **Node >= 20.19**, and the validated version is 24.18.0.
 
 ## Version-conflict notes
 

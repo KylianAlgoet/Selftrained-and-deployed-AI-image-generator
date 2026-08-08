@@ -4,6 +4,60 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-09 — M8.1: baseline re-measured, and a stale environment fact found
+
+**Objective.** Establish a measured baseline before any M8 change, so every later claim in the
+milestone rests on a number from this machine rather than on M7's record.
+
+**Plan.** Re-run the four gates, capture the real toolchain versions, and record any drift.
+
+**Completed work.** All four gates re-run. `docs/evidence/M8/baseline/test-baseline.md` written.
+The environment audit corrected and the stale jsdom justification in `apps/web/vite.config.ts`
+rewritten.
+
+**Real results.**
+
+| gate | result | vs M7 record |
+|---|---|---|
+| `.venv/Scripts/python.exe -m pytest` | **406 passed**, 46.94 s | identical |
+| `npm run test` | **165 passed**, 11 files | identical |
+| `npm run lint` | clean, exit 0 | identical |
+| `npm run build` | succeeds, exit 0, 606 modules | identical |
+
+**The finding.** `docs/technical/environment-audit.md` recorded **Node v20.18.0 / npm 10.8.2** from
+the 2026-07-27 audit. The machine actually runs **Node v24.18.0 / npm 11.16.0**, confirmed in both
+PowerShell and Bash. Node was upgraded between those dates and **nothing in this repository records
+when**, so it is not possible to say whether M7's 165 vitest and its clean build were produced on
+Node 20 or Node 24. That uncertainty is exactly what re-measuring removed: they pass on Node 24 now,
+measured, today.
+
+A second-order consequence: `apps/web/vite.config.ts` justified its jsdom 26.x pin with *"jsdom 27's
+CSS chain requires Node >= 20.19 (audited Node is 20.18.0)"*. That constraint no longer binds.
+
+**Decisions.**
+
+1. **Re-baseline on Node 24 rather than reinstalling Node 20** (Kylian, this session). The demo runs
+   on this machine, so the validated stack should be the one that will be demonstrated.
+2. **The jsdom pin is NOT moved.** The rationale was stale, but a stale rationale is not a defect.
+   Under an M8 feature freeze, moving a working dependency with no failure behind it would add risk
+   for nothing. The comment was corrected to state the real reason — 26.1.0 is what the suite was
+   validated against — instead of deleting a justification and leaving a bare pin.
+3. **The original audit values are preserved, not overwritten.** The summary row is marked
+   superseded and points at a dated update section, following the precedent set by the 2026-07-30
+   driver correction.
+
+**Commands run.** `pytest` · `npm run test` · `npm run lint` · `npm run build` · `pip list` ·
+`npm ls` · `node -v` · `npm -v` · `nvidia-smi --query-gpu` · `git --version`.
+
+**Evidence.** `docs/evidence/M8/baseline/test-baseline.md`.
+
+**Unfinished work / blockers.** None. **No GPU inference ran**; the generation total stays at 26.
+
+**Next step.** M8.2 — close the upload-security test gaps and align `.env.example` with the settings
+`apps/api/config.py` actually reads.
+
+---
+
 ## 2026-08-07 — M7 CLOSED: final human visual gate APPROVED
 
 ### Milestone report
