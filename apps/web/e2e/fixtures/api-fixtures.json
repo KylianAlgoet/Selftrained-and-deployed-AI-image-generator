@@ -1,0 +1,315 @@
+{
+  "_readme": [
+    "Frozen API fixtures for the Playwright suite - the exact shapes apps/api/schemas.py returns.",
+    "This is JSON, not TypeScript, so that apps/api/tests/test_e2e_fixture_contract.py can validate",
+    "every entry against the real Pydantic models without a Node round-trip. A field renamed in the",
+    "backend therefore breaks a Python test instead of leaving the E2E suite passing against a shape",
+    "the server stopped sending. Values are taken from recorded evidence (EXP-027/028/029 gate-2",
+    "hashes, EXP-034 memory figures) rather than invented, so a reader can cross-check them."
+  ],
+
+  "GENERATION_ID": "e2e_fixture_generation",
+  "OPERATION_ID": "e2e-operation-1",
+
+  "STYLES_RESPONSE": {
+    "styles": [
+      {
+        "key": "minimal-geometric",
+        "label": "Minimal geometric",
+        "outcome": "PASS",
+        "limitation": "",
+        "trigger": "xgeo",
+        "run_id": "EXP-027",
+        "checkpoint_step": 300,
+        "default_lora_weight": 0.7,
+        "lora_weight_min": 0.4,
+        "lora_weight_max": 1.0
+      },
+      {
+        "key": "ukiyo-e",
+        "label": "Ukiyo-e woodblock",
+        "outcome": "PASS",
+        "limitation": "",
+        "trigger": "xkyo",
+        "run_id": "EXP-028",
+        "checkpoint_step": 600,
+        "default_lora_weight": 0.7,
+        "lora_weight_min": 0.4,
+        "lora_weight_max": 1.0
+      },
+      {
+        "key": "retro-poster",
+        "label": "Retro silkscreen poster",
+        "outcome": "PARTIAL PASS",
+        "limitation": "Partial pass: this style also learned poster conventions from its sources - pseudo-text, borders and framed composition can appear in results.",
+        "trigger": "xpst",
+        "run_id": "EXP-029",
+        "checkpoint_step": 300,
+        "default_lora_weight": 0.7,
+        "lora_weight_min": 0.4,
+        "lora_weight_max": 1.0
+      }
+    ],
+    "default_lora_weight": 0.7,
+    "default_ip_adapter_scale": 0.55,
+    "ip_adapter_scale_min": 0.4,
+    "ip_adapter_scale_max": 0.6,
+    "width": 512,
+    "height": 1536
+  },
+
+  "GENERATE_RESPONSE": {
+    "generation_id": "e2e_fixture_generation",
+    "status": "completed",
+    "image_url": "/api/generated/e2e_fixture_generation",
+    "metadata": {
+      "generation_id": "e2e_fixture_generation",
+      "created_utc": "2026-08-09T12:00:00Z",
+      "style": "ukiyo-e",
+      "style_label": "Ukiyo-e woodblock",
+      "style_outcome": "PASS",
+      "style_limitation": "",
+      "prompt": "xkyo ukiyo-e woodblock print skateboard decal artwork, a mountain and a rising sun",
+      "prompt_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "negative_prompt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "seed": 42,
+      "steps": 30,
+      "steps_run": 30,
+      "guidance_scale": 7.5,
+      "scheduler": "DPMSolverMultistepScheduler",
+      "width": 512,
+      "height": 1536,
+      "base_model_repo_id": "stable-diffusion-v1-5/stable-diffusion-v1-5",
+      "base_model_revision": "451f4fe16113bff5a5d2269ed5ad43b0592e9a14",
+      "lora_run_id": "EXP-028",
+      "lora_checkpoint_step": 600,
+      "lora_sha256": "52381b6052ad71f165ed23425bfc4ea1ba794a3886948a741cea9cad3d81abfd",
+      "lora_weight": 0.7,
+      "active_adapters": ["ukiyo-e"],
+      "live_lora_modules": 128,
+      "ip_adapter_repo_id": "h94/IP-Adapter",
+      "ip_adapter_revision": "018e402774aeeddd60609b4ecdb7e298259dc729",
+      "ip_adapter_scale": 0.0,
+      "reference_present": false,
+      "generate_seconds": 12.96,
+      "peak_allocated_mb": 5143.73,
+      "peak_device_used_mb": 7985.5,
+      "device_total_mb": 8187.5,
+      "spare_device_mb": 202.0,
+      "image_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    },
+    "warnings": []
+  },
+
+  "GENERATE_RESPONSE_PARTIAL_PASS": {
+    "generation_id": "e2e_fixture_generation",
+    "status": "completed",
+    "image_url": "/api/generated/e2e_fixture_generation",
+    "metadata": {
+      "generation_id": "e2e_fixture_generation",
+      "created_utc": "2026-08-09T12:00:00Z",
+      "style": "retro-poster",
+      "style_label": "Retro silkscreen poster",
+      "style_outcome": "PARTIAL PASS",
+      "style_limitation": "Partial pass: this style also learned poster conventions from its sources - pseudo-text, borders and framed composition can appear in results.",
+      "prompt": "xpst retro silkscreen poster skateboard decal artwork, a mountain and a rising sun",
+      "prompt_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "negative_prompt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "seed": 42,
+      "steps": 30,
+      "steps_run": 30,
+      "guidance_scale": 7.5,
+      "scheduler": "DPMSolverMultistepScheduler",
+      "width": 512,
+      "height": 1536,
+      "base_model_repo_id": "stable-diffusion-v1-5/stable-diffusion-v1-5",
+      "base_model_revision": "451f4fe16113bff5a5d2269ed5ad43b0592e9a14",
+      "lora_run_id": "EXP-029",
+      "lora_checkpoint_step": 300,
+      "lora_sha256": "70d2afbfb3c09aff6ba37e1f1cf82c02ad69b0269969ea7cdf43b0ead17ba8db",
+      "lora_weight": 0.7,
+      "active_adapters": ["retro-poster"],
+      "live_lora_modules": 128,
+      "ip_adapter_repo_id": "h94/IP-Adapter",
+      "ip_adapter_revision": "018e402774aeeddd60609b4ecdb7e298259dc729",
+      "ip_adapter_scale": 0.0,
+      "reference_present": false,
+      "generate_seconds": 13.14,
+      "peak_allocated_mb": 5143.73,
+      "peak_device_used_mb": 7985.5,
+      "device_total_mb": 8187.5,
+      "spare_device_mb": 202.0,
+      "image_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    "warnings": [
+      "Partial pass: this style also learned poster conventions from its sources - pseudo-text, borders and framed composition can appear in results."
+    ]
+  },
+
+  "ERROR_BUSY": {
+    "status": 409,
+    "body": {
+      "error": "generation_in_progress",
+      "detail": "The GPU is busy with another generation. Try again in a moment."
+    }
+  },
+
+  "ERROR_TIMEOUT": {
+    "status": 504,
+    "body": {
+      "error": "generation_timeout",
+      "detail": "Generation took too long and was stopped after 14 of 30 steps."
+    }
+  },
+
+  "ERROR_MODEL_UNAVAILABLE": {
+    "status": 503,
+    "body": {
+      "error": "model_unavailable",
+      "detail": "A trained style is unavailable on this machine. Check the server log."
+    }
+  },
+
+  "ERROR_VALIDATION_PROMPT": {
+    "status": 422,
+    "body": {
+      "error": "validation_failed",
+      "detail": "Describe what to generate.",
+      "field": "prompt"
+    }
+  },
+
+  "PROGRESS_IDLE": {
+    "operation_id": null,
+    "status": "idle",
+    "stage": "idle",
+    "current_step": 0,
+    "total_steps": 0,
+    "denoising_fraction": 0,
+    "elapsed_seconds": 0,
+    "estimated_remaining_seconds": null,
+    "pipeline_loaded": false
+  },
+
+  "_progress_note": [
+    "Only the denoising entries carry estimated_remaining_seconds, because only denoising has a real",
+    "denominator. Loading, decoding and saving publish a stage and null. The suite asserts that the",
+    "interface respects this rather than inventing a percentage - that is what DR-013 decided."
+  ],
+
+  "PROGRESS_SEQUENCE": [
+    {
+      "operation_id": "e2e-operation-1",
+      "status": "generating",
+      "stage": "loading-style",
+      "current_step": 0,
+      "total_steps": 0,
+      "denoising_fraction": 0,
+      "elapsed_seconds": 0.4,
+      "estimated_remaining_seconds": null,
+      "pipeline_loaded": true
+    },
+    {
+      "operation_id": "e2e-operation-1",
+      "status": "generating",
+      "stage": "denoising",
+      "current_step": 3,
+      "total_steps": 30,
+      "denoising_fraction": 0.1,
+      "elapsed_seconds": 1.6,
+      "estimated_remaining_seconds": null,
+      "pipeline_loaded": true
+    },
+    {
+      "operation_id": "e2e-operation-1",
+      "status": "generating",
+      "stage": "denoising",
+      "current_step": 14,
+      "total_steps": 30,
+      "denoising_fraction": 0.4666666666666667,
+      "elapsed_seconds": 6.1,
+      "estimated_remaining_seconds": 7,
+      "pipeline_loaded": true
+    },
+    {
+      "operation_id": "e2e-operation-1",
+      "status": "generating",
+      "stage": "denoising",
+      "current_step": 27,
+      "total_steps": 30,
+      "denoising_fraction": 0.9,
+      "elapsed_seconds": 11.4,
+      "estimated_remaining_seconds": 2,
+      "pipeline_loaded": true
+    },
+    {
+      "operation_id": "e2e-operation-1",
+      "status": "generating",
+      "stage": "decoding",
+      "current_step": 30,
+      "total_steps": 30,
+      "denoising_fraction": 1,
+      "elapsed_seconds": 12.6,
+      "estimated_remaining_seconds": null,
+      "pipeline_loaded": true
+    },
+    {
+      "operation_id": "e2e-operation-1",
+      "status": "generating",
+      "stage": "saving",
+      "current_step": 30,
+      "total_steps": 30,
+      "denoising_fraction": 1,
+      "elapsed_seconds": 12.9,
+      "estimated_remaining_seconds": null,
+      "pipeline_loaded": true
+    },
+    {
+      "operation_id": "e2e-operation-1",
+      "status": "completed",
+      "stage": "completed",
+      "current_step": 30,
+      "total_steps": 30,
+      "denoising_fraction": 1,
+      "elapsed_seconds": 12.96,
+      "estimated_remaining_seconds": null,
+      "pipeline_loaded": true
+    }
+  ],
+
+  "PROGRESS_COLD_LOAD": [
+    {
+      "operation_id": "e2e-operation-1",
+      "status": "generating",
+      "stage": "loading-model",
+      "current_step": 0,
+      "total_steps": 0,
+      "denoising_fraction": 0,
+      "elapsed_seconds": 1.0,
+      "estimated_remaining_seconds": null,
+      "pipeline_loaded": false
+    },
+    {
+      "operation_id": "e2e-operation-1",
+      "status": "generating",
+      "stage": "loading-model",
+      "current_step": 0,
+      "total_steps": 0,
+      "denoising_fraction": 0,
+      "elapsed_seconds": 8.0,
+      "estimated_remaining_seconds": null,
+      "pipeline_loaded": false
+    },
+    {
+      "operation_id": "e2e-operation-1",
+      "status": "generating",
+      "stage": "loading-model",
+      "current_step": 0,
+      "total_steps": 0,
+      "denoising_fraction": 0,
+      "elapsed_seconds": 18.0,
+      "estimated_remaining_seconds": null,
+      "pipeline_loaded": false
+    }
+  ]
+}

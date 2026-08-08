@@ -24,6 +24,16 @@ build/
 .vite/
 coverage/
 
+# Playwright: reports, traces, videos and downloaded browser binaries are all
+# regenerable output. The browsers live in the user cache outside the repo.
+playwright-report/
+test-results/
+.playwright/
+
+# PID file written by scripts/start-demo.ps1 so stop-demo can stop only what it
+# started, rather than killing processes by name.
+.run/
+
 # ML artifacts (large binaries stay out of Git by default)
 *.safetensors
 *.ckpt

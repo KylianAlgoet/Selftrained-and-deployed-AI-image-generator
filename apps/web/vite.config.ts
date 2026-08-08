@@ -17,5 +17,10 @@ export default defineConfig({
     // validated against and there is no defect asking for the move - not
     // because Node still forbids 27.
     environment: 'node',
+    // The Playwright suite lives in e2e/ and its files match vitest's default
+    // `*.spec.ts` pattern, so without this vitest collects them, fails to
+    // resolve @playwright/test and reports six broken test files. The two
+    // runners own different directories: vitest owns src/, Playwright owns e2e/.
+    exclude: ['**/node_modules/**', '**/dist/**', 'e2e/**'],
   },
 })

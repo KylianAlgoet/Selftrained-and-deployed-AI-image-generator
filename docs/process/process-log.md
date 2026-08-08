@@ -4,6 +4,76 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-09 — M8.3: the Playwright E2E suite M7 did not have
+
+**Objective.** Build the automated browser suite M8's first acceptance criterion requires, without
+a GPU, a model or a single generation.
+
+**Completed work.** `@playwright/test` + Chromium installed as `apps/web` devDependencies; config,
+JSON fixtures, a pytest contract guard and **37 scenarios across 6 spec files**; vitest scoped away
+from `e2e/`; `.gitignore` and eslint updated.
+
+**Real results.**
+
+| suite | M7 close | now |
+|---|---:|---:|
+| pytest | 406 | **461** |
+| vitest | 165 | **169** |
+| **Playwright E2E** | **0 — did not exist** | **37 passed** |
+| eslint / build | clean / succeeds | clean / succeeds |
+
+Run twice end to end: 37 passed both times, **no flakes**, `retries: 0`.
+
+**Decisions.**
+
+1. **The suite runs against `npm run build && npm run preview`, never the dev server.** What ships
+   is what is tested. A dev-server suite can pass while the built application is broken.
+2. **The mock sits at the HTTP boundary and nowhere above it.** React, R3F, the WebGL canvas, the
+   texture pipeline, the polling loop and the downloads all run for real.
+3. **The fixtures are JSON, and a pytest validates them against the real Pydantic models.** This is
+   the difference between mocked E2E and E2E theatre: without it, a field renamed in `schemas.py`
+   would leave the browser suite happily passing against a shape the server stopped sending. A
+   first attempt kept the fixtures as TypeScript literals and read them here with a regex; it broke
+   on identifiers, template strings and spreads, and the honest conclusion was that **data should
+   be data**. Both sides now load one JSON file and neither parses the other's language.
+4. **A pytest also asserts no fixture publishes an estimate outside `denoising`.** Otherwise the
+   E2E test proving "no percentage during model loading" could pass because the interface ignored
+   data it should never have been given.
+
+**Four defects found, all in the tests, none in the application.** Every first-run failure was a
+wrong assertion: an ambiguous `getByLabel('Style')`, an expected `1.3008×` where `fitDisclosure`
+rounds to `1.301×`, a style the test never selected, and a sentence that also appears in the
+aria-live region. The application needed no change.
+
+**One assertion was removed rather than made to pass.** The `DECAL GENERATED` headline renders only
+while the PNG is composed onto the deck — about a second — so asserting it races the application
+being fast. **The fix was NOT to make the state linger:** M7 recorded that padding a finished
+result so a label can be read is exactly the dishonesty the progress feature exists to avoid. The
+test asserts the durable outcome and a comment records why the obvious assertion is absent.
+
+**Scenario 19 (camera state) was flagged in the plan as possibly not automatable. It was
+automatable** — and without reading the camera matrix. The test orbits, swaps the texture, asserts
+the frame changed, then presses **Reset view** and asserts it changed *again*; a reset that visibly
+moves the deck proves the deck was not already in its default pose.
+
+**A finding recorded but deliberately not fixed.** `npm audit` reports 3 high-severity advisories
+(`brace-expansion`, `js-yaml`, `nanoid`) — all DoS issues in **dev-only build tooling**, none in
+the shipped bundle. **Verified pre-existing, not introduced by Playwright:** the lockfile diff is
+purely additive and all three were already present at `a355ffa`. `npm audit fix` would move
+`vite`, `eslint` and `typescript-eslint` during a hardening milestone. **Kylian's call — open.**
+
+**Commands run.** `npm install --dry-run` (twice, both confirmed no production dependency moved) ·
+`npx playwright install chromium` · `npx playwright test` (×2) · `npm run typecheck:e2e` ·
+`npm run lint` · `npm run test` · `npm run build` · `pytest`.
+
+**Evidence.** `docs/evidence/M8/tests/playwright-e2e-report.md`.
+
+**Unfinished work / blockers.** None. **No GPU inference ran**; the generation total stays at 26.
+
+**Next step.** M8.4 — DR-014, the deployment and demo decision.
+
+---
+
 ## 2026-08-09 — M8.2: upload-security gaps closed, and a lying settings file fixed
 
 **Objective.** Close the real gaps in upload security without inflating the test count, and make
