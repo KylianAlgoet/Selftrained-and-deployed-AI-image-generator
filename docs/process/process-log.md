@@ -4,6 +4,70 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-09 — M8.2: upload-security gaps closed, and a lying settings file fixed
+
+**Objective.** Close the real gaps in upload security without inflating the test count, and make
+`.env.example` describe the configuration that exists.
+
+**Plan.** Audit what M7 already proves, add tests only where they carry new evidence, and fix
+anything the audit exposes.
+
+**Completed work.** 35 backend and 4 frontend assertions added; `.env.example` rewritten and
+guarded; `docs/evidence/M8/security/upload-security-matrix.md` written.
+
+**The audit result, stated before the additions.** All three criteria named in issue #9 —
+malicious filename, oversize file, wrong MIME — **were already met by M7**, along with
+decompression-bomb, truncation, and content-vs-extension mismatch. Nothing there was rewritten.
+Generation-id traversal was also already covered by `test_validation_and_errors.py`, so the two
+tests the plan listed for it were **dropped as duplicates** rather than added for the count.
+
+**Real results.**
+
+| suite | before | after |
+|---|---:|---:|
+| pytest | 406 | **441** |
+| vitest | 165 | **169** |
+| eslint | clean | clean |
+
+**No defect was found in the upload path.** All 35 new backend assertions passed on first run
+against the existing implementation. That is worth stating plainly rather than hiding in a green
+tick: the M7 code was already correct under conditions it had never been tested against.
+
+**One real defect was found, outside the code.** `.env.example` documented five keys nothing
+reads — `MODEL_CACHE_DIR`, `BASE_MODEL_ID`, `LORA_WEIGHTS_PATH`, `ALLOWED_UPLOAD_EXTENSIONS`,
+`UPLOAD_TMP_DIR`. The last two are misleading in a security context: they imply the extension
+allowlist and a temporary upload directory are configurable, when the allowlist is frozen in code
+deliberately and no temporary upload directory exists at all.
+
+**Decisions.**
+
+1. **The strongest new test replaced a weaker claim rather than joining it.** M7's traversal test
+   asserted an empty temporary directory, which only shows nothing landed in *one* place. The new
+   test patches `builtins.open`, `Path.open`, `Path.write_bytes` and `Path.mkdir` to raise and
+   runs 12 hostile filenames through validation, so **any** filesystem access fails it.
+2. **That guard carries a sensitivity test.** A guard that cannot fail is not evidence — the same
+   companion-assertion pattern the frozen-kit hash locks use.
+3. **The temp-file close is asserted structurally, by AST.** No HTTP test can observe it: Starlette
+   owns the `SpooledTemporaryFile`. Following the existing import-boundary precedent, a pytest
+   parses `main.py` and asserts the `UploadRejected` handler's `try` has a `.close()` in its
+   `finally`. A future edit moving it into the success branch would leak a temp file on every
+   rejection while every other test still passed.
+4. **Filename sanitisation was deliberately NOT added.** Sanitising a name implies it will be
+   reused. It is not, and decision 1 is the evidence. A frontend test asserts a hostile *name* with
+   a valid type passes preflight, so nobody later mistakes name-filtering for a real check.
+
+**Commands run.** `pytest apps/api/tests/test_uploads.py` · `pytest apps/api/tests/test_env_example.py`
+· `pytest` · `npm run test` · `npm run lint`.
+
+**Evidence.** `docs/evidence/M8/security/upload-security-matrix.md` — 27 rules mapped to their
+tests, including the three deliberately-not-tested items and why.
+
+**Unfinished work / blockers.** None. **No GPU inference ran**; the generation total stays at 26.
+
+**Next step.** M8.3 — the Playwright E2E suite.
+
+---
+
 ## 2026-08-09 — M8.1: baseline re-measured, and a stale environment fact found
 
 **Objective.** Establish a measured baseline before any M8 change, so every later claim in the

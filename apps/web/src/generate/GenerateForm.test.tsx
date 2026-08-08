@@ -152,4 +152,43 @@ describe('preflightReference', () => {
     Object.defineProperty(file, 'size', { value: 11 * 1024 * 1024 })
     expect(preflightReference(file)).toMatch(/10 MB/)
   })
+
+  // M8. The preflight is courtesy only for the reference image - the server
+  // re-validates those bytes. For the user's own decal there IS no server, so
+  // these cases are the first line rather than a convenience.
+  it('rejects a file whose type the browser could not determine', () => {
+    const file = new File([new Uint8Array([1])], 'mystery', { type: '' })
+    expect(preflightReference(file)).toMatch(/PNG, JPEG or WEBP/)
+  })
+
+  it('rejects SVG, which can carry script and is not in the allowlist', () => {
+    const file = new File(['<svg onload="alert(1)"/>'], 'x.svg', { type: 'image/svg+xml' })
+    expect(preflightReference(file)).toMatch(/PNG, JPEG or WEBP/)
+  })
+
+  it('judges the declared type, never the file name', () => {
+    // A hostile name with an allowed type passes preflight, and that is correct:
+    // the name is not a security signal here, the decode is. Asserted so nobody
+    // "hardens" this by filtering names and mistakes that for a real check.
+    const hostile = new File([new Uint8Array([1])], '../../etc/passwd.png', {
+      type: 'image/png',
+    })
+    expect(preflightReference(hostile)).toBeNull()
+
+    const misleading = new File([new Uint8Array([1])], 'looks-fine.png', {
+      type: 'application/x-msdownload',
+    })
+    expect(preflightReference(misleading)).toMatch(/PNG, JPEG or WEBP/)
+  })
+
+  it('accepts a file exactly at the limit and rejects one byte past it', () => {
+    const atLimit = new File([new Uint8Array(1)], 'edge.png', { type: 'image/png' })
+    Object.defineProperty(atLimit, 'size', { value: 10 * 1024 * 1024 })
+    expect(preflightReference(atLimit)).toBeNull()
+
+    const overLimit = new File([new Uint8Array(1)], 'edge.png', { type: 'image/png' })
+    Object.defineProperty(overLimit, 'size', { value: 10 * 1024 * 1024 + 1 })
+    expect(overLimit.size).toBeGreaterThan(10 * 1024 * 1024)
+    expect(preflightReference(overLimit)).toMatch(/10 MB/)
+  })
 })

@@ -126,3 +126,210 @@ def test_endpoint_accepts_a_valid_reference_and_applies_the_scale(client, fake_p
     assert response.status_code == 200
     assert response.json()["metadata"]["reference_present"] is True
     assert fake_pipeline.calls[-1]["reference_image"] is not None
+
+
+# --- M8: the filename is a label, and this proves it ------------------------
+#
+# The rules above already establish WHAT is accepted. This section establishes
+# something narrower and more important: that a hostile *filename* has no
+# mechanism to act, because `validate_reference_upload` never touches the
+# filesystem at all. The earlier traversal test asserts an empty tmp_path, which
+# only shows nothing landed in ONE directory. These assert the stronger property.
+
+
+HOSTILE_FILENAMES = [
+    pytest.param("../../../../etc/passwd.png", id="posix-traversal"),
+    pytest.param("..\\..\\..\\windows\\win.ini.png", id="windows-traversal"),
+    pytest.param("C:\\Windows\\System32\\config.png", id="absolute-windows"),
+    pytest.param("/etc/shadow.png", id="absolute-posix"),
+    pytest.param("\\\\server\\share\\evil.png", id="unc-path"),
+    pytest.param(
+        "outputs/lora/EXP-027__style-full/step00300/pytorch_lora_weights.png",
+        id="looks-like-a-checkpoint-path",
+    ),
+    pytest.param("ref\x00.png", id="null-byte"),
+    pytest.param("ref\r\n.png", id="control-characters"),
+    pytest.param("\u202eevil\u202c.png", id="rtl-override"),
+    pytest.param("decal-\U0001f6f9-\u65e5\u672c\u8a9e.png", id="emoji-and-cjk"),
+    pytest.param("a" * 300 + ".png", id="overlong"),
+    pytest.param(".png", id="extension-only"),
+]
+
+
+@pytest.fixture
+def no_filesystem(monkeypatch):
+    """Make ANY filesystem access during validation an immediate failure.
+
+    This is the whole point of the section. Asserting that a traversal filename
+    did not create a file in one temporary directory proves very little - the
+    interesting question is whether the name can reach an OS call anywhere.
+    Patching the three entry points it would have to go through turns "the
+    filename is discarded" from a claim in a docstring into something the test
+    suite can fail on.
+    """
+    import builtins
+    import pathlib
+
+    def forbidden(*args, **kwargs):  # pragma: no cover - only runs on a failure
+        raise AssertionError(f"upload validation touched the filesystem: {args!r}")
+
+    monkeypatch.setattr(builtins, "open", forbidden)
+    monkeypatch.setattr(pathlib.Path, "open", forbidden)
+    monkeypatch.setattr(pathlib.Path, "write_bytes", forbidden)
+    monkeypatch.setattr(pathlib.Path, "mkdir", forbidden)
+
+
+@pytest.mark.parametrize("filename", HOSTILE_FILENAMES)
+def test_a_hostile_filename_never_reaches_the_filesystem(filename, png_bytes, no_filesystem):
+    """Accepted or rejected, the name is only ever read for its extension."""
+    try:
+        image = validate_reference_upload(filename, "image/png", png_bytes)
+    except UploadRejected:
+        return  # rejected without an OS call, which is also a pass
+    assert image.size == (64, 64)
+
+
+def test_the_no_filesystem_guard_is_actually_sensitive(tmp_path, no_filesystem):
+    """The guard above is only evidence if it can fail. Prove it can.
+
+    A patched-out check that silently permits everything passes just as happily
+    as a real one, and the hash-lock tests in this project carry the same
+    companion assertion for the same reason.
+    """
+    with pytest.raises(AssertionError, match="touched the filesystem"):
+        (tmp_path / "should-not-happen.txt").write_bytes(b"x")
+
+
+def test_a_filename_with_no_extension_is_rejected(png_bytes):
+    with pytest.raises(UploadRejected):
+        validate_reference_upload("passwd", "image/png", png_bytes)
+
+
+def test_a_missing_filename_is_rejected_by_the_extension_rule(png_bytes):
+    with pytest.raises(UploadRejected):
+        validate_reference_upload(None, "image/png", png_bytes)
+
+
+@pytest.mark.parametrize("filename", ["REF.PNG", "ref.PnG", "photo.JPEG", "art.WebP"])
+def test_uppercase_and_mixed_case_extensions_are_accepted(filename):
+    """A rule that only worked in lowercase would reject perfectly valid files."""
+    fmt = "PNG" if filename.lower().endswith("png") else (
+        "JPEG" if "jpeg" in filename.lower() else "WEBP"
+    )
+    content_type = f"image/{fmt.lower()}"
+    assert validate_reference_upload(filename, content_type, _image_bytes(fmt)).mode == "RGB"
+
+
+def test_only_the_last_extension_decides(png_bytes):
+    """Asserted in both directions, so the `rpartition` semantics are deliberate."""
+    with pytest.raises(UploadRejected):
+        validate_reference_upload("decal.png.exe", "image/png", png_bytes)
+    assert validate_reference_upload("decal.exe.png", "image/png", png_bytes).mode == "RGB"
+
+
+@pytest.mark.parametrize(
+    "content_type",
+    ["image/png; charset=binary", "image/png;charset=utf-8", "IMAGE/PNG", " image/png "],
+)
+def test_a_content_type_with_parameters_or_casing_is_normalised(content_type, png_bytes):
+    assert validate_reference_upload("ref.png", content_type, png_bytes).mode == "RGB"
+
+
+def test_a_valid_webp_is_accepted():
+    """The third allowed format had no positive test until M8."""
+    assert validate_reference_upload("ref.webp", "image/webp", _image_bytes("WEBP")).mode == "RGB"
+
+
+def test_an_absent_content_type_falls_through_to_the_decode(png_bytes):
+    """A missing header is not a rejection reason - the bytes still decide."""
+    assert validate_reference_upload("ref.png", None, png_bytes).mode == "RGB"
+
+
+def test_the_upload_is_closed_on_every_path():
+    """Structural, because the close happens on a path no HTTP test can observe.
+
+    The endpoint reads the upload inside a `try` and closes it in `finally`, so a
+    rejected upload releases its temporary storage exactly like an accepted one.
+    Parsed rather than text-scanned, following the import-boundary precedent: a
+    comment saying "closed on every path" is not evidence, and a future edit that
+    moved the close into the success branch would leave a temp file behind on
+    every rejection while every existing test still passed.
+    """
+    import ast
+    from pathlib import Path as _Path
+
+    source = (_Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
+    tries = [node for node in ast.walk(ast.parse(source)) if isinstance(node, ast.Try)]
+
+    upload_try = [
+        node
+        for node in tries
+        if any(
+            isinstance(h.type, ast.Name) and h.type.id == "UploadRejected"
+            for h in node.handlers
+        )
+    ]
+    assert len(upload_try) == 1, "expected exactly one UploadRejected handler"
+
+    finalbody = upload_try[0].finalbody
+    assert finalbody, "the upload must be closed in a finally block, not in the success path"
+    closes = [
+        node
+        for node in ast.walk(ast.Module(body=finalbody, type_ignores=[]))
+        if isinstance(node, ast.Attribute) and node.attr == "close"
+    ]
+    assert closes, "no .close() call found in the finally block"
+
+
+# --- M8: endpoint-level provenance -------------------------------------------
+
+
+def test_the_users_filename_never_appears_in_the_response_or_on_disk(
+    client, service, png_bytes
+):
+    """The name is not echoed back and does not become a stored filename."""
+    secret_name = "kylian-private-photo-2026.png"
+    response = client.post(
+        "/api/generate",
+        data={"prompt": "a fox", "style": "ukiyo-e"},
+        files={"reference_image": (secret_name, png_bytes, "image/png")},
+    )
+    assert response.status_code == 200
+    assert "kylian-private-photo" not in response.text
+
+    stored = list(service.settings.generated_dir.iterdir())
+    assert stored, "the generation should have written exactly one PNG"
+    assert all("kylian-private-photo" not in path.name for path in stored)
+
+
+def test_two_uploads_with_the_same_filename_do_not_collide(client, service, png_bytes):
+    """Nothing is keyed by a user-supplied name, so a repeat cannot overwrite."""
+    ids = []
+    for _ in range(2):
+        response = client.post(
+            "/api/generate",
+            data={"prompt": "a fox", "style": "ukiyo-e"},
+            files={"reference_image": ("same-name.png", png_bytes, "image/png")},
+        )
+        assert response.status_code == 200
+        ids.append(response.json()["generation_id"])
+
+    assert ids[0] != ids[1]
+    assert len(list(service.settings.generated_dir.iterdir())) == 2
+
+
+def test_a_generation_is_written_only_inside_the_configured_output_dir(
+    client, service, png_bytes
+):
+    """The positive half of the traversal claim: output stays where it belongs."""
+    response = client.post(
+        "/api/generate",
+        data={"prompt": "a fox", "style": "ukiyo-e"},
+        files={"reference_image": ("ref.png", png_bytes, "image/png")},
+    )
+    generation_id = response.json()["generation_id"]
+    path = service.resolve(generation_id)
+
+    assert path is not None
+    assert path.parent == service.settings.generated_dir
+    assert path.name == f"{generation_id}.png"
