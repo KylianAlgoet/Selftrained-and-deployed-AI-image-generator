@@ -1,6 +1,23 @@
 # Deployment strategy
 
-**Created:** 2026-07-27 · **Status:** candidates defined; decision deferred to milestone M8 (RQ12), after the MVP exists.
+**Created:** 2026-07-27 · **Updated:** 2026-08-09 (M8) · **Status:** **DECIDED — see
+[`DR-014`](decisions/DR-014-deployment-and-demo-strategy.md).**
+
+> **Decision (2026-08-09, DR-014): native local deployment on the validated Windows/NVIDIA machine,
+> plus pre-generated backup demo assets** — Option A combined with the demo-readiness section
+> below. Docker (Option B) was **screened out, not benchmarked**: its GPU overhead against the
+> measured 200.0 MiB margin is unmeasured, GPU passthrough was never verified on this machine, and
+> no NVIDIA Container Toolkit is installed. It would also not solve the actual reproducibility
+> problem, which is the three unregenerable adapter files (R14), not the Python environment.
+> Cloud GPU (Option C) was rejected on cost, offline capability, and because different hardware
+> would invalidate every VRAM figure in the research.
+>
+> Runbook: [`docs/deployment/runbook.md`](deployment/runbook.md). Weights:
+> [`docs/deployment/weights-manifest.md`](deployment/weights-manifest.md). Clean-clone evidence:
+> `docs/evidence/M8/clean-clone/`.
+>
+> The candidate table below is preserved as it was written, before the MVP existed, because the
+> comparison it framed is part of the process record.
 
 ## Requirement
 
