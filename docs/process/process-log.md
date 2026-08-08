@@ -4,6 +4,58 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-09 — M8.6: a CI workflow, and a planning assumption that was wrong
+
+**Objective.** Add a non-GPU CI workflow, committed locally and not pushed.
+
+**Completed work.** `.github/workflows/ci.yml` with three jobs (pytest · vitest/lint/typecheck/build
+· mocked Playwright), all on `windows-latest`. Evidence written.
+
+**The approved plan was wrong on one point, and checking is what caught it.** The plan said
+checkpoint-dependent pytests would need an explicit **skip marker** in CI, assuming they read the
+three production adapters. `outputs/lora/` was moved aside locally and the whole suite re-run:
+**all 469 tests still passed.** The checkpoint tests build their own adapter files under `tmp_path`
+— including the integrity-gate tests, which corrupt a *copy* precisely because R14 makes the real
+files unregenerable.
+
+So **no marker, no skip and no conditional was added.** Adding one would have implied reduced CI
+coverage where there is none. The workflow asserts the opposite instead: it **fails if
+`outputs/lora` exists on the runner**, so a green build can never be explained by weights having
+leaked into the repository.
+
+**Decisions.**
+
+1. **`windows-latest`, not `ubuntu-latest`.** Windows 11 + PowerShell 5.1 is the only platform this
+   project has been validated on and DR-014 deploys natively on it. Linux CI would test a
+   configuration nobody supports and imply cross-platform support that was never established.
+   Windows runners cost 2× minutes; that is the right price for not making an unearned claim.
+2. **CI installs CPU torch, and the file says so.** Production is `torch 2.13.0+cu126` from
+   PyTorch's own index. CI validates the **code against the same library versions**; it does not
+   validate the production install. The clean-clone test does that, on the real hardware.
+3. **CI is not a substitute for the GPU evidence, and the record says so in its first lines.** A
+   runner has no GPU and no adapters, so a green badge says nothing about generation quality, VRAM,
+   latency or adapter integrity.
+
+**Status — stated plainly: the workflow has NEVER RUN.** It is committed locally and **not
+pushed**; the first GitHub Actions run is Kylian's decision under CLAUDE.md rule 6. There is no
+green badge and no run URL to cite, the YAML has been parsed but not executed by a runner, and the
+first run may need fixes. M8's test evidence is therefore the **local** runs.
+
+**One risk carried.** `test_style_kit.py` loads the real CLIP tokenizer, which transformers
+downloads from Hugging Face. **R11 records three occasions where third-party hosting became
+unavailable mid-project**, so a red build with no defect behind it is possible. If it proves flaky
+the honest fix is a network marker, not deleting the token-id assertions.
+
+**Commands run.** `pytest` with `outputs/lora` moved aside and restored · YAML parse check.
+
+**Evidence.** `docs/evidence/M8/tests/ci-workflow.md`.
+
+**Unfinished work / blockers.** Nothing pushed. **No GPU inference ran**; the total stays at 26.
+
+**Next step.** M8.7 — the non-GPU clean-clone validation.
+
+---
+
 ## 2026-08-09 — M8.5: deployment tooling, and what `--workers 1` really starts
 
 **Objective.** Make the DR-014 deployment reproducible and hard to get wrong: verified weights, a
