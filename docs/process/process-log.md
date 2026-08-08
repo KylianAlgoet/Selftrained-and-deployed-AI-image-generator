@@ -4,6 +4,76 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-09 — M8.5: deployment tooling, and what `--workers 1` really starts
+
+**Objective.** Make the DR-014 deployment reproducible and hard to get wrong: verified weights, a
+preflight that catches the known traps, and a start/stop pair that cannot leave orphans.
+
+**Completed work.** `weights-manifest.md` with an 8-test pytest guard · `verify-weights.ps1` ·
+`preflight.ps1` · `start-demo.ps1` · `stop-demo.ps1` · `runbook.md` · README setup section
+rewritten · `.gitignore` gains `.run/`.
+
+**Real results — all four scripts executed, output captured.**
+
+| script | result |
+|---|---|
+| `verify-weights.ps1` | 3/3 PASS against the gate-2 hashes, exit 0 |
+| `preflight.ps1` | 10/10 PASS, exit 0 |
+| `start-demo.ps1` | API healthy, `cuda True`, `guard enforced`, exit 0 |
+| `stop-demo.ps1` | both processes stopped, all three ports released, **no orphans**, exit 0 |
+
+`pytest` 461 → **469**.
+
+**The finding.** `uvicorn --workers 1` starts **two** processes — a supervisor and one worker:
+
+```
+19700  <- supervisor; loads no model
+ 8632  <- worker; serves requests and holds the pipeline (parent 19700)
+```
+
+This does **not** contradict the single-worker requirement and is not a duplicated API: there is
+one worker, only the worker loads a model, and `allocated_mb` was **0.0** with
+`pipeline_loaded: false` on a freshly started service — measured proof that lazy loading costs no
+GPU memory, exactly as DR-011 describes. EXP-034's memory analysis is unaffected.
+
+It has two practical consequences, both now handled rather than discovered mid-demo:
+`/api/health` reports the **worker's** pid, which is *not* the pid `start-demo.ps1` launched; and
+`stop-demo.ps1` must stop the tree, because stopping only the recorded PID would leave the worker
+holding port 8000. M7's closure note recorded "API pid 25748" — that was a supervisor too. The
+distinction had simply never come up, because nothing had needed to stop the pair programmatically.
+
+**Decisions.**
+
+1. **The scripts query `apps/api/styles.py` instead of restating its constants.** A verifier with
+   its own copy of the hashes can certify a machine the service will then refuse to serve from.
+2. **`start-demo.ps1` refuses to start when port 8000 is held.** `assert_single_worker` cannot
+   catch a second API process — nothing inside one process can see another — and two resident
+   pipelines do not fit in 8 GB. M7 closed by *manually* confirming no duplicate uvicorn remained;
+   this makes it a check.
+3. **`stop-demo.ps1` never kills by process name.** `python.exe` and `node.exe` are not this
+   project's to claim; killing every `node.exe` on a developer's machine would be worse than the
+   leak it was cleaning up. It stops recorded PIDs and their children, then verifies the ports.
+4. **The restore path is a parameter, never a private absolute path.** `-RestoreFrom` plus
+   `CHECKPOINT_ROOT`; a pytest asserts no personal path appears in the manifest.
+5. **The manifest states R14 explicitly** — a failed hash means restore from backup, never
+   retrain — and a pytest asserts that wording is present.
+
+**One defect found and fixed in my own work:** a non-English string reached a `preflight.ps1`
+failure message. Corrected immediately, and a scan of all six new files confirms no non-Latin
+characters remain.
+
+**Commands run.** `verify-weights.ps1` · `preflight.ps1` · `start-demo.ps1` · `/api/health` ·
+`/api/styles` · `Get-CimInstance Win32_Process` · `stop-demo.ps1` · `pytest`.
+
+**Evidence.** `docs/evidence/M8/deployment/preflight-and-lifecycle.md`.
+
+**Unfinished work / blockers.** None. **No GPU inference ran** — `pipeline_loaded` stayed false
+throughout and the generation total stays at 26.
+
+**Next step.** M8.6 — the non-GPU CI workflow, committed locally and not pushed.
+
+---
+
 ## 2026-08-09 — M8.3: the Playwright E2E suite M7 did not have
 
 **Objective.** Build the automated browser suite M8's first acceptance criterion requires, without
