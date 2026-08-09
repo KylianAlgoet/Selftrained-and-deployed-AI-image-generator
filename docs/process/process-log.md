@@ -4,6 +4,97 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-09 — M8.7: the clean-clone test, and the defect it found on the first attempt
+
+**Objective.** Prove a third party can clone the repository and reach a working system, using no
+GPU and no generation.
+
+**Completed work.** Full clone into `C:\Expert Lab\DeckForge-M8-clean-clone`, **outside** the
+working repository, at commit `824838f`. Steps 1–15 and 18 executed with real output captured.
+
+**Real results: 17 of 18 non-GPU steps PASS, 1 FAILS.** Clone to running service in **~10 minutes**.
+
+| step | result |
+|---|---|
+| clone, ignored trees absent | PASS |
+| venv, pinned install, `pip check` | PASS — 402 s |
+| `npm ci`, build, lint, vitest, typecheck | PASS — 169 vitest, eslint clean |
+| **pytest** | **FAIL — 1 test** |
+| weight restore + verify | PASS — 3/3 FAIL before, 3/3 PASS after |
+| preflight, start, health, styles | PASS |
+| browser on the real backend, decal on the deck | PASS — 0 generate calls, 0 console errors |
+| Playwright in the clone | PASS — 37/37 |
+| stop, ports released, no orphans | PASS |
+
+### The blocking defect — a frozen hash that fails on every clean clone
+
+`test_dataset_v1_is_byte_identical_to_the_recorded_hash` fails. Diagnosed to certainty:
+
+| | bytes | endings | sha256 |
+|---|---:|---|---|
+| dev-machine working copy | 63 152 | 149 × CRLF | `cd18cbb0…` ← the recorded constant |
+| **the Git blob** | **63 003** | 149 × LF | `b38996ae…` |
+| every clean clone | 63 003 | 149 × LF | `b38996ae…` |
+
+**The content is identical** — normalising line endings makes them byte-for-byte equal, and the
+149-byte difference is exactly the 149 lines.
+
+`dataset-v1.csv` was committed **before** `.gitattributes` gained `data/manifests/*.csv -text`, so
+Git normalised it to LF in the blob while the working copy kept CRLF and was never re-checked-out.
+`DATASET_V1_SHA256` was then recorded from **the working copy**, not from what Git stores.
+
+**This is an integrity control that has been pinned to a machine-local representation since M6.**
+Its purpose is proving the dataset was never modified; it has only ever passed on the one machine
+holding the stale bytes. M6 identified `core.autocrlf` as exactly this hazard and added
+`.gitattributes` in response — the rule protects future checkouts, but nobody re-derived the
+constant, and no clean clone had been attempted until now. **This is the class of defect a
+clean-clone test exists to find, and it surfaced on the first attempt.**
+
+**NOT FIXED.** The change is one constant, but it is a value documented as **frozen** across M6
+evidence, so it is Kylian's decision and goes to the human gate with the generation authorisation.
+
+### Two secondary findings, both recorded, neither changed
+
+1. **`apps/api/requirements.txt` claims a pin it does not make.** `starlette==1.4.1` and three
+   others sit under *"pinned here so the set is reproducible"* — **commented out.** The clone
+   installed starlette **1.6.0** and numpy **2.4.4**. Everything passed and `pip check` was clean,
+   but the file states something untrue. Pinning transitive deps is a dependency move under freeze,
+   so it needs approval.
+2. **`deliverables/` appears in a clean clone** despite being git-ignored, because
+   `deliverables/.gitkeep` is tracked and `.gitignore` never affects tracked files. Harmless — an
+   empty placeholder, no derived package — but worth recording so nobody thinks the rule failed.
+
+**What the clone positively proved.** pip 22.3 shipped and could not resolve torch (the M3 finding
+reproduced exactly, so the runbook's upgrade step is load-bearing) · the runbook's install order
+works verbatim, CUDA index included · CUDA available in the clone · the restore path fails loudly
+when weights are absent and passes after `-RestoreFrom` · the service is healthy with
+`pipeline_loaded: false` and `allocated_mb: 0.0` · the real API served the real styles with
+`retro-poster` marked PARTIAL PASS · and the **entire 3D path works with zero GPU cost**.
+
+**Stated limitation.** The weights were restored from the working repository, **not** from the
+external backup drive, which was unavailable this session and whose path is deliberately not
+guessed. The *mechanism* was validated and it is source-agnostic; a restore from the real external
+backup **is not claimed**.
+
+**Commands run.** `git clone` · `py -V:3.11 -m venv` · `pip install` (4 requirement files + torch) ·
+`pip check` · `npm ci` · `npm run lint/test/typecheck:e2e/build` · `pytest` (×2) ·
+`verify-weights.ps1` (×2) · `preflight.ps1` · `start-demo.ps1` · health/styles/progress ·
+a Playwright-driven browser check against the real backend · `npx playwright test` ·
+`stop-demo.ps1`.
+
+**Evidence.** `docs/evidence/M8/clean-clone/` — `log.md`, `environment.md`, `api-health.json`,
+two screenshots.
+
+**Blockers.** **The frozen-hash defect blocks the clean-clone acceptance criterion**, and its fix is
+Kylian's decision. The clone is **retained** so the authorised generation can run in it without
+repeating the ten-minute setup.
+
+**No GPU inference ran**; the generation total stays at 26.
+
+**Next step.** M8.8 — the human gate: the hash decision, and authorisation for one real generation.
+
+---
+
 ## 2026-08-09 — M8.6: a CI workflow, and a planning assumption that was wrong
 
 **Objective.** Add a non-GPU CI workflow, committed locally and not pushed.

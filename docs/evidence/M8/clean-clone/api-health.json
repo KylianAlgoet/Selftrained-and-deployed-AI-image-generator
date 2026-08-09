@@ -1,0 +1,13 @@
+﻿{
+    "status":  "ok",
+    "pid":  5576,
+    "pipeline_loaded":  false,
+    "active_style":  null,
+    "generation_in_progress":  false,
+    "cuda_available":  true,
+    "device_name":  "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "device_total_mb":  8187.5,
+    "device_used_mb":  1081.5,
+    "allocated_mb":  0.0,
+    "single_worker_guard":  "enforced"
+}
