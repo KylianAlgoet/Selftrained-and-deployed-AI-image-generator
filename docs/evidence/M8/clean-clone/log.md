@@ -3,8 +3,18 @@
 **Date:** 2026-08-09 · **Milestone:** M8 (phase M8.7)
 **Clone directory:** `C:\Expert Lab\DeckForge-M8-clean-clone` — **outside** the working repository
 **Source:** the local repository as a Git remote, at commit `824838f`
-**Result: 17 of 18 non-GPU steps PASS. One step FAILS, and it is a real defect** — see step 9.
-**No GPU inference ran.** No model was loaded and no generation was executed.
+**Result: ALL 18 non-GPU steps PASS, plus the authorised real-output run.**
+
+> **Updated 2026-08-09, after the human gate.** The first pass recorded **17 of 18** steps passing,
+> with `test_dataset_v1_is_byte_identical_to_the_recorded_hash` failing. That defect was diagnosed,
+> taken to Kylian, fixed on his decision, and **re-verified in this same clone: 468 passed, 5
+> skipped, 0 failed.** The five skips are pre-existing conditional skips for git-ignored assets
+> (raw dataset images, the reference kit), each declaring its reason; 468 + 5 = 473, matching the
+> development machine exactly. The original failure is preserved below rather than edited out — it
+> is the most valuable thing this test produced.
+>
+> The one authorised generation then ran and passed. See
+> [`real-output.md`](real-output.md).
 
 ## Why the local repository was the clone source
 
@@ -25,16 +35,16 @@ access and is **not claimed here**.
 | 6 | `npm ci` from the lockfile | **PASS**, 306 packages, 15.7 s |
 | 7 | `npm run build` | **PASS**, 606 modules, 11.31 s |
 | 8 | `npm run lint`, `npm run test`, `npm run typecheck:e2e` | **PASS** — eslint clean, **169 vitest** |
-| **9** | **`pytest` (before weights)** | **FAIL — 1 test. See "The blocking defect".** |
+| **9** | **`pytest` (before weights)** | **FAIL — 1 test.** See "The blocking defect". **Fixed; now PASS.** |
 | 10 | restore weights; `verify-weights.ps1` | **PASS** — fails loudly before, 3/3 after |
-| 11 | `pytest` (after weights) | **same single failure** — unrelated to weights |
+| 11 | `pytest` (after weights) | same single failure — **unrelated to weights**; after the fix, **468 passed, 5 skipped, 0 failed** |
 | 12 | `preflight.ps1` | **PASS**, 10/10 |
 | 13 | `start-demo.ps1`; health; styles; progress | **PASS** |
 | 14 | browser: real backend, decal on the 3D deck | **PASS** |
 | 15 | `npx playwright test` in the clone | **PASS**, 37/37, 76.5 s |
-| — | **HUMAN GATE** | pending |
-| 16–17 | one authorised real generation | **NOT RUN** — awaiting authorisation |
-| 18 | `stop-demo.ps1`; ports released; no orphans | **PASS** |
+| — | **HUMAN GATE** | **passed** — Kylian authorised the fix and the generation |
+| 16–17 | **one authorised real generation** | **PASS** — see [`real-output.md`](real-output.md) |
+| 18 | `stop-demo.ps1`; ports released; no orphans | **PASS** (run again after the generation) |
 
 ## The blocking defect: a frozen hash that fails on every clean clone
 
@@ -76,11 +86,34 @@ The irony is recorded honestly: M6 identified `core.autocrlf` as exactly this ha
 afterwards, and no clean clone had been attempted until now. **This is precisely the class of
 defect a clean-clone test exists to find, and it was found on the first attempt.**
 
-### Not fixed in this session
+### How it was fixed — and the cascade that shaped the fix
 
-The fix is one constant, but it changes a value documented as **frozen** across M6 evidence, so it
-is **Kylian's decision** and is taken to the human gate together with the generation
-authorisation. Two options are prepared; nothing has been changed.
+Kylian's decision at the gate: **re-record against what Git actually stores.** Implementing it
+naively would have caused real damage, which the investigation caught first.
+
+`DATASET_V1_SHA256` is not only used by this test. It is mixed into `kit_fingerprint()` — locked at
+`fc11d828…` and cited across M6 evidence as unchanged — and it is recorded as `dataset_version` in
+**every M6 training run**. Repointing it would have moved the frozen fingerprint and desynchronised
+every recorded run's dataset version, for what is only a line-ending representation.
+
+So the two questions were separated, because they are genuinely different questions:
+
+| constant | answers | status |
+|---|---|---|
+| `DATASET_V1_SHA256` = `cd18cbb0…` | *which dataset configuration was M6 run against?* | **unchanged** — an identifier |
+| `DATASET_V1_CONTENT_SHA256` = `b38996ae…` | *has the content been modified?* | **new** — the integrity check |
+
+The check now hashes the content with line endings normalised to LF, via
+`style_kit.sha256_dataset_content()`, so it is **independent of the checkout** — `core.autocrlf`,
+`.gitattributes` and the host platform cannot move it. The working copy was also normalised to LF,
+which produced **zero Git diff** because the blob was already LF.
+
+Four tests were added: the content check itself, one proving the hash is line-ending independent,
+one proving it still detects a real content edit (so normalising did not make it blind), and one
+asserting the two constants have **not** been collapsed into one. `kit_fingerprint()` verified
+still `fc11d828…`; `dataset_version` still `cd18cbb05307`.
+
+**Re-verified in this clone: 468 passed, 5 skipped, 0 failed.**
 
 ## Note on step 2: `deliverables/` appears in the clone
 
@@ -154,6 +187,8 @@ NVIDIA GeForce RTX 4060 Laptop GPU, driver 610.88, 8188 MiB · Windows 11 Home 1
 
 ## Status
 
-**The clean clone is currently retained** at `C:\Expert Lab\DeckForge-M8-clean-clone` so the
-authorised generation can run in it without repeating the ten-minute setup. It is deleted after the
-gate resolves.
+**Complete.** The clean-clone directory has been **deleted**. It is regenerable in ~10 minutes by
+following `docs/deployment/runbook.md`, which is the entire point of the exercise.
+
+The one authorised generation ran inside it before deletion and reproduced M7's Phase A output
+**byte-for-byte** — see [`real-output.md`](real-output.md).

@@ -4,6 +4,96 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-09 — M8.8: the human gate, the hash fix, and one authorised generation
+
+**Objective.** Resolve the three decisions the clean clone surfaced, then satisfy the real-output
+criterion with exactly one generation.
+
+**Kylian's three decisions at the gate.**
+
+1. **Frozen hash** — re-record against what Git actually stores.
+2. **Generation** — **authorised**, one run.
+3. **Transitive pins** — fix the misleading comment, move no versions.
+
+### The hash fix, and the cascade that shaped it
+
+Implementing decision 1 naively would have caused real damage, and the investigation caught it
+before anything was changed. `DATASET_V1_SHA256` is **not only** used by the failing test: it is
+mixed into `kit_fingerprint()` — locked at `fc11d828…` and cited across M6 evidence as unchanged —
+and it is recorded as `dataset_version` in **every M6 training run**. Repointing it would have
+moved the frozen fingerprint and desynchronised every recorded run, for what is only a line-ending
+representation.
+
+So the two questions were separated, because they are different questions:
+
+| constant | answers | status |
+|---|---|---|
+| `DATASET_V1_SHA256` = `cd18cbb0…` | which dataset configuration was M6 run against? | **unchanged** — an identifier |
+| `DATASET_V1_CONTENT_SHA256` = `b38996ae…` | has the content been modified? | **new** — the integrity check |
+
+`sha256_dataset_content()` normalises line endings before hashing, so the check is **independent of
+the checkout** — `core.autocrlf`, `.gitattributes` and the host platform cannot move it. The
+working copy was normalised to LF, producing **zero Git diff** because the blob was already LF.
+
+Four tests added: the check itself · one proving line-ending independence · one proving it **still
+detects a real content edit**, so normalising did not make it blind · one asserting the two
+constants have not been collapsed into one. Verified after: `kit_fingerprint()` still `fc11d828…`,
+`dataset_version` still `cd18cbb05307`, **473 pytest locally**, and in the clean clone **468 passed,
+5 skipped, 0 failed** (the skips are pre-existing conditional skips for git-ignored assets;
+468 + 5 = 473).
+
+### The authorised generation — PASS
+
+Driven **from the browser**, not curl: a curl call proves prompt → API → model → PNG, but the
+criterion is the whole chain, and only a browser run also proves PNG → frontend → 3D deck.
+`minimal-geometric`, prompt-only, seed 42, defaults.
+
+HTTP 200 · `MYOcI34c3yfyj2z1YtKAtA` · 30/30 steps · EXP-027 step 300, adapter hash matching the
+gate-2 record · `generate_seconds` **16.649** · browser wall **63.16 s** including the cold load ·
+peak allocated **5143.73 MiB** · spare **218.0 MiB** · 1 `POST /api/generate` · **0 console errors**.
+
+**The strongest result of the milestone: the clean clone reproduced M7's Phase A output
+byte-for-byte.** Same sha256 `46bbf160e427…`, same 1 089 939 bytes, a freshly built environment
+three days later. Verified two ways — `sha256sum` on both files, and the service's own recorded
+`image_sha256`.
+
+**This does not contradict R14 and must never be quoted as if it did.** R14 is about *training* not
+being bit-reproducible from seed. This is *inference*: a fixed adapter plus a fixed seed and
+settings is deterministic and portable. Different halves of the pipeline; both statements true. It
+is also independent corroboration that the restored adapter is the right file — a different adapter
+could not have produced those bytes.
+
+`peak_allocated_mb` 5143.73 is byte-identical to EXP-019b and EXP-034 across three milestones.
+**`spare_device_mb` 218.0 does NOT supersede the 200.0 MiB ceiling** — 218.0 is the prompt-only
+path, and 200.0 belongs to the reference-conditioned path this run deliberately did not use.
+
+The cold-load screenshot captured DR-013's rule in a real cold start: stage name, *"No step
+percentage at this stage"*, no invented bar.
+
+**Generation count is now 27** — 25 research + Kylian's M7 review run + this deployment validation.
+**Stated as 27, never rounded back to 25.** It has **no `EXP-###`** and is **not** in
+`experiments/registry.csv`.
+
+**Decisions taken here.**
+
+1. **The two hash constants stay separate**, with a test asserting they are not merged.
+2. **The 1 MB PNG is not committed.** Generated images live in git-ignored `outputs/` in this
+   project and it would be larger than anything tracked under `docs/evidence/`. Its hash is
+   recorded in three places, the screenshots show the result and the deck, and it is byte-identical
+   to an already-recorded Phase A file.
+3. **The original clean-clone failure is preserved in the evidence**, not edited out. It is the most
+   valuable thing the test produced.
+
+**Afterwards.** Both processes stopped, all ports released, no orphans, and the **4.9 GB clean-clone
+directory deleted** — regenerable in ~10 minutes from the runbook, which is the point.
+
+**Evidence.** `docs/evidence/M8/clean-clone/real-output.md` + `real-output/`, and the updated
+`log.md`.
+
+**Next step.** M8.10 — feature freeze, documentation, traceability and closure.
+
+---
+
 ## 2026-08-09 — M8.7: the clean-clone test, and the defect it found on the first attempt
 
 **Objective.** Prove a third party can clone the repository and reach a working system, using no
