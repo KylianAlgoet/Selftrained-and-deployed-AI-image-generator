@@ -247,10 +247,55 @@ MAX_TRAINING_RUNS = 12
 
 # --- Read-only guarantee -----------------------------------------------------
 
-# dataset-v1 is opened read-only for the whole of M6. A test asserts the file is
-# byte-identical to this hash at every point, so "we did not modify the dataset"
-# is verifiable rather than asserted.
+# dataset-v1 is opened read-only for the whole of M6. A test asserts the content
+# is unchanged at every point, so "we did not modify the dataset" is verifiable
+# rather than asserted.
+#
+# THE M6 IDENTIFIER. Recorded on 2026-08-04 from the working copy on the
+# development machine, which held CRLF line endings. It is mixed into
+# `kit_fingerprint()` and is recorded as `dataset_version` in every M6 training
+# run, so it is an IDENTIFIER OF THE M6 CONFIGURATION and is deliberately left
+# exactly as it was. Changing it would move the frozen kit fingerprint
+# (`fc11d828...`) that M6 evidence cites as unchanged, and would make new runs
+# record a different `dataset_version` than the runs they must stay comparable
+# with - a large cost for what is only a line-ending representation.
+#
+# IT IS NOT THE INTEGRITY CHECK. Use DATASET_V1_CONTENT_SHA256 for that.
 DATASET_V1_SHA256 = "cd18cbb05307b2534137fd1b22a9d51943ff568d7124132b07e5d0f866477ac0"
+
+# THE INTEGRITY CHECK, and the one a clean clone can actually satisfy.
+#
+# Found by M8's clean-clone test: the constant above hashes the DEVELOPMENT
+# MACHINE'S WORKING COPY (63 152 bytes, CRLF), not what Git stores. The blob is
+# 63 003 bytes with LF, so `sha256_file` returns a different value on every
+# fresh clone and the read-only check FAILED everywhere except the one machine
+# holding the pre-`.gitattributes` bytes. An integrity control that only passes
+# on its author's machine is not an integrity control.
+#
+# This hash is taken over the content with line endings normalised to LF, so it
+# is INDEPENDENT OF THE CHECKOUT: `core.autocrlf`, `.gitattributes` and the host
+# platform cannot change it. It also equals the sha256 of the Git blob, because
+# the blob is already LF.
+#
+# The content is provably identical between the two representations - the
+# 149-byte difference is exactly the 149 lines (148 items + header).
+DATASET_V1_CONTENT_SHA256 = (
+    "b38996ae44d85ceefcf6541b8a94d4d6603c246af1348442b4d9d89cbd10bf50"
+)
+
+
+def sha256_dataset_content(path) -> str:
+    """SHA-256 of a text file's content, normalised to LF.
+
+    Deliberately not `sha256_file`. A raw byte hash of a text file under Git is
+    a hash of the CHECKOUT, not of the content, and this project already lost an
+    integrity check to that distinction once.
+    """
+    import hashlib
+    from pathlib import Path as _Path
+
+    raw = _Path(path).read_bytes()
+    return hashlib.sha256(raw.replace(b"\r\n", b"\n")).hexdigest()
 
 # --- Fingerprint --------------------------------------------------------------
 

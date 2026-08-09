@@ -55,9 +55,70 @@ def test_fingerprint_is_sensitive_to_change(monkeypatch):
 # --- dataset v1 is read-only -------------------------------------------------
 
 
-def test_dataset_v1_is_byte_identical_to_the_recorded_hash():
-    """M6 must not modify dataset v1. Verified, not asserted in prose."""
-    assert sha256_file(DATASET_MANIFEST) == style_kit.DATASET_V1_SHA256
+def test_dataset_v1_content_is_unchanged():
+    """dataset-v1 must not be modified. Verified, not asserted in prose.
+
+    Checks the CONTENT hash, normalised to LF, rather than the raw bytes.
+
+    Why, recorded because it was a real defect: until M8 this test compared
+    `sha256_file` against `DATASET_V1_SHA256`, and that constant was taken from
+    the development machine's working copy, which holds CRLF. Git stores the
+    file with LF, so the check FAILED on every fresh clone and passed only on
+    the one machine with the pre-`.gitattributes` bytes. M8's clean-clone test
+    found it on the first attempt. An integrity control that only passes on its
+    author's machine proves nothing.
+    """
+    assert style_kit.sha256_dataset_content(DATASET_MANIFEST) == (
+        style_kit.DATASET_V1_CONTENT_SHA256
+    )
+
+
+def test_the_content_hash_is_independent_of_line_endings(tmp_path):
+    """The property that makes the check survive any checkout.
+
+    Without this, the fix above is just a different hard-coded value and the
+    next `core.autocrlf` surprise breaks it again.
+    """
+    body = b"id,style\n1,ukiyo-e\n2,retro-poster\n"
+    lf = tmp_path / "lf.csv"
+    crlf = tmp_path / "crlf.csv"
+    lf.write_bytes(body)
+    crlf.write_bytes(body.replace(b"\n", b"\r\n"))
+
+    assert lf.read_bytes() != crlf.read_bytes()
+    assert sha256_file(lf) != sha256_file(crlf)
+    assert style_kit.sha256_dataset_content(lf) == style_kit.sha256_dataset_content(crlf)
+
+
+def test_the_content_hash_still_detects_a_real_edit(tmp_path):
+    """Normalising line endings must not make the check blind to content."""
+    original = DATASET_MANIFEST.read_bytes()
+    tampered = tmp_path / "tampered.csv"
+    tampered.write_bytes(original.replace(b"ukiyo-e", b"ukiyo-E", 1))
+
+    assert style_kit.sha256_dataset_content(tampered) != (
+        style_kit.DATASET_V1_CONTENT_SHA256
+    )
+
+
+def test_the_m6_identifier_is_deliberately_not_the_integrity_check():
+    """`DATASET_V1_SHA256` is frozen as an IDENTIFIER and must stay put.
+
+    It is mixed into `kit_fingerprint()` and recorded as `dataset_version` in
+    every M6 training run. Repointing it at the content hash would move the
+    frozen kit fingerprint that M6 evidence cites as unchanged, and would make
+    future runs record a different dataset version than the runs they must stay
+    comparable with. The two constants answer different questions and this test
+    asserts they have not been collapsed into one.
+    """
+    assert style_kit.DATASET_V1_SHA256 != style_kit.DATASET_V1_CONTENT_SHA256
+    assert style_kit.DATASET_V1_SHA256.startswith("cd18cbb0")
+    assert style_kit.DATASET_V1_CONTENT_SHA256.startswith("b38996ae")
+
+
+def test_the_dataset_still_holds_the_148_recorded_items(dataset_rows):
+    """The content claim behind the hash change, checked independently of it."""
+    assert len(dataset_rows) == 148
 
 
 # --- trigger tokens ----------------------------------------------------------

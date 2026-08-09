@@ -109,9 +109,15 @@ def write_manifest(rows: list[dict], path: Path) -> None:
 
 
 def main() -> int:
-    before = sha256_file(DATASET_MANIFEST)
-    if before != style_kit.DATASET_V1_SHA256:
-        print(f"FAIL: dataset-v1 hash {before} != frozen {style_kit.DATASET_V1_SHA256}")
+    # Content hash, normalised to LF. A raw byte hash of a text file under Git
+    # is a hash of the CHECKOUT, not of the content - it made this same check
+    # fail on every clean clone until M8 found it.
+    before = style_kit.sha256_dataset_content(DATASET_MANIFEST)
+    if before != style_kit.DATASET_V1_CONTENT_SHA256:
+        print(
+            f"FAIL: dataset-v1 content hash {before} != "
+            f"frozen {style_kit.DATASET_V1_CONTENT_SHA256}"
+        )
         return 1
     print(f"dataset-v1 verified read-only at {before[:16]}...")
 
