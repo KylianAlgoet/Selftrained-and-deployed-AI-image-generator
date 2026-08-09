@@ -109,36 +109,79 @@ test.describe('user decal upload', () => {
     const canvas = page.locator('.viewer-wrapper canvas')
     await expect(canvas).toBeVisible()
 
-    // Orbit the deck away from its default pose.
+    /**
+     * Wait until the scene stops changing on its own.
+     *
+     * R3F needs a few frames to settle, and orbiting a scene that is still
+     * fading in makes every later pixel comparison meaningless - the frame
+     * would differ because of the fade, not because of the camera.
+     */
+    const settle = async () => {
+      let previous = await canvas.screenshot()
+      for (let attempt = 0; attempt < 20; attempt += 1) {
+        await page.waitForTimeout(250)
+        const current = await canvas.screenshot()
+        if (Buffer.compare(previous, current) === 0) return current
+        previous = current
+      }
+      return previous
+    }
+
+    const atRest = await settle()
+
+    // Orbit the deck away from its default pose. Slow, with the pointer moved
+    // onto the canvas first: OrbitControls listens for pointerdown on the
+    // canvas, and a drag that starts before the pointer has arrived is silently
+    // ignored.
     const box = await canvas.boundingBox()
     if (!box) throw new Error('the viewer canvas has no layout box')
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+    const cx = box.x + box.width / 2
+    const cy = box.y + box.height / 2
+    await page.mouse.move(cx, cy)
+    await page.waitForTimeout(100)
     await page.mouse.down()
-    await page.mouse.move(box.x + box.width / 2 + 120, box.y + box.height / 2 + 60, { steps: 12 })
+    await page.mouse.move(cx + 60, cy + 30, { steps: 15 })
+    await page.mouse.move(cx + 130, cy + 65, { steps: 15 })
+    await page.waitForTimeout(100)
     await page.mouse.up()
-    await page.waitForTimeout(300)
 
-    // The canvas is the only stable handle on camera state from outside the
-    // React tree, so the comparison is a rendered-pixel one: replacing a texture
-    // must change the decal without moving the viewpoint.
-    const before = await canvas.screenshot()
+    const orbitedBefore = await settle()
 
+    /**
+     * PRECONDITION, and the reason this test was rewritten in M8.
+     *
+     * The original version never checked that the drag registered. If the orbit
+     * silently did nothing, the camera stayed at its default, "Reset view"
+     * became a no-op, and the final assertion failed with a message claiming
+     * the texture swap had reset the camera - reporting a drag that never
+     * happened as a regression that never happened. This project's own rule is
+     * that "not measured" and "failed" must not share a code path.
+     *
+     * This failure was reproduced locally by removing the SwiftShader launch
+     * flags, which is the closest available approximation of a GPU-less CI
+     * runner.
+     */
+    expect(
+      Buffer.compare(atRest, orbitedBefore),
+      'the orbit drag did not change the rendered frame, so the camera never moved. ' +
+        'This test cannot say anything about camera preservation until the drag ' +
+        'registers - it is NOT evidence that the texture swap reset the view.',
+    ).not.toBe(0)
+
+    // The artwork changes...
     await page.locator('#decal-upload').setInputFiles(DECAL_PNG)
     await expect(page.getByLabel('Decal on the deck')).toBeVisible()
-    await page.waitForTimeout(500)
-    const after = await canvas.screenshot()
+    const afterUpload = await settle()
+    expect(Buffer.compare(orbitedBefore, afterUpload)).not.toBe(0)
 
-    // Different artwork, so the images must differ...
-    expect(Buffer.compare(before, after)).not.toBe(0)
-
-    // ...but the deck must still be in the orbited pose, not snapped back to the
-    // default. Resetting the view is what the Reset button is for, and pressing
-    // it here must visibly change the frame - which it cannot do if the texture
-    // swap had already reset it.
-    const orbited = await canvas.screenshot()
+    // ...but the viewpoint does not. "Reset view" must still have work to do,
+    // which it cannot if the texture swap had already snapped the camera back.
     await page.getByRole('button', { name: 'Reset view' }).click()
-    await page.waitForTimeout(500)
-    const reset = await canvas.screenshot()
-    expect(Buffer.compare(orbited, reset)).not.toBe(0)
+    const afterReset = await settle()
+    expect(
+      Buffer.compare(afterUpload, afterReset),
+      'pressing Reset view changed nothing, which means the camera was already ' +
+        'at its default pose - the texture swap reset it.',
+    ).not.toBe(0)
   })
 })
