@@ -26,8 +26,27 @@ uvicorn==0.52.1
 python-multipart==0.0.32
 pydantic==2.13.4
 
-# Pulled in by the four above and pinned here so the set is reproducible:
-#   annotated-types==0.8.0
-#   pydantic-core==2.46.4
-#   starlette==1.4.1
-#   typing-inspection==0.4.2
+# TRANSITIVE DEPENDENCIES - OBSERVED, NOT PINNED.
+#
+# These arrive with the four packages above. The versions below are what was
+# INSTALLED on 2026-08-06 on the development machine; they are recorded for
+# traceability and are deliberately NOT constraints. This block previously read
+# "pinned here so the set is reproducible", which was simply false - the lines
+# are comments, so nothing pinned anything.
+#
+# M8's clean-clone test measured the consequence: a fresh install resolved
+# starlette 1.6.0 and numpy 2.4.4 instead. All 473 pytest and 169 vitest tests
+# passed on those versions and `pip check` reported no broken requirements, so
+# the drift is currently harmless - but the file should not claim a guarantee it
+# does not provide.
+#
+# Left unpinned on purpose: adding constraints to transitive packages is a
+# dependency move, and this project's rule is that the validated torch /
+# diffusers / transformers / accelerate / safetensors set is not disturbed
+# without a resolver dry-run and explicit approval. Revisit only with both.
+#
+#   observed 2026-08-06        observed in the M8 clean clone
+#   annotated-types 0.8.0      annotated-types 0.8.0
+#   pydantic-core   2.46.4     pydantic-core   2.46.4
+#   starlette       1.4.1      starlette       1.6.0
+#   typing-inspection 0.4.2    typing-inspection 0.4.2
