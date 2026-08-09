@@ -1,8 +1,123 @@
 # Session handoff
 
-**Last updated:** 2026-08-07 (M7 / Prototype 5 — **COMPLETE**, final human visual gate APPROVED, closed locally, under Opus 5)
+**Last updated:** 2026-08-09 (M8 — testing, deployment, clean-clone validation and demo
+preparation: **COMPLETE**, all six acceptance criteria met, closed locally, under Opus 5)
 
-## M7 (Prototype 5 — integrated MVP): COMPLETE
+## M8: COMPLETE
+
+All six acceptance criteria on issue #9 are met. Index: `docs/evidence/M8/README.md`.
+
+| # | criterion | evidence |
+|---:|---|---|
+| 1 | Backend, frontend and E2E suites pass | `M8/baseline/test-baseline.md`, `M8/tests/playwright-e2e-report.md` |
+| 2 | Upload-security tests pass | `M8/security/upload-security-matrix.md` |
+| 3 | Deployment decision recorded | **DR-014** |
+| 4 | Clean-clone test with real output | `M8/clean-clone/log.md`, `real-output.md` |
+| 5 | Timed demo script | `docs/presentation/demo-script.md` |
+| 6 | Backup demo plan | `docs/presentation/demo-backup-plan.md` |
+
+**M8 is closed LOCALLY ONLY.** Three things remain Kylian's and are **not** done:
+
+1. **the push** — verify with `git status -sb`;
+2. **the GitHub issue #9** — not closed (`gh` unavailable here);
+3. **the project board** — not moved.
+
+**M9 (research report) has not begun.**
+
+### ⚠️ Eight things the next session must not do
+
+1. **Do not push, close issue #9, or move the board** without Kylian saying so.
+2. **The FEATURE FREEZE is in force** (`docs/process/feature-freeze.md`). Blocking bug fixes,
+   documentation, tests and demo prep only. No retraining, new styles, UI redesign, new features,
+   or dependency upgrades without a new decision record.
+3. **Do not run GPU inference.** The total is **27** and no further generation is authorised.
+4. **Do not report the generation count as 25.** It is 25 research + 1 M7 human review + 1 M8
+   deployment validation = **27**. The M8 run has no `EXP-###` and is not in the registry.
+5. **Do not merge `DATASET_V1_SHA256` and `DATASET_V1_CONTENT_SHA256`.** They answer different
+   questions and a test asserts they stay separate — see below.
+6. **Do not claim CI passes.** The workflow is committed and **has never run**.
+7. **Do not run `npm audit fix`.** Three high-severity advisories exist; all are pre-existing,
+   dev-tooling only, and fixing them moves vite/eslint/typescript-eslint under a freeze.
+8. **Do not quote the byte-identical reproduction as contradicting R14.** R14 is about *training*;
+   the M8 result is about *inference*. Different halves of the pipeline.
+
+### The two dataset constants — read before touching either
+
+M8's clean-clone test found that the frozen dataset hash **failed on every clean clone**:
+`DATASET_V1_SHA256` was taken from a CRLF working copy while Git stores LF, so an integrity control
+had only ever passed on the machine that wrote it.
+
+| constant | answers | value | status |
+|---|---|---|---|
+| `DATASET_V1_SHA256` | which dataset configuration was M6 run against? | `cd18cbb0…` | **unchanged** — feeds `kit_fingerprint()` (`fc11d828…`) and every run's `dataset_version` |
+| `DATASET_V1_CONTENT_SHA256` | has the content been modified? | `b38996ae…` | the integrity check, normalised to LF |
+
+Repointing the first would move a frozen fingerprint M6 evidence cites as unchanged. **Do not
+"simplify" this into one constant.**
+
+### Measured position at close
+
+- **473 pytest**, **169 vitest**, **37 Playwright E2E**, eslint clean, build succeeds. **No Python
+  linter is installed.** A clean clone runs **468 passed / 5 skipped** (pre-existing conditional
+  skips for git-ignored assets; 468 + 5 = 473).
+- **The clean clone reproduced M7's Phase A output byte-for-byte** — sha256 `46bbf160e427…`,
+  1 089 939 bytes, fresh environment, three days later.
+- `peak_allocated_mb` **5143.73** — byte-identical across EXP-019b, EXP-034 and the M8 run.
+- The M8 run's `spare_device_mb` **218.0 is the prompt-only figure** and does **not** supersede the
+  **200.0 MiB** reference-conditioned production ceiling.
+- The three production checkpoints re-verified on disk: 3/3 match, 6 414 480 bytes each.
+- Clean-clone directory **deleted**; regenerable in ~10 minutes from `docs/deployment/runbook.md`.
+
+### Five defects M8 found — do not "re-discover" these
+
+1. **The frozen dataset hash only ever passed locally** (fixed, above).
+2. **`.env.example` documented five variables nothing reads**, two implying upload security rules
+   were configurable. Fixed; a pytest now derives the permitted set from `config.py` by AST.
+3. **The audited Node version was stale** — v20.18.0 recorded, **v24.18.0** actual. Corrected;
+   the `vite.config.ts` jsdom comment was rewritten. **The jsdom pin itself was not moved.**
+4. **`apps/api/requirements.txt` claimed a pin it did not make** — four "pinned" lines were
+   comments. Comment fixed; **versions deliberately not changed** under the freeze.
+5. **`uvicorn --workers 1` starts TWO processes** — a supervisor and a worker. `/api/health`
+   reports the *worker's* pid, not the one `start-demo.ps1` launched, and stopping only the
+   recorded pid strands the worker on port 8000. `stop-demo.ps1` stops the tree.
+
+### Start commands
+
+```powershell
+.\scripts\preflight.ps1      # 10 checks incl. the three adapter hashes
+.\scripts\start-demo.ps1     # API (one worker) + frontend, prints the URL
+.\scripts\stop-demo.ps1      # stops only what it started, verifies ports
+```
+
+Full procedure: `docs/deployment/runbook.md`. `?review=1` still restores the two review tools.
+
+### Open items, all deliberate
+
+| item | why |
+|---|---|
+| CI has never run | committed, not pushed — Kylian's call |
+| 3 npm advisories | dev-tooling only, pre-existing, freeze |
+| Transitive Python versions unpinned | comment fixed; pinning is a dependency move |
+| No screen recording for the demo | must be a real session or it does not exist |
+| External weight backup not exercised | the clean clone restored from the working repo; the *mechanism* is validated, the **external drive is not** |
+| Pre-warm before the presentation? | costs generation 28 — Kylian's call |
+
+### Next milestone
+
+**M9 — research report. NOT STARTED.** It inherits: 473/169/37 passing, DR-001…DR-014, EXP-001…
+EXP-035, a **27** generation total, eight accepted limitations, and five M8 defect stories that are
+strong D5/D6 material — particularly the integrity check that had only ever passed on its author's
+machine.
+
+---
+
+## Prior state — M7 (Prototype 5 — integrated MVP): COMPLETE 2026-08-07
+
+*Historical section, superseded by the M8 section above. Its "nine things the next session
+must not do" were written for the M8 session and have been acted on: M8 is complete, the
+generation question was resolved at the M8 gate (total now **27**), and the Playwright layer
+it lists as not existing now exists with 37 scenarios.*
+
 
 **Approved by Kylian Algoet at the final human visual gate on 2026-08-07 — 12 of 12 manual
 acceptance items PASS.** Record: `docs/evidence/prototype-5/FINAL-GATE-approval.md`.

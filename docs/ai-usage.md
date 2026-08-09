@@ -10,6 +10,44 @@ Honest record of how Claude Code (Anthropic) is used in this project, per sessio
 
 ## Session log
 
+### 2026-08-09 — M8: testing, deployment, clean-clone validation, demo preparation
+
+**AI assistance:** re-measuring the four gates and diagnosing the stale Node audit entry; writing
+35 backend and 4 frontend security tests; building the Playwright suite (config, JSON fixtures, a
+pytest contract guard, 37 scenarios); drafting DR-014; writing four PowerShell scripts, the
+deployment runbook and the weights manifest with its pytest guard; the CI workflow; executing the
+clean-clone validation and diagnosing its failure; implementing the approved hash fix; driving the
+one authorised generation; drafting the demo script, the backup plan, the feature-freeze record and
+this milestone's evidence.
+
+**Student decisions.** Four before implementation: re-baseline on Node 24 rather than reinstalling
+Node 20 · native local deployment plus backup assets, rejecting Docker · Playwright with Chromium
+only · CI committed locally but not pushed. Three at the mid-milestone gate: how to fix the frozen
+dataset hash · **authorising the single real generation** · fixing the misleading requirements
+comment without moving versions.
+
+**What the AI did NOT decide.** It did not authorise the generation, and did not run one before
+asking. When the clean clone failed on a value documented as frozen, it diagnosed the cause,
+prepared two options and **stopped** — because repointing that constant would have moved
+`kit_fingerprint()` and every M6 run's recorded `dataset_version`, which is not an assistant's call
+to make. It did not run `npm audit fix`, did not pin transitive dependencies, and did not push.
+
+**Where the AI's own work was wrong, and how it was caught.** Four Playwright assertions failed on
+first run — an ambiguous selector, an expected `1.3008×` where the component renders `1.301×`, a
+style the test never selected, and a string that also lives in the aria-live region — all test
+defects, not application defects. A regex-based fixture reader was written, failed on real
+TypeScript, and was **replaced by storing the fixtures as JSON** rather than patched. A non-English
+string reached a PowerShell error message and was corrected, with a scan confirming no others. A
+mojibake ellipsis in a generated manifest was traced to PowerShell 5.1's ANSI handling and fixed.
+The approved plan's CI skip-marker was dropped after checking disproved its premise.
+
+**Verification status:** every figure quoted in M8 is from a command that ran in this session —
+473 pytest, 169 vitest, 37 Playwright (twice), eslint, build, all four scripts, and the clean-clone
+sequence. The byte-identical reproduction was verified two independent ways (`sha256sum` on both
+files and the service's own recorded `image_sha256`). **The CI workflow has never executed**, and
+its evidence record says so in its opening lines. **No generation was ever run by an assistant
+without explicit authorisation**; the total is 27 and is reported as 27.
+
 ### 2026-08-07 — M7 closure at the final human visual gate
 
 **AI assistance:** stopping the review servers and verifying the ports were released; recording

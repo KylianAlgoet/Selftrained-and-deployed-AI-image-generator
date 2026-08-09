@@ -4,6 +4,78 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-09 — M8 CLOSED: all six acceptance criteria met
+
+### Milestone report
+
+**MILESTONE:** M8 — testing, deployment, clean-clone validation and demo preparation.
+
+**STATUS:** **COMPLETE**, closed **locally only**. Nothing pushed; issue #9 and the project board
+are untouched and remain Kylian's. **M9 has not begun.**
+
+**BRANCH:** `main`.
+
+**RESEARCH QUESTION (RQ12):** how is a locally trained, GPU-bound generator deployed so that it is
+reproducible for a third party and reliable for a live demonstration? **Answered in DR-014:**
+native local deployment on the validated machine plus backup demo assets, with Docker screened out
+on measured constraints and cloud GPU rejected on cost and measurement validity.
+
+**WORK COMPLETED:** baseline re-measured and an environment drift corrected · 35 backend and 4
+frontend upload-security tests · `.env.example` rewritten and AST-guarded · **37 Playwright E2E
+scenarios** with a pytest fixture-contract guard · DR-014 · weights manifest with an 8-test guard ·
+four PowerShell scripts (verify-weights, preflight, start-demo, stop-demo) · deployment runbook ·
+README rewritten · non-GPU CI workflow · a real clean-clone validation · the authorised clean-clone
+generation · timed demo script · backup demo plan and asset builder · feature-freeze record.
+
+**TESTS AND VALIDATION**
+
+| gate | M7 close | M8 close |
+|---|---:|---:|
+| pytest | 406 | **473** |
+| vitest | 165 | **169** |
+| Playwright E2E | **0 — did not exist** | **37** |
+| eslint | clean | clean |
+| production build | succeeds | succeeds |
+
+Clean clone: **468 passed, 5 skipped** (pre-existing conditional skips for git-ignored assets;
+468 + 5 = 473). Playwright run twice end to end, no flakes, `retries: 0`.
+
+**ACTUAL RESULTS**
+
+- **The clean clone reproduced M7's Phase A output byte-for-byte** — sha256 `46bbf160e427…`,
+  1 089 939 bytes, fresh environment, three days later, verified two independent ways.
+- `peak_allocated_mb` **5143.73** — byte-identical across EXP-019b, EXP-034 and this run.
+- Clone to running service in **~10 minutes**.
+- The service starts with **`allocated_mb: 0.0`** — lazy loading measured, not asserted.
+- The weight restore path fails loudly when weights are absent (3/3) and passes after restore (3/3).
+
+**FIVE DEFECTS FOUND.** M8 was scoped to verify and it discovered — every one invisible on the
+machine the code was written on. (1) The frozen dataset hash **failed on every clean clone**: it
+hashed a CRLF working copy while Git stores LF, so an integrity control had only ever passed
+locally. (2) `.env.example` documented five variables nothing reads, two implying upload security
+rules were configurable. (3) The audited Node version was stale — 20.18.0 recorded, 24.18.0 actual.
+(4) `apps/api/requirements.txt` claimed a pin it did not make. (5) `uvicorn --workers 1` starts two
+processes, so a naive stop strands the worker on port 8000.
+
+**DECISIONS:** DR-014 · seven at the human gates (Node re-baseline, deployment, Playwright scope,
+CI not pushed, hash fix, generation authorised, requirements comment) · the two dataset constants
+kept separate · the planned CI skip-marker **dropped** after checking disproved its premise · the
+1 MB PNG kept out of Git per project policy.
+
+**RISKS:** **R15** (live demo failure) and **R16** (checkpoints unrestorable) added. R12 updated
+with the container-runtime rejection. R11 noted against CI's Hugging Face dependency.
+
+**PLANNING CHANGES:** M8 complete 2026-08-09, planned Aug 13–15 — four days early on M7's buffer.
+**~11 h actual vs 10 h estimated.**
+
+**RISKS OR BLOCKERS:** none blocking. Open and deliberate: CI has never run · 3 pre-existing npm
+advisories · transitive Python versions unpinned · no screen recording · the **external weight
+backup has not been exercised** (the clone restored from the working repository).
+
+**NEXT ACTION:** Kylian's — the push, issue #9, the board. Then **M9, the research report.**
+
+---
+
 ## 2026-08-09 — M8.8: the human gate, the hash fix, and one authorised generation
 
 **Objective.** Resolve the three decisions the clean clone surfaced, then satisfy the real-output
