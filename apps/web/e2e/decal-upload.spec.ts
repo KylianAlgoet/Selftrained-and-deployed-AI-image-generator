@@ -104,11 +104,12 @@ test.describe('user decal upload', () => {
 
   test('replacing the decal does not reset the camera', async ({ page }) => {
     // This test settles the WebGL canvas four times and screenshots it each
-    // time. On CI that is genuinely expensive - it was measured at 56.3 s
-    // against the 60 s default, which is a pass with almost no headroom rather
-    // than a comfortable one. Raised for THIS test only, on that measurement;
+    // time. On CI that is genuinely expensive: measured at 56.3 s before the
+    // settle helper existed and ~2.3 min with it, on a runner with no GPU.
+    // 150 s would have been a 12 s margin on a 138 s measurement, which is a
+    // flake waiting to happen. Raised for THIS test only, against that number;
     // the suite default stays at 60 s.
-    test.setTimeout(150_000)
+    test.setTimeout(300_000)
 
     await mockApi(page)
     await page.goto('/')

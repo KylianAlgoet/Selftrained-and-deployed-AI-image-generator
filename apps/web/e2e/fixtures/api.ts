@@ -234,6 +234,32 @@ export async function mockApi(
   return controller
 }
 
+/**
+ * Mock a backend that returns one error IMMEDIATELY, with no artificial delay.
+ *
+ * For tests whose subject is error CLASSIFICATION AND RENDERING - does a 409
+ * read as busy rather than broken, does a 504 carry its step counts, does a 503
+ * leak a path - the time the server spends before answering is not part of the
+ * claim. Simulating it only creates a race.
+ *
+ * That race was real. On the CI runner (Windows Server 2025, Chromium on
+ * software WebGL, the suite taking ~15.9 minutes against 84 seconds locally)
+ * even a 200 ms delayed route left the 504 and 503 tests still showing
+ * "Generating..." after the 10 second assertion window, while every assertion
+ * about the error itself was correct. The application classified and rendered
+ * both responses properly; the tests were racing the mock's timer.
+ *
+ * Loading-state-before-a-slow-response is a separate claim and is covered
+ * separately, deterministically, in `progress.spec.ts`.
+ */
+export async function mockImmediateError(
+  page: Page,
+  error: { status: number; body: unknown },
+  options: Omit<ApiMockOptions, 'generateError' | 'generateDelayMs' | 'gateGenerate'> = {},
+): Promise<ApiController> {
+  return mockApi(page, { ...options, generateError: error, generateDelayMs: 0 })
+}
+
 /** A file the browser will refuse to decode, though its type claims PNG. */
 export const CORRUPT_PNG = {
   name: 'broken.png',

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { mockApi } from './fixtures/api'
+import { mockApi, mockImmediateError } from './fixtures/api'
 import {
   ERROR_BUSY,
   ERROR_MODEL_UNAVAILABLE,
@@ -14,11 +14,24 @@ import {
  * single-flight lock working exactly as designed - the GPU holds one resident
  * pipeline with about 200 MiB spare, so refusing is correct behaviour. Showing
  * it as an error would teach a user that a healthy system is broken.
+ *
+ * WHY EVERY TEST HERE ANSWERS IMMEDIATELY.
+ *
+ * These tests are about error classification and rendering, not about how long
+ * the server takes to fail. They previously used a 200 ms artificial delay,
+ * which on the CI runner left the 504 and 503 assertions still looking at
+ * "Generating..." when their 10 second window expired - the application had
+ * classified both responses correctly and the tests were racing a timer that
+ * was never part of the claim. `mockImmediateError` removes it.
+ *
+ * The genuinely time-dependent claim - that a slow response produces a loading
+ * state first - is a different claim, and `progress.spec.ts` proves it
+ * deterministically with a gated response.
  */
 
 test.describe('error handling', () => {
   test('409 is presented as busy, not as a failure', async ({ page }) => {
-    await mockApi(page, { generateDelayMs: 200, generateError: ERROR_BUSY })
+    await mockImmediateError(page, ERROR_BUSY)
     await page.goto('/')
 
     await page.getByLabel('Describe the artwork').fill('a mountain')
@@ -31,19 +44,21 @@ test.describe('error handling', () => {
   })
 
   test('504 reports how far the generation actually got', async ({ page }) => {
-    await mockApi(page, { generateDelayMs: 200, generateError: ERROR_TIMEOUT })
+    await mockImmediateError(page, ERROR_TIMEOUT)
     await page.goto('/')
 
     await page.getByLabel('Describe the artwork').fill('a mountain')
     await page.getByRole('button', { name: 'Generate decal' }).click()
 
     // The step count is what makes the early stop verifiable from the response
-    // rather than inferred from a stopwatch.
+    // rather than inferred from a stopwatch. This test proves the RESPONSE is
+    // rendered; that the service really aborts mid-loop is proven on the GPU by
+    // scripts/validate_p5_api.py phase C, and by the API tests.
     await expect(page.getByText(/stopped after 14 of 30 steps/)).toBeVisible()
   })
 
   test('503 says the model is unavailable and leaks no path', async ({ page }) => {
-    await mockApi(page, { generateDelayMs: 200, generateError: ERROR_MODEL_UNAVAILABLE })
+    await mockImmediateError(page, ERROR_MODEL_UNAVAILABLE)
     await page.goto('/')
 
     await page.getByLabel('Describe the artwork').fill('a mountain')
@@ -60,7 +75,7 @@ test.describe('error handling', () => {
   })
 
   test('422 attaches the message to the field that caused it', async ({ page }) => {
-    await mockApi(page, { generateDelayMs: 200, generateError: ERROR_VALIDATION_PROMPT })
+    await mockImmediateError(page, ERROR_VALIDATION_PROMPT)
     await page.goto('/')
 
     await page.getByLabel('Describe the artwork').fill('   ')
@@ -72,7 +87,7 @@ test.describe('error handling', () => {
   })
 
   test('a network failure is reported without blaming the user', async ({ page }) => {
-    await mockApi(page)
+    await mockApi(page, { generateDelayMs: 0 })
     await page.route('**/api/generate', (route) => route.abort())
     await page.goto('/')
 
@@ -83,7 +98,7 @@ test.describe('error handling', () => {
   })
 
   test('a failed generation leaves the deck and the form usable', async ({ page }) => {
-    await mockApi(page, { generateDelayMs: 200, generateError: ERROR_TIMEOUT })
+    await mockImmediateError(page, ERROR_TIMEOUT)
     await page.goto('/')
 
     await page.getByLabel('Describe the artwork').fill('a mountain')
