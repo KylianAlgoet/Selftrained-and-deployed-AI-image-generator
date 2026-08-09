@@ -12,12 +12,12 @@ Source: `outputs\prototype-5`
 
 | file | bytes | sha256 |
 |---|---:|---|
-| `P5__minimal-geometric__promptonly__seed42.png` | 1089939 | `46bbf160e4270429â€¦` |
-| `P5__minimal-geometric__ref__seed42.png` | 781632 | `5e5f672883191742â€¦` |
-| `P5__retro-poster__promptonly__seed42.png` | 1335731 | `4a2c11423def6deeâ€¦` |
-| `P5__retro-poster__ref__seed42.png` | 937052 | `b4561151ac82d1e3â€¦` |
-| `P5__ukiyo-e__promptonly__seed42.png` | 1673759 | `0b98f1c76d6aa976â€¦` |
-| `P5__ukiyo-e__ref__seed42.png` | 1129915 | `76fadc5de18d3687â€¦` |
+| `P5__minimal-geometric__promptonly__seed42.png` | 1089939 | `46bbf160e4270429...` |
+| `P5__minimal-geometric__ref__seed42.png` | 781632 | `5e5f672883191742...` |
+| `P5__retro-poster__promptonly__seed42.png` | 1335731 | `4a2c11423def6dee...` |
+| `P5__retro-poster__ref__seed42.png` | 937052 | `b4561151ac82d1e3...` |
+| `P5__ukiyo-e__promptonly__seed42.png` | 1673759 | `0b98f1c76d6aa976...` |
+| `P5__ukiyo-e__ref__seed42.png` | 1129915 | `76fadc5de18d3687...` |
 
 ## screenshots-ui
 
@@ -25,17 +25,17 @@ Source: `docs\evidence\prototype-5\screenshots\ui`
 
 | file | bytes | sha256 |
 |---|---:|---|
-| `01-idle-production.jpg` | 58614 | `8fd25b06b6594871â€¦` |
-| `02-loading-model.jpg` | 64684 | `b25d99c257cc758eâ€¦` |
-| `03-denoising.jpg` | 68044 | `09af4560bbacb344â€¦` |
-| `04-finalising-eta-expired.jpg` | 66840 | `356f3c3d48091d1bâ€¦` |
-| `05-success-result.jpg` | 64498 | `246220c567fbe5f9â€¦` |
-| `06-error-timeout.jpg` | 65878 | `2fc96587cb96dd1câ€¦` |
-| `07-responsive-1024-768.jpg` | 82731 | `22c19b7da5cf09e8â€¦` |
-| `08-responsive-1440-390.jpg` | 87515 | `4f08803cffdefb37â€¦` |
-| `09-review-mode.jpg` | 50580 | `46ac7952f493f7c0â€¦` |
-| `10-upload-own-decal.jpg` | 53317 | `548cd1f194000671â€¦` |
-| `11-upload-failure-preserves-decal.jpg` | 64324 | `8b006b8dc1aac175â€¦` |
+| `01-idle-production.jpg` | 58614 | `8fd25b06b6594871...` |
+| `02-loading-model.jpg` | 64684 | `b25d99c257cc758e...` |
+| `03-denoising.jpg` | 68044 | `09af4560bbacb344...` |
+| `04-finalising-eta-expired.jpg` | 66840 | `356f3c3d48091d1b...` |
+| `05-success-result.jpg` | 64498 | `246220c567fbe5f9...` |
+| `06-error-timeout.jpg` | 65878 | `2fc96587cb96dd1c...` |
+| `07-responsive-1024-768.jpg` | 82731 | `22c19b7da5cf09e8...` |
+| `08-responsive-1440-390.jpg` | 87515 | `4f08803cffdefb37...` |
+| `09-review-mode.jpg` | 50580 | `46ac7952f493f7c0...` |
+| `10-upload-own-decal.jpg` | 53317 | `548cd1f194000671...` |
+| `11-upload-failure-preserves-decal.jpg` | 64324 | `8b006b8dc1aac175...` |
 
 ## screenshots-deck
 
@@ -43,9 +43,9 @@ Source: `docs\evidence\prototype-5\screenshots`
 
 | file | bytes | sha256 |
 |---|---:|---|
-| `fit-full-surface.jpg` | 48571 | `98190729bd2215e8â€¦` |
-| `fit-without-stretch.jpg` | 49047 | `74587f7574d6820fâ€¦` |
-| `orientation-reference.jpg` | 54549 | `e6d2914fad372b5câ€¦` |
+| `fit-full-surface.jpg` | 48571 | `98190729bd2215e8...` |
+| `fit-without-stretch.jpg` | 49047 | `74587f7574d6820f...` |
+| `orientation-reference.jpg` | 54549 | `e6d2914fad372b5c...` |
 
 ## screenshots-clone
 
@@ -53,8 +53,8 @@ Source: `docs\evidence\M8\clean-clone\screenshots`
 
 | file | bytes | sha256 |
 |---|---:|---|
-| `01-clean-clone-idle.jpg` | 86556 | `9445a826de0b3c85â€¦` |
-| `02-clean-clone-uploaded-decal.jpg` | 85664 | `cce13af6ed3d77f8â€¦` |
+| `01-clean-clone-idle.jpg` | 86556 | `9445a826de0b3c85...` |
+| `02-clean-clone-uploaded-decal.jpg` | 85664 | `cce13af6ed3d77f8...` |
 
 ## records
 
@@ -62,7 +62,7 @@ Source: `docs\evidence\prototype-5`
 
 | file | bytes | sha256 |
 |---|---:|---|
-| `api-validation.jsonl` | 13335 | `34758da26d5c0e4eâ€¦` |
+| `api-validation.jsonl` | 13335 | `34758da26d5c0e4e...` |
 
 ---
 

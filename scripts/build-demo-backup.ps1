@@ -79,7 +79,9 @@ foreach ($set in $sets) {
     foreach ($file in $files) {
         Copy-Item $file.FullName -Destination $target -Force
         $hash = (Get-FileHash $file.FullName -Algorithm SHA256).Hash.ToLower()
-        $lines += ("| ``{0}`` | {1} | ``{2}…`` |" -f $file.Name, $file.Length, $hash.Substring(0, 16))
+        # ASCII only. PowerShell 5.1 reads a .ps1 without a BOM as ANSI, so a
+        # literal ellipsis here comes out of the file as mojibake.
+        $lines += ("| ``{0}`` | {1} | ``{2}...`` |" -f $file.Name, $file.Length, $hash.Substring(0, 16))
         $total++
     }
     $lines += ""
