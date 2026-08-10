@@ -1,0 +1,73 @@
+# Research report metadata and section order.
+#
+# `sections` is the report's spine: the 26 sections mandated by Prompt 5 of
+# docs/prompts/DeckForge_AI_Final_Claude_Code_Prompts.md, in order, plus the front
+# matter a professional report needs but the assignment does not mandate.
+#
+# The build includes each section whose file exists and reports how many of the 26
+# are authored. `--strict` (used from M9.11 onward) requires all of them. Nothing is
+# stubbed: a section that has not been written is absent, not filled with a
+# placeholder, so "authored 4 of 26" is always a true statement.
+
+document:
+  title: DeckForge AI
+  subtitle: Self-trained and Deployed AI Image Generator for Skateboard Decals
+  document_type: Bachelor Research Report
+  author: Kylian Algoet
+  programme: Multimedia & Creative Technologies
+  institution: Erasmushogeschool Brussel
+  assignment: Final bachelor resit assignment
+  # No course code appears in any authoritative repository or assignment record,
+  # so none is stated here. See docs/evidence/M9/evidence-audit.md.
+  repository: https://github.com/KylianAlgoet/Selftrained-and-deployed-AI-image-generator
+  planning: https://github.com/users/KylianAlgoet/projects/1
+  submission_deadline: 2026-08-17 06:00 Europe/Brussels
+
+# Front matter. Not mandated by the assignment; present because a 45-60 page
+# report needs a cover, a document-control block and a table of contents.
+# The cover is rendered entirely from the `document:` block above by
+# templates/cover.html.j2, so it has no Markdown source. Those two files are the
+# only ones that know what the cover looks like: if a school template arrives
+# before submission, they are what changes, and no chapter is affected (DR-015).
+front_matter:
+  - id: front-matter
+    file: 00-front-matter.md
+    title: Document control
+
+# The 26 mandated sections, in the order Prompt 5 lists them.
+sections:
+  - {n: 1,  id: executive-summary,        file: 01-executive-summary.md,        title: Executive summary}
+  - {n: 2,  id: context,                  file: 02-context-and-assignment.md,   title: Context and assignment}
+  - {n: 3,  id: learning-outcomes,        file: 03-learning-outcomes.md,        title: Learning outcomes}
+  - {n: 4,  id: problem-statement,        file: 04-problem-statement.md,        title: Problem statement}
+  - {n: 5,  id: research-questions,       file: 05-research-questions.md,       title: Research questions}
+  - {n: 6,  id: methodology,              file: 06-methodology.md,              title: Methodology}
+  - {n: 7,  id: planning,                 file: 07-planning.md,                 title: Planning, original and changed}
+  - {n: 8,  id: architecture,             file: 08-architecture-research.md,    title: Architecture research}
+  - {n: 9,  id: model-comparison,         file: 09-model-and-fine-tuning.md,    title: Model and fine-tuning comparison}
+  - {n: 10, id: dataset,                  file: 10-dataset-and-licences.md,     title: Dataset methodology and licences}
+  - {n: 11, id: prototypes,               file: 11-prototypes.md,               title: Prototypes}
+  - {n: 12, id: failed-experiments,       file: 12-failed-experiments.md,       title: Failed and blocked experiments}
+  - {n: 13, id: experiment-results,       file: 13-experiment-results.md,       title: Experiment results}
+  - {n: 14, id: integrated-mvp,           file: 14-integrated-mvp.md,           title: The integrated MVP}
+  - {n: 15, id: testing,                  file: 15-testing.md,                  title: Testing}
+  - {n: 16, id: deployment,               file: 16-deployment.md,               title: Deployment and reproducibility}
+  - {n: 17, id: ethics,                   file: 17-ethics.md,                   title: Ethics, copyright, privacy and bias}
+  - {n: 18, id: limitations,              file: 18-limitations.md,              title: Limitations}
+  - {n: 19, id: conclusions,              file: 19-conclusions.md,              title: Conclusions}
+  - {n: 20, id: reflection,               file: 20-reflection.md,               title: Reflection}
+  - {n: 21, id: lessons-learned,          file: 21-lessons-learned.md,          title: Lessons learned}
+  - {n: 22, id: differently,              file: 22-what-to-do-differently.md,   title: What should be done differently}
+  - {n: 23, id: future-work,              file: 23-future-work.md,              title: Future work}
+  - {n: 24, id: references,               file: 24-references.md,               title: References}
+  - {n: 25, id: appendices,               file: 25-appendices.md,               title: Appendices}
+  - {n: 26, id: traceability,             file: 26-traceability-d1-d7.md,       title: D1-D7 traceability}
+
+build:
+  output_pdf: deliverables/DeckForge-AI-research-report.pdf
+  output_html: deliverables/DeckForge-AI-research-report.html
+  # Chrome is a build prerequisite (DR-015). These are tried in order.
+  chrome_candidates:
+    - C:/Program Files/Google/Chrome/Application/chrome.exe
+    - C:/Program Files (x86)/Google/Chrome/Application/chrome.exe
+    - C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe

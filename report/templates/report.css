@@ -1,0 +1,415 @@
+/* DeckForge AI research report - print stylesheet.
+ *
+ * Print-first and deliberately restrained: this is a bachelor research report, not
+ * a product page. System fonts only. No web fonts, no remote assets of any kind -
+ * Chrome renders this offline and a missing remote font would silently change the
+ * layout (DR-015).
+ */
+
+/* ------------------------------------------------------------------ tokens --- */
+
+:root {
+  --ink:        #14171a;   /* body text */
+  --ink-soft:   #4a5157;   /* captions, metadata */
+  --ink-faint:  #7c848a;   /* running heads */
+  --rule:       #c9cfd4;
+  --rule-soft:  #e4e8eb;
+  --accent:     #1f4b7a;   /* DeckForge blue, used sparingly */
+  --accent-dim: #eef3f8;
+  --warn:       #8a5300;   /* partial-pass and limitation callouts */
+  --warn-dim:   #fdf6ea;
+  --paper:      #ffffff;
+
+  --serif: Georgia, "Times New Roman", serif;
+  --sans:  "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  --mono:  Consolas, "Cascadia Mono", "Courier New", monospace;
+}
+
+/* -------------------------------------------------------------------- page --- */
+
+@page {
+  size: A4;
+  margin: 24mm 20mm 20mm 20mm;
+}
+
+@page :first {
+  margin: 0;
+}
+
+html {
+  font-size: 10.5pt;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  line-height: 1.55;
+  margin: 0;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* ------------------------------------------------------------------- cover --- */
+
+.cover {
+  height: 297mm;
+  padding: 45mm 24mm 22mm;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  break-after: page;
+}
+
+.cover__rule {
+  height: 3px;
+  background: var(--accent);
+  width: 64mm;
+  margin-bottom: 14mm;
+}
+
+.cover__type {
+  font-family: var(--sans);
+  font-size: 10pt;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 6mm;
+}
+
+/* The cover title is an h1 for document semantics, but it takes none of the
+ * chapter-heading chrome below: no rule, no page break, no bottom padding. */
+.cover__title {
+  font-family: var(--sans);
+  font-size: 34pt;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  margin: 0 0 5mm;
+  padding-bottom: 0;
+  border-bottom: none;
+  break-before: avoid;
+}
+
+.cover__subtitle {
+  font-family: var(--serif);
+  font-size: 15pt;
+  font-style: italic;
+  color: var(--ink-soft);
+  line-height: 1.35;
+  margin: 0;
+  max-width: 130mm;
+}
+
+.cover__spacer { flex: 1 1 auto; }
+
+.cover__meta {
+  font-family: var(--sans);
+  font-size: 10pt;
+  line-height: 1.7;
+  border-top: 1px solid var(--rule);
+  padding-top: 6mm;
+}
+
+.cover__meta dt {
+  color: var(--ink-faint);
+  font-size: 8.5pt;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cover__meta dd {
+  margin: 0 0 3mm;
+  color: var(--ink);
+}
+
+/* --------------------------------------------------------- document control --- */
+
+.docinfo {
+  break-after: page;
+}
+
+.docinfo table {
+  font-size: 9.5pt;
+}
+
+/* --------------------------------------------------------------------- toc --- */
+
+.toc { break-after: page; }
+
+.toc ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.toc__item {
+  display: flex;
+  align-items: baseline;
+  gap: 3mm;
+  padding: 1.1mm 0;
+  font-family: var(--sans);
+  font-size: 10pt;
+}
+
+.toc__item--2 {
+  padding-left: 12mm;
+  font-size: 9pt;
+  color: var(--ink-soft);
+}
+
+.toc__num {
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  font-weight: 600;
+  min-width: 8mm;
+}
+
+.toc__dots {
+  flex: 1 1 auto;
+  border-bottom: 1px dotted var(--rule);
+  transform: translateY(-2px);
+}
+
+/* ---------------------------------------------------------------- headings --- */
+
+h1, h2, h3, h4 {
+  font-family: var(--sans);
+  color: var(--ink);
+  break-after: avoid;
+  break-inside: avoid;
+  line-height: 1.25;
+}
+
+h1 {
+  font-size: 20pt;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0 0 6mm;
+  padding-bottom: 3mm;
+  border-bottom: 2px solid var(--accent);
+  break-before: page;
+}
+
+.section:first-of-type h1 { break-before: avoid; }
+
+h1 .section-number {
+  color: var(--accent);
+  margin-right: 3mm;
+}
+
+h2 {
+  font-size: 13pt;
+  font-weight: 600;
+  margin: 8mm 0 3mm;
+}
+
+h3 {
+  font-size: 11pt;
+  font-weight: 600;
+  margin: 6mm 0 2mm;
+  color: var(--ink-soft);
+}
+
+p {
+  margin: 0 0 3.2mm;
+  orphans: 3;
+  widows: 3;
+  hyphens: none;
+}
+
+strong { font-weight: 700; }
+
+ul, ol {
+  margin: 0 0 3.2mm;
+  padding-left: 6mm;
+}
+
+li { margin-bottom: 1.2mm; }
+
+/* ------------------------------------------------------------------ tables --- */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--sans);
+  font-size: 9pt;
+  margin: 0 0 4mm;
+  break-inside: auto;
+}
+
+thead {
+  display: table-header-group; /* repeat the header on every page */
+}
+
+tr { break-inside: avoid; }
+
+th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--accent-dim);
+  border-bottom: 1.5px solid var(--accent);
+  padding: 2mm 2.5mm;
+}
+
+td {
+  padding: 1.8mm 2.5mm;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+
+/* Right-align numeric columns, which markdown-it emits with an inline style. */
+td[style*="right"], th[style*="right"] {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ----------------------------------------------------------------- figures --- */
+
+figure {
+  margin: 0 0 5mm;
+  break-inside: avoid;
+  text-align: center;
+}
+
+figure img,
+p > img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--rule);
+}
+
+figcaption,
+.caption {
+  font-family: var(--sans);
+  font-size: 8.5pt;
+  color: var(--ink-soft);
+  line-height: 1.4;
+  margin-top: 2mm;
+  text-align: left;
+}
+
+.caption__label {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.caption__source {
+  display: block;
+  font-family: var(--mono);
+  font-size: 7.5pt;
+  color: var(--ink-faint);
+  margin-top: 0.8mm;
+}
+
+/* -------------------------------------------------------------------- code --- */
+
+pre {
+  font-family: var(--mono);
+  font-size: 8.5pt;
+  line-height: 1.45;
+  background: #f7f8f9;
+  border: 1px solid var(--rule-soft);
+  border-left: 3px solid var(--accent);
+  padding: 3mm 3.5mm;
+  margin: 0 0 4mm;
+  white-space: pre-wrap;      /* never clip horizontally in print */
+  word-break: break-word;
+  break-inside: avoid;
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 0.92em;
+  background: #f2f4f6;
+  padding: 0.3mm 1mm;
+  border-radius: 2px;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+}
+
+/* ------------------------------------------------------------------ quotes --- */
+
+blockquote {
+  margin: 0 0 4mm;
+  padding: 2.5mm 4mm;
+  border-left: 3px solid var(--rule);
+  color: var(--ink-soft);
+  background: #fafbfb;
+  break-inside: avoid;
+}
+
+blockquote p:last-child { margin-bottom: 0; }
+
+/* A callout for limitations and partial passes. Meaning never rests on colour
+ * alone - the label carries it, so it survives greyscale printing. */
+.callout {
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--warn);
+  background: var(--warn-dim);
+  padding: 3mm 4mm;
+  margin: 0 0 4mm;
+  break-inside: avoid;
+}
+
+.callout__label {
+  font-family: var(--sans);
+  font-size: 8.5pt;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--warn);
+  display: block;
+  margin-bottom: 1.5mm;
+}
+
+/* -------------------------------------------------------------------- misc --- */
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid var(--rule);
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--rule-soft);
+  margin: 6mm 0;
+}
+
+.section { break-before: page; }
+.section:first-of-type { break-before: avoid; }
+
+/* References: hanging indent so the [n] markers line up down the page. */
+.references ol {
+  list-style: none;
+  padding: 0;
+  counter-reset: ref;
+}
+
+.references li {
+  position: relative;
+  padding-left: 10mm;
+  margin-bottom: 2.5mm;
+  font-size: 9.5pt;
+  break-inside: avoid;
+}
+
+.references li::before {
+  counter-increment: ref;
+  content: "[" counter(ref) "]";
+  position: absolute;
+  left: 0;
+  font-family: var(--sans);
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.footnote-mark {
+  font-size: 0.82em;
+  vertical-align: super;
+  color: var(--accent);
+}

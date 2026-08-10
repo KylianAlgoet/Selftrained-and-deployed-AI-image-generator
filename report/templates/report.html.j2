@@ -1,0 +1,51 @@
+{# The report shell: cover, document control, table of contents, then the sections.
+   One self-contained HTML with the CSS inlined and every figure resolved to a
+   file:// URL, because Chrome renders it offline (DR-015). #}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{ document.title }} — {{ document.document_type }}</title>
+<style>
+{{ css }}
+</style>
+</head>
+<body>
+
+{% include "cover.html.j2" %}
+
+{% for entry in front_matter %}
+  {% if entry.id != "cover" %}
+<section class="docinfo" id="{{ entry.id }}">
+{{ entry.html }}
+</section>
+  {% endif %}
+{% endfor %}
+
+<section class="toc" id="toc">
+  <h1>Contents</h1>
+  <ol>
+  {% for item in toc %}
+    <li class="toc__item toc__item--{{ item.level }}">
+      {% if item.number %}<span class="toc__num">{{ item.number }}</span>{% endif %}
+      <span class="toc__title">{{ item.title }}</span>
+      <span class="toc__dots"></span>
+    </li>
+  {% endfor %}
+  </ol>
+  {% if authored < total %}
+  <p class="caption"><span class="caption__label">Draft state.</span>
+  {{ authored }} of {{ total }} mandated sections are authored in this build. Sections
+  that have not been written are absent rather than stubbed, so this count is a true
+  statement about the document rather than a progress bar.</p>
+  {% endif %}
+</section>
+
+{% for section in sections %}
+<section class="section" id="{{ section.id }}">
+{{ section.html }}
+</section>
+{% endfor %}
+
+</body>
+</html>

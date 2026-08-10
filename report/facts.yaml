@@ -1,0 +1,244 @@
+# Fact locks for the DeckForge AI research report.
+#
+# Every quantitative value the report repeats lives here once and is referenced in
+# the Markdown sources as {{ facts.<key> }}. A number is therefore never typed into
+# a chapter, so it cannot be current in one place and stale in another.
+#
+# Each fact declares HOW it is extracted from its evidence. The method matters:
+# a short anchor such as "473" occurs several times in the M8 evidence index, in a
+# table whose other columns hold SUPERSEDED values, so a substring search would
+# happily confirm a stale number. A false-positive fact lock is worse than no fact
+# lock, because it turns an unchecked value into one that looks checked.
+#
+# Methods, strongest first:
+#
+#   structural    parse the source as CSV/JSON and read a value out of the parsed
+#                 object. No pattern, no possibility of a false positive.
+#   exact_hash    the full 64-character hex digest must appear. Never a prefix.
+#   prose_regex   a context-aware regex that must carry BOTH the fact's context and
+#                 its value, and must match EXACTLY ONCE in the source. Zero matches
+#                 or more than one is a test failure: an ambiguous anchor is a broken
+#                 anchor.
+#
+# tests/test_report_facts.py asserts every entry resolves and equals its declared
+# value. `python scripts/report_facts.py --check` runs the same assertions.
+
+# ---------------------------------------------------------------- test suites ---
+
+pytest_tests:
+  value: 473
+  source: docs/evidence/M8/README.md
+  method: prose_regex
+  # The "after the CI fix" column of the final-measured-state table. The M7 and
+  # 08-09 columns hold 406 and 473, so the row must be matched whole.
+  pattern: '\|\s*pytest\s*\|\s*406\s*\|\s*\*\*473\*\*\s*\|\s*\*\*(?P<value>\d+)\*\*\s*\|'
+  description: pytest tests passing at the M8 close, after the CI fix
+
+vitest_tests:
+  value: 183
+  source: docs/evidence/M8/README.md
+  method: prose_regex
+  pattern: '\|\s*vitest\s*\|\s*165\s*\|\s*\*\*169\*\*\s*\|\s*\*\*(?P<value>\d+)\*\*\s*\|'
+  description: vitest tests passing at the M8 close, after the CI fix
+
+playwright_tests:
+  value: 38
+  source: docs/evidence/M8/README.md
+  method: prose_regex
+  pattern: '\|\s*\*\*Playwright E2E\*\*\s*\|[^|]*\|\s*\*\*37\*\*\s*\|\s*\*\*(?P<value>\d+)\*\*\s*\|'
+  description: Playwright E2E scenarios at the M8 close, after the CI fix
+
+# ------------------------------------------------------------------ generation ---
+
+generations_total:
+  value: 27
+  source: docs/evidence/M8/README.md
+  method: prose_regex
+  pattern: '\*\*Generation count:\s*(?P<value>\d+)\*\*'
+  description: total real GPU generations across the project
+
+generations_research:
+  value: 25
+  source: docs/evidence/M8/README.md
+  method: prose_regex
+  pattern: '(?P<value>\d+) research \(closed at cap\)'
+  description: generations inside the frozen research matrix
+
+# ---------------------------------------------------------------------- memory ---
+
+device_total_mib:
+  value: 8187.5
+  source: experiments/registry.csv
+  method: structural
+  extractor: device_total_mib
+  description: total VRAM of the audited RTX 4060 Laptop GPU, in MiB
+
+worst_spare_mib:
+  value: 200.0
+  source: docs/process/risk-register.md
+  method: prose_regex
+  pattern: 'worst observed spare is \*\*(?P<value>[\d.]+) MiB\*\*'
+  description: worst spare VRAM under real serving (EXP-034); the production ceiling
+
+oneshot_spare_mib:
+  value: 202.0
+  source: experiments/registry.csv
+  method: structural
+  extractor: exp019b_spare_mib
+  description: spare VRAM for the combined stack in a one-shot process (EXP-019b)
+
+peak_allocated_mib:
+  value: 5143.73
+  source: experiments/registry.csv
+  method: structural
+  extractor: exp019b_peak_allocated_mib
+  description: peak allocated VRAM of the combined stack at 512x1536
+
+# --------------------------------------------------------------- deterministic ---
+
+output_sha256:
+  value: '46bbf160e4270429e6692467dc6c59577e99bf3178dedd8d38193d0335fb6d7f'
+  source: docs/evidence/M8/clean-clone/real-output/clean-clone-generation-metadata.json
+  method: structural
+  extractor: clean_clone_image_sha256
+  description: SHA-256 of the clean-clone generation, byte-identical to M7 Phase A
+
+output_bytes:
+  value: 1089939
+  source: docs/presentation/demo-backup-manifest.md
+  method: prose_regex
+  pattern: '\|\s*`P5__minimal-geometric__promptonly__seed42\.png`\s*\|\s*(?P<value>\d+)\s*\|'
+  description: byte size of the reproduced deterministic output
+
+# --------------------------------------------------------------------- dataset ---
+
+dataset_total:
+  value: 148
+  source: data/manifests/dataset-v1.csv
+  method: structural
+  extractor: dataset_total
+  description: items in dataset-v1
+
+dataset_ukiyo_e:
+  value: 55
+  source: data/manifests/dataset-v1.csv
+  method: structural
+  extractor: dataset_style_ukiyo_e
+  description: ukiyo-e items (CC0, Metropolitan Museum of Art)
+
+dataset_minimal_geometric:
+  value: 52
+  source: data/manifests/dataset-v1.csv
+  method: structural
+  extractor: dataset_style_minimal_geometric
+  description: minimal-geometric items (project-original, seeded generation)
+
+dataset_retro_poster:
+  value: 41
+  source: data/manifests/dataset-v1.csv
+  method: structural
+  extractor: dataset_style_retro_poster
+  description: retro-poster items (public domain, Library of Congress)
+
+dataset_train:
+  value: 124
+  source: data/manifests/dataset-v1.csv
+  method: structural
+  extractor: dataset_split_train
+  description: training-split items
+
+dataset_val:
+  value: 17
+  source: data/manifests/dataset-v1.csv
+  method: structural
+  extractor: dataset_split_val
+  description: validation-split items
+
+dataset_holdout:
+  value: 7
+  source: data/manifests/dataset-v1.csv
+  method: structural
+  extractor: dataset_split_holdout
+  description: holdout items, never seen in training
+
+# ------------------------------------------------------------------ experiments ---
+
+experiment_count:
+  value: 40
+  source: experiments/registry.csv
+  method: structural
+  extractor: experiment_count
+  description: rows in the experiment registry
+
+# ------------------------------------------------------------- production model ---
+
+lora_rank:
+  value: 8
+  source: experiments/registry.csv
+  method: structural
+  extractor: lora_rank
+  description: LoRA rank used in every training run (alpha is equal to it)
+
+lora_weight_default:
+  value: 0.7
+  source: docs/process/feature-freeze.md
+  method: prose_regex
+  pattern: 'three per-style LoRAs at weight \*\*(?P<value>[\d.]+)\*\*'
+  description: default application weight of the production LoRA adapters
+
+ip_adapter_scale_default:
+  value: 0.55
+  source: docs/process/feature-freeze.md
+  method: prose_regex
+  pattern: 'default scale \*\*(?P<value>[\d.]+)\*\*'
+  description: default IP-Adapter conditioning scale
+
+generation_width:
+  value: 512
+  source: docs/process/feature-freeze.md
+  method: prose_regex
+  pattern: '(?P<value>\d+)×1536 direct'
+  description: production generation width
+
+generation_height:
+  value: 1536
+  source: docs/process/feature-freeze.md
+  method: prose_regex
+  pattern: '512×(?P<value>\d+) direct'
+  description: production generation height
+
+adapter_bytes:
+  value: 6414480
+  source: docs/deployment/weights-manifest.md
+  method: prose_regex
+  pattern: '(?P<value>6\s?414\s?480)'
+  description: byte size of each production LoRA checkpoint
+
+# ------------------------------------------------------ production checkpoints ---
+
+sha_minimal_geometric:
+  value: '2d425838cce59adc5c12b894e29439b695b98b9e40ef5d7ae667bd5216cb96a8'
+  source: docs/deployment/weights-manifest.md
+  method: exact_hash
+  description: minimal-geometric production adapter (EXP-027, step 300)
+
+sha_ukiyo_e:
+  value: '52381b6052ad71f165ed23425bfc4ea1ba794a3886948a741cea9cad3d81abfd'
+  source: docs/deployment/weights-manifest.md
+  method: exact_hash
+  description: ukiyo-e production adapter (EXP-028, step 600)
+
+sha_retro_poster:
+  value: '70d2afbfb3c09aff6ba37e1f1cf82c02ad69b0269969ea7cdf43b0ead17ba8db'
+  source: docs/deployment/weights-manifest.md
+  method: exact_hash
+  description: retro-poster production adapter (EXP-029, step 300) - PARTIAL PASS
+
+# ------------------------------------------------------------------- decisions ---
+
+decision_record_count:
+  value: 15
+  source: docs/decisions
+  method: structural
+  extractor: decision_record_count
+  description: decision records, DR-001 to DR-015

@@ -1,0 +1,29 @@
+{# Cover page.
+   Kept as a standalone partial on purpose: if a school template is supplied before
+   submission, this file and report/sources/00a-cover.md are the only two that change.
+   No chapter, cross-reference or validation check depends on it (DR-015). #}
+<section class="cover">
+  <div class="cover__rule"></div>
+  <div class="cover__type">{{ document.document_type }}</div>
+  <h1 class="cover__title">{{ document.title }}</h1>
+  <p class="cover__subtitle">{{ document.subtitle }}</p>
+
+  <div class="cover__spacer"></div>
+
+  <dl class="cover__meta">
+    <dt>Author</dt>
+    <dd>{{ document.author }}</dd>
+
+    <dt>Programme</dt>
+    <dd>{{ document.programme }} &middot; {{ document.institution }}</dd>
+
+    <dt>Assignment</dt>
+    <dd>{{ document.assignment }}</dd>
+
+    <dt>Repository</dt>
+    <dd>{{ document.repository }}</dd>
+
+    <dt>Built from commit</dt>
+    <dd>{{ build_commit }} &middot; {{ built_on }}</dd>
+  </dl>
+</section>
