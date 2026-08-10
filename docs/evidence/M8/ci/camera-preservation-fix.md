@@ -204,17 +204,74 @@ Attempt 2, after the CI failure above.
 Attempt 1 recorded 181 vitest and a 6.6 s scenario; the counts differ because the rewrite replaced
 the `cameraStatesEqual` cases with `maxComponentDelta` and `toleranceForDrift` cases.
 
+## Attempt 2 also failed on CI — and revealed that the camera test was never the whole problem
+
+**CI run #6, `f409b65`:** pytest **PASS** (2m 39s) · vitest/eslint/build **PASS** (1m 1s, 183
+vitest) · playwright **FAIL — 32 passed, 6 failed**, 18.0 m.
+
+The camera scenario timed out again, but *where* it timed out is the finding. It failed at the
+**third** probe — the cheap one, asking for 7 frames. The expensive 94-frame probe before it
+**completed, and its drift precondition passed**. The measurement was no longer the bottleneck; the
+test simply ran out of wall clock on everything around it.
+
+And the failing set moved wholesale.
+
+| scenario | run #5 | run #6 |
+|---|---|---|
+| `?review=1` restores both review tools | 2.6 s pass | **56.8 s** pass |
+| production interface exposes no review controls | 3.1 s pass | 20.6 s pass |
+| 409 is presented as busy | **FAIL** (2.2 m) | 6.4 s pass |
+| 504 reports how far the generation got | **FAIL** (2.1 m) | 19.1 s pass |
+| submits the bounded settings as multipart fields | 5.9 s pass | **FAIL** |
+| offers a PNG download and a metadata download | 20.9 s pass | **FAIL** |
+
+Run #4 failed 1 scenario, #5 failed 3, #6 failed 6, and the subsets barely overlap. The same code
+path swings **22x between runs**. Five of run #6's failures are the `Generation result` region never
+appearing after a **mocked** 4-second response — no GPU, no model, no network, nothing the camera
+work touches, and nothing the probe could slow down (it mounts inside the canvas and does no
+per-frame work).
+
+**Conclusion: this is a CI capacity problem, not a camera-measurement problem.** The cascade theory
+from run #5 is now supported — 409 and 504 recovered on their own once the camera test failed
+earlier — but it was only ever half the story. Making the camera test cheaper a third time could not
+turn CI green, because the other five would still be red.
+
+## The decision: retries on CI, recorded as a limitation
+
+Approved by Kylian on 2026-08-10 after the three options were put to him: retries, a larger suite
+timeout, or disabling OrbitControls damping in E2E builds.
+
+`playwright.config.ts` now sets **`retries: process.env.CI ? 2 : 0`**. Locally it stays 0 — a test
+that fails here has found something. The `e2e` job's `timeout-minutes` moved 30 → 45 so a retrying
+run can finish and report instead of being killed halfway; that is the **job's** wall-clock guard,
+and **no per-test budget was changed to make anything pass**.
+
+**This masks genuine flakiness. That is a limitation, not a fix, and it belongs in the report as
+one.** What it does not mask is a deterministic defect, which still fails all three attempts. The
+trade being made is between a suite whose red/green carries no information because the environment
+is noisy, and one where red means something.
+
+The alternatives were rejected for stated reasons: a larger suite timeout accepts ~20-minute
+feedback and still loses to a 22x swing; disabling damping in E2E builds would fix the camera
+scenario decisively but would stop the suite exercising the production control configuration — and
+would not have fixed the five unrelated failures at all.
+
 ## What this still does not prove
 
-- **Attempt 2 has not been observed passing on a GitHub runner.** Attempt 1 passed every local gate
-  and still failed remotely, so a green local sweep is explicitly not evidence here. M8 stays open
-  until the remote run is green.
-- **The two error-handling failures are attributed, not diagnosed.** The cascade explanation fits
-  every observation but was not reproduced. If they fail again once the camera test passes, they are
-  independent and need their own investigation.
-- **The runner's frame rate is still unknown.** Attempt 2 reports it in the failure message
-  precisely so that a third failure would arrive with the number attached instead of requiring
-  another guess.
+- **Nothing here has been observed passing on a GitHub runner.** Attempts 1 and 2 both passed every
+  local gate and both failed remotely. A green local sweep is explicitly not evidence in this
+  document. M8 stays open until the remote run is green.
+- **Retries do not make the runner faster.** If the suite is over budget systematically rather than
+  intermittently, three attempts fail three times — and the honest reading of that would be that the
+  timeout or the environment has to change after all.
+- **A green run under `retries: 2` is weaker evidence than a green run without them.** It means
+  every scenario passed within three attempts, not that every scenario passed first time. The retry
+  counts appear in the run output and should be quoted rather than rounded away.
+- **The five generate/progress failures were never reproduced locally**, across many repeated runs.
+  They are attributed to the runner on the strength of the cross-run variance table, not on a
+  reproduction.
+- **The runner's frame rate is still unknown.** The probe reports it in its failure message, so a
+  future failure arrives with the number attached instead of requiring another guess.
 - The damping trace was taken on the development machine. It establishes the decay's shape and the
   size of the signal, not the runner's frame rate — which is why sampling is per frame rather than
   per millisecond.

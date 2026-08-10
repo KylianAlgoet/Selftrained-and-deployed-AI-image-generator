@@ -39,7 +39,32 @@ export default defineConfig({
   // no gain on a suite this size.
   fullyParallel: false,
   workers: 1,
-  retries: 0,
+
+  /**
+   * RETRIES ON CI ONLY, AND WHAT THEY DO AND DO NOT HIDE.
+   *
+   * Locally this stays 0: a test that fails here has found something, and
+   * retrying it would only delay reading the message.
+   *
+   * On a GitHub runner the suite is measurably marginal, and the evidence is
+   * run-to-run variance rather than any one slow test. Between runs #5 and #6 of
+   * the same suite:
+   *
+   *   `?review=1 restores both review tools`   2.6 s  ->  56.8 s   (22x)
+   *   `409 is presented as busy`               FAIL   ->   6.4 s
+   *   `submits ... multipart form fields`      5.9 s  ->  FAIL
+   *
+   * Run #4 failed 1 scenario, #5 failed 3, #6 failed 6 - a different subset each
+   * time, several of them waiting on a MOCKED 4 s response that never arrived
+   * within 45 s. That is the runner stalling, not the application.
+   *
+   * **This does mask genuine flakiness, and that is a limitation, not a fix.**
+   * It is recorded as one in docs/evidence/M8/ci/. What it does not mask is a
+   * deterministic defect: that still fails all three attempts. The choice is
+   * between a suite whose red/green carries no information because the
+   * environment is noisy, and one where red means something.
+   */
+  retries: process.env.CI ? 2 : 0,
 
   reporter: [['list'], ['json', { outputFile: 'test-results/e2e-results.json' }]],
 

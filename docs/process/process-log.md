@@ -4,6 +4,65 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-10 (third) — the camera test was never the whole problem: CI retries, approved
+
+**Objective:** understand why attempt 2 also failed remotely, and stop iterating on the wrong thing.
+
+**Real CI result, run #6 on `f409b65`:** pytest **PASS** (2m 39s) · vitest/eslint/build **PASS**
+(1m 1s, 183 vitest) · playwright **FAIL — 32 passed, 6 failed**, 18.0 m.
+
+**The finding.** The camera scenario timed out at its **third** probe — the cheap one, asking for 7
+frames. The expensive 94-frame probe before it completed and **its drift precondition passed**. The
+measurement was no longer the bottleneck; the test ran out of wall clock on page load and ordinary
+assertions around it. And the failing set moved almost completely between runs:
+
+| scenario | run #5 | run #6 |
+|---|---|---|
+| `?review=1` restores both review tools | 2.6 s pass | **56.8 s** pass |
+| 409 is presented as busy | **FAIL** (2.2 m) | 6.4 s pass |
+| 504 reports how far the generation got | **FAIL** (2.1 m) | 19.1 s pass |
+| submits the bounded settings as multipart fields | 5.9 s pass | **FAIL** |
+| offers a PNG download and a metadata download | 20.9 s pass | **FAIL** |
+
+Run #4 failed 1, #5 failed 3, #6 failed 6, with barely overlapping subsets and a **22x** swing on
+the same code path. Five of run #6's failures are the `Generation result` region never appearing
+after a **mocked** 4 s response — no GPU, no model, no network, and nothing the camera work touches.
+
+**Conclusion: a CI capacity problem, not a camera-measurement problem.** A third round of making the
+camera test cheaper could not have turned CI green, because the other five would still be red. The
+run #5 cascade theory is supported (409 and 504 recovered unaided) but was only half the story.
+
+**Decision, and it was Kylian's.** Three options were put to him — retries, a larger suite timeout,
+or disabling OrbitControls damping in E2E builds. He chose **retries**. `playwright.config.ts` now
+sets `retries: process.env.CI ? 2 : 0`; locally it stays 0, because a test that fails here has found
+something. The `e2e` job's `timeout-minutes` moved 30 → 45 so a retrying run can finish and report
+rather than being killed halfway — that is the **job's** wall-clock guard, and **no per-test budget
+was changed to make anything pass**.
+
+**Recorded honestly as a limitation, not a fix.** Retries mask genuine flakiness. They do not mask a
+deterministic defect, which still fails all three attempts. A green run under `retries: 2` means
+every scenario passed *within three attempts*, which is weaker evidence than a first-attempt green
+and must be reported that way, with the retry counts quoted.
+
+Rejected, with reasons: a larger suite timeout accepts ~20-minute feedback and still loses to a 22x
+swing; disabling damping in E2E builds would fix the camera scenario decisively but would stop the
+suite exercising the production control configuration, and would not have fixed the other five.
+
+**Commands and real results** (2026-08-10, validated machine): full Playwright suite **38 passed**
+(1.4 m) with the new config, `npm run lint` and `npm run typecheck:e2e` clean, `--list` confirms 38
+tests in 6 files. Retries remain **0** locally.
+
+**No GPU inference was run. The generation total remains 27.**
+
+**Blockers:** the remote run for this configuration has not happened. If it fails three attempts per
+scenario, the environment or the timeout has to change after all, and that is the next decision.
+
+**Evidence:** `docs/evidence/M8/ci/camera-preservation-fix.md`, run #6 section.
+
+**Next step:** commit, push, read the run — quoting retry counts, not just the colour.
+
+---
+
 ## 2026-08-10 (later) — the CI fix failed on CI, and what the runner taught
 
 **Objective:** the first fix (`316b2cd`) passed every local gate and still failed remotely. Make the

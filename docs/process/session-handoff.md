@@ -14,8 +14,35 @@ unpushed. Both halves were wrong by the time it was read:
 - **CI is NOT green.** Run #4 (`68d1bf2`): pytest **PASS**, vitest/eslint/build **PASS**, Playwright
   **37 passed, 1 failed** — the camera-preservation scenario timed out after 300 000 ms.
   Run #5 (`316b2cd`, the first fix): pytest **PASS**, vitest/eslint/build **PASS**, Playwright
-  **35 passed, 3 failed** — the camera scenario still exceeded the 60 s test timeout, and the two
-  `errors.spec.ts` scenarios immediately after it went down with it.
+  **35 passed, 3 failed**.
+  Run #6 (`f409b65`, the second fix): pytest **PASS**, vitest/eslint/build **PASS**, Playwright
+  **32 passed, 6 failed** — and a *different* six.
+
+### The real finding: the runner, not the camera test
+
+Run #6 settled it. The camera scenario timed out at its **third** probe, the cheap 7-frame one,
+while the expensive 94-frame probe before it completed and passed its drift check. The measurement
+was no longer the bottleneck. Meanwhile five *unrelated* scenarios failed waiting for a **mocked**
+4-second response, and the subsets barely overlap between runs:
+
+| scenario | run #5 | run #6 |
+|---|---|---|
+| `?review=1` restores both review tools | 2.6 s pass | **56.8 s** pass |
+| 409 is presented as busy | **FAIL** | 6.4 s pass |
+| offers a PNG download | 20.9 s pass | **FAIL** |
+
+1 failure in run #4, 3 in #5, 6 in #6, with a **22x** swing on identical code. **Do not spend
+another round making the camera test cheaper** — that cannot turn CI green, and two rounds already
+proved it.
+
+**Kylian chose retries** (2026-08-10), over a larger suite timeout and over disabling damping in
+E2E builds. `retries: process.env.CI ? 2 : 0`; locally still 0. The `e2e` job's `timeout-minutes`
+went 30 → 45 so a retrying run can finish and report — that is the job's wall-clock guard, and no
+per-test budget was touched.
+
+**Report a green run under retries honestly:** it means every scenario passed *within three
+attempts*. Quote the retry counts. And if scenarios fail all three attempts, retries were the wrong
+remedy and the environment or the timeout has to change after all.
 
 **A green local sweep is not evidence about CI, and this milestone has now proved that twice.**
 Attempt 1 passed pytest, vitest, eslint, typecheck, build, the bundle gate and all 38 Playwright
