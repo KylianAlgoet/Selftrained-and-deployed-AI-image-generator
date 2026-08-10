@@ -4,6 +4,56 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-10 (sixth) — CI IS GREEN. M8's remote evidence is complete.
+
+**Objective:** confirm the remote result and report it with its qualifications rather than as a tick.
+
+**Real CI result, run #9 on `e9c9fb4`: Status Success, 18m 56s.**
+
+| job | result |
+|---|---|
+| pytest (no GPU, no weights) | **PASS**, 2m 30s |
+| vitest, eslint, build | **PASS**, 1m 0s — 183/183 vitest |
+| playwright (mocked API, no model) | **PASS**, 18m 50s (E2E step 14m 45s) |
+
+`Upload the report on failure` was skipped and the run produced no artifacts. **Run #8 (`d29fba8`,
+docs only) is also green.** Two consecutive green runs.
+
+**M8 acceptance criterion 1 — "backend, frontend and E2E suites pass" — is now evidenced remotely as
+well as locally.** That was the condition for reopening the milestone and it is met.
+
+**Three qualifications, recorded because a tick would overstate this.**
+
+1. **Run #8 passed under the OLD budgets** (retries on, 60 s / 10 s). So run #9's green **cannot be
+   attributed to the budget change alone**; the stall is intermittent and run #8 got a better
+   runner. The budget change removes a known failure mode, it is not proven to be the cause of green.
+2. **The per-scenario retry counts could not be read.** The E2E step's log would not expand through
+   the available interface, so whether any scenario passed only on retry is **unknown**, not zero.
+   The absent artifact does not settle it — that upload is `if: failure()`. Recorded as unread.
+3. **A green run under `retries: 2` and a 180 s budget is weaker than a first-attempt green under
+   60 s**, and the report must say so.
+
+**What stands on its own:** the camera scenario **passed on CI on its first attempt, in 40.2 s, in
+run #7 — before any budget was raised.** That is the defect this work was assigned, and its fix is
+proven remotely without the accommodations.
+
+**Journey, for the report:** 300 s timeout → 60 s timeout → 60 s timeout → **40.2 s pass**. Two
+rewrites of the measurement, two defects found in my own work (an equality rule for a camera that
+never comes to rest; a drift tolerance wide enough to swallow a whole viewpoint, caught by a unit
+test), and one trace proving the remaining failures were the runner rather than the application.
+
+**No GPU inference was run. The generation total remains 27.**
+
+**Blockers:** none technical. **Formal closure is Kylian's**: GitHub issue #9 is not closed and the
+project board is not moved. **M9 must not begin until he closes M8.**
+
+**Evidence:** `docs/evidence/M8/ci/camera-preservation-fix.md`,
+`docs/evidence/M8/ci/runner-stall-trace.md`, `docs/evidence/M8/README.md`.
+
+**Next step:** Kylian closes issue #9 and moves the board, then M9 (research report) may start.
+
+---
+
 ## 2026-08-10 (fifth) — traced the runner stall, then set the CI budgets from the measurement
 
 **Objective:** stop inferring. Read the trace of a real failure before touching any test budget.

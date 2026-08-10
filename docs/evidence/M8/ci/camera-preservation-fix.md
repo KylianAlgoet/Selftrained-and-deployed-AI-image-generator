@@ -306,6 +306,37 @@ retry cycle. The remaining lever is the per-test budget — the thing deliberate
 the measurement had been fixed, which it now demonstrably has. **That decision is open and is
 Kylian's**, and this document does not pre-empt it.
 
+## CI runs #8 and #9: green, and what that is and is not worth
+
+| run | commit | what changed | result |
+|---:|---|---|---|
+| #8 | `d29fba8` | docs only — **old budgets**, retries on | **Success** |
+| #9 | `e9c9fb4` | CI budgets 180 s / 45 s | **Success**, 18m 56s |
+
+Run #9, job by job: pytest **PASS** 2m 30s · vitest/eslint/build **PASS** 1m 0s with **183/183**
+vitest · playwright **PASS** 18m 50s, the E2E step 14m 45s. `Upload the report on failure` was
+skipped and the run produced **no artifacts**.
+
+**All three jobs are green. That was the condition for M8, and it is met.**
+
+### Three honest qualifications
+
+1. **Run #8 passed under the OLD budgets.** It ran with retries but with 60 s / 10 s, and it went
+   green anyway. So run #9's green **cannot be attributed to the budget change alone** — the stall
+   is intermittent, and run #8 simply got a better runner. The budget change removes a known failure
+   mode; it is not proven to be what turned CI green.
+2. **The per-scenario retry counts could not be read.** The E2E step's log would not expand through
+   the interface available here, so it is **not known** whether any scenario passed only on a retry.
+   The absence of artifacts does not settle it either, because the upload step is `if: failure()`
+   and a flaky-but-passing scenario produces none. This is recorded as unread rather than assumed to
+   be zero.
+3. **A green run under `retries: 2` and a 180 s budget is weaker evidence than a first-attempt green
+   under 60 s**, and the report must say so rather than presenting a tick.
+
+What *is* solidly established is narrower and still worth having: **the camera scenario passed on
+CI on its first attempt, in 40.2 s, in run #7 — before any budget was raised.** That result stands
+on its own and is the one this document was opened to obtain.
+
 ## What this still does not prove
 
 - **Nothing here has been observed passing on a GitHub runner.** Attempts 1 and 2 both passed every

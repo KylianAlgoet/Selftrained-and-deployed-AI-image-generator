@@ -1,16 +1,57 @@
 # Session handoff
 
-**Last updated:** 2026-08-10 (M8 **REOPENED** for the last red CI job; the camera-preservation fix
-is committed and awaiting a remote run, under Opus 5)
+**Last updated:** 2026-08-10 (M8 reopened for the last red CI job, fixed, and **CI is now GREEN**;
+awaiting Kylian's formal closure, under Opus 5)
 
-## M8: OPEN — waiting on GitHub Actions
+## M8: CI GREEN — waiting only on formal closure
 
-**Read this before anything else.** The 2026-08-09 version of this file said M8 was complete and
-unpushed. Both halves were wrong by the time it was read:
+**All three GitHub Actions jobs pass.** Run #9 (`e9c9fb4`) — Status **Success**, 18m 56s: pytest
+**PASS** 2m 30s · vitest/eslint/build **PASS** 1m 0s with 183/183 · playwright **PASS** 18m 50s
+(E2E step 14m 45s), no failure artifact. Run #8 (`d29fba8`) is green too. Acceptance criterion 1 is
+now evidenced **remotely** as well as locally.
 
-- **The work IS pushed.** `main` and `origin/main` are in sync. `git status -sb` showing no
-  `[ahead]` marker is *not* evidence that a milestone is finished — a resumed session made exactly
-  that inference on 2026-08-10 and started M9 on the strength of it.
+**What remains is Kylian's, and only his:**
+
+| item | state |
+|---|---|
+| the push | **done** — `main` == `origin/main` |
+| CI | **green**, runs #8 and #9 |
+| GitHub issue #9 | **not closed** |
+| the project board | **not moved** |
+| **M9** | **NOT STARTED — do not begin until Kylian closes M8** |
+
+### Read these three qualifications before quoting the green
+
+1. **Run #8 passed under the OLD budgets** (60 s / 10 s, retries on). So run #9's green **cannot be
+   attributed to the budget change alone** — the stall is intermittent. The budget removes a known
+   failure mode; it is not proven to be why CI is green.
+2. **The per-scenario retry counts could not be read** from the collapsed E2E log. Whether anything
+   passed only on retry is **unknown, not zero**. The missing artifact does not settle it: that
+   upload is `if: failure()`.
+3. **A green run under `retries: 2` and a 180 s CI budget is weaker than a first-attempt green under
+   60 s.** Say so in the report.
+
+**What stands without any accommodation:** the camera scenario **passed on CI on its first attempt,
+in 40.2 s, in run #7 — before any budget was raised.**
+
+### The lesson this milestone produced twice — strong D5/D6 material
+
+**A green local sweep is not evidence about CI.** The first fix passed pytest, vitest, eslint,
+typecheck, build, the bundle gate and all 38 Playwright scenarios locally, five times over, and
+still failed remotely. And `git status -sb` showing no `[ahead]` marker means commits were **pushed,
+not that they passed** — a resumed session made exactly that inference on 2026-08-10 and started M9
+on the strength of it. M8 had already found the same class of defect once, in a dataset integrity
+hash that had only ever passed on its author's machine.
+
+### The camera scenario, for the report
+
+300 s timeout → 60 s timeout → 60 s timeout → **40.2 s pass**. Two rewrites of the *measurement*,
+never of the application. Two defects found in my own work on the way: an equality rule for a camera
+that damping means never comes exactly to rest, and a drift tolerance wide enough to swallow an
+entire change of viewpoint — the second caught by a unit test before it reached CI.
+
+### Historical: the runs that were red
+
 - **CI is NOT green.** Run #4 (`68d1bf2`): pytest **PASS**, vitest/eslint/build **PASS**, Playwright
   **37 passed, 1 failed** — the camera-preservation scenario timed out after 300 000 ms.
   Run #5 (`316b2cd`, the first fix): pytest **PASS**, vitest/eslint/build **PASS**, Playwright

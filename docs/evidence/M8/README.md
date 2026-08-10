@@ -1,15 +1,22 @@
 # M8 evidence index
 
 **Milestone:** M8 — testing, deployment, clean-clone validation and demo preparation
-**Dates:** 2026-08-09, reopened 2026-08-10 · **Status: OPEN** — all six acceptance criteria are met
-locally, but criterion 1 is not evidenced remotely until CI is green.
+**Dates:** 2026-08-09, reopened 2026-08-10, **CI green 2026-08-10** · **Status: all six acceptance
+criteria met, and criterion 1 now evidenced remotely.** Formal closure — GitHub issue #9 and the
+project board — remains Kylian's.
 
-> **Reopened 2026-08-10.** M8 was closed locally on 2026-08-09 and the work was pushed. The first
-> GitHub Actions run then reported **pytest PASS · vitest/eslint/build PASS · Playwright 37 passed,
-> 1 failed**: `replacing the decal does not reset the camera` timed out after 300 000 ms on the
-> Windows runner. A suite that passes only on its author's machine is the same class of defect M8
-> itself found in the frozen dataset hash, so the milestone stays open until the remote run is
-> green. The fix is recorded in [`ci/camera-preservation-fix.md`](ci/camera-preservation-fix.md).
+> **Reopened and resolved on 2026-08-10.** M8 was closed locally on 2026-08-09 and the work was
+> pushed. The first GitHub Actions run then reported **Playwright 37 passed, 1 failed**:
+> `replacing the decal does not reset the camera` timed out after 300 000 ms on the Windows runner.
+> A suite that passes only on its author's machine is the same class of defect M8 itself found in
+> the frozen dataset hash, so the milestone stayed open.
+>
+> It took **five runs**. The camera scenario was rewritten twice — screenshot comparison → structural
+> with Node-side polling → structural, in-page and frame-counted — and **passed on CI on its first
+> attempt in 40.2 s in run #7**. Runs #8 and #9 are green across all three jobs. The full story,
+> including two defects found in that work and the qualifications on what a green run under retries
+> is worth, is in [`ci/camera-preservation-fix.md`](ci/camera-preservation-fix.md) and
+> [`ci/runner-stall-trace.md`](ci/runner-stall-trace.md).
 
 ## Acceptance criteria → evidence
 
