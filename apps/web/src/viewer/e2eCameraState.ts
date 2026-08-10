@@ -102,35 +102,73 @@ export function readCameraState(
 }
 
 /**
- * THE TOLERANCES, AND THE MEASUREMENT THEY ARE TAKEN FROM.
+ * THE COMPARISON RULE, AND WHY IT IS NOT A FIXED TOLERANCE.
  *
  * OrbitControls runs with damping (drei enables it by default), so after a drag
- * the camera does not stop - it decays towards rest geometrically, about 5 % of
- * the remaining delta per rendered frame. It is never exactly still, so "two
- * identical reads" is not a state this scene ever reaches, and an equality rule
- * that waits for one either exits early by luck or never exits at all.
+ * the camera does not stop - it decays towards rest geometrically, roughly 5 %
+ * of the remaining delta per **rendered frame**. It is never exactly still.
  *
- * These two numbers come from a real trace of that decay, taken on this machine
- * against the built bundle and recorded in
+ * Two rules were tried and both were wrong, for recorded reasons:
+ *
+ * 1. "Two identical reads" - a state this scene never reaches. Failed 3/3
+ *    locally.
+ * 2. "Poll every 100 ms until consecutive samples differ by < 1e-5" - correct
+ *    locally in 6.6 s, but it cost ~120 browser round trips per phase and, on a
+ *    GPU-less CI runner, blew the 60 s test timeout. Decay is measured in
+ *    FRAMES, and a software rasteriser produces far fewer of them per second,
+ *    so any rule with a hard-coded settling time is a bet on the frame rate.
+ *
+ * The rule here makes no such bet. Each probe waits a fixed number of **frames**
+ * and then measures how far the camera moves on its own over a few more - the
+ * residual drift, observed on the machine that is actually running the test.
+ * The tolerance for "the viewpoint did not change" is then derived from that
+ * measurement rather than assumed, and `MAX_RESIDUAL_DRIFT` refuses the
+ * comparison outright if the camera is still moving too much for it to mean
+ * anything. "Not measured" and "failed" stay on separate code paths.
+ *
+ * Reference numbers, from a real trace on the development machine recorded in
  * `docs/evidence/M8/ci/camera-damping-trace.md`:
  *
- *   after the drag  delta/100 ms falls below 1e-5 at ~2.9 s, then below 1e-7
- *   after the swap  delta/100 ms is already ~1e-8 - the texture swap moves nothing
- *   after a reset   the pose is the opening pose exactly, decaying from ~1e-9
- *
- * `SETTLE_EPSILON` is what "at rest" means: once consecutive samples differ by
- * less than this, the total distance still to travel is bounded by roughly
- * 20x it, i.e. under 1e-3.
- *
- * `CAMERA_EPSILON` is what "the same viewpoint" means, and is set an order of
- * magnitude above that residual so damping cannot fail the comparison. It stays
- * three orders of magnitude BELOW any movement the test cares about: the orbit
- * drag moves the camera 3.7 world units and the quaternion by 0.6. So the rule
- * keeps a ~30x margin against damping noise and a ~3700x margin against a real
- * camera reset - the failure it exists to catch.
+ *   the orbit drag moves the camera 3.7 world units and the quaternion by 0.6
+ *   ~90 frames after release, drift is ~1.6e-3 per 6 frames
+ *   after the texture swap, drift is ~1e-8 - the swap moves nothing at all
+ *   after Reset view, the pose is the opening pose exactly, drift ~1e-9
  */
-export const SETTLE_EPSILON = 1e-5
+
+/** Floor for "the viewpoint did not change" when the camera is already still. */
 export const CAMERA_EPSILON = 1e-3
+
+/**
+ * Multiplier applied to the observed drift to get the working tolerance. The
+ * remaining decay is a geometric series, so allowing an order of magnitude more
+ * than one sample's worth of drift covers the whole tail with room to spare.
+ */
+export const DRIFT_TOLERANCE_FACTOR = 20
+
+/**
+ * Above this, the camera is still in flight and no comparison is meaningful.
+ * A probe that reports more drift than this fails as UNMEASURED rather than
+ * being reported as a camera that moved.
+ *
+ * It is 5e-3 rather than the 0.05 first written here, because a unit test
+ * caught that 0.05 x `DRIFT_TOLERANCE_FACTOR` came to exactly
+ * `DISTINCT_VIEWPOINT`: at the worst drift the test would accept, the derived
+ * tolerance would have been wide enough to swallow an entire change of
+ * viewpoint. At 5e-3 the worst-case tolerance is 0.1 - a 10x margin under
+ * `DISTINCT_VIEWPOINT` and 37x under the 3.7-unit move a camera reset makes.
+ *
+ * It is comfortably reachable: the measured decay is ~1.3e-3 per 5 frames once
+ * 90 frames have passed, and because the decay is counted in frames rather than
+ * milliseconds that figure does not depend on how fast the machine renders.
+ */
+export const MAX_RESIDUAL_DRIFT = 5e-3
+
+/**
+ * How far apart two poses must be to count as genuinely different viewpoints.
+ * The drag and a camera reset both move ~3.7 units, so this has a 3.7x margin
+ * while sitting far above any damping residue.
+ */
+export const DISTINCT_VIEWPOINT = 1.0
 
 /** The largest single-component difference between two snapshots. */
 export function maxComponentDelta(a: DeckCameraState, b: DeckCameraState): number {
@@ -149,22 +187,13 @@ export function maxComponentDelta(a: DeckCameraState, b: DeckCameraState): numbe
   return largest
 }
 
-function closeEnough(a: readonly number[], b: readonly number[], epsilon: number): boolean {
-  if (a.length !== b.length) return false
-  return a.every((value, index) => Math.abs(value - b[index]) <= epsilon)
-}
-
-/** True when two snapshots describe the same viewpoint. */
-export function cameraStatesEqual(
-  a: DeckCameraState,
-  b: DeckCameraState,
-  epsilon: number = CAMERA_EPSILON,
-): boolean {
-  return (
-    closeEnough(a.position, b.position, epsilon) &&
-    closeEnough(a.quaternion, b.quaternion, epsilon) &&
-    closeEnough(a.target, b.target, epsilon)
-  )
+/**
+ * The tolerance to compare two poses with, given the drift measured alongside
+ * them. Never tighter than `CAMERA_EPSILON`, so a perfectly still camera does
+ * not get an absurdly small budget.
+ */
+export function toleranceForDrift(drift: number): number {
+  return Math.max(drift * DRIFT_TOLERANCE_FACTOR, CAMERA_EPSILON)
 }
 
 /** A one-line rendering for assertion messages, so a failure names real numbers. */

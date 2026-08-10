@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
   CAMERA_EPSILON,
-  cameraStatesEqual,
+  DISTINCT_VIEWPOINT,
+  DRIFT_TOLERANCE_FACTOR,
+  MAX_RESIDUAL_DRIFT,
   describeCameraState,
+  maxComponentDelta,
   readCameraState,
+  toleranceForDrift,
 } from './e2eCameraState'
 import type { DeckCameraState } from './e2eCameraState'
 
@@ -12,8 +16,8 @@ import type { DeckCameraState } from './e2eCameraState'
  * `replacing the decal does not reset the camera`, so its comparison rule is
  * worth testing where a failure is cheap to read - in vitest, not in a browser.
  *
- * The risk being covered is a comparison that is too lax. If `cameraStatesEqual`
- * ever returned true for a camera that had moved, the E2E test would pass while
+ * The risk being covered is a comparison that is too lax. If the rule ever
+ * treated a camera that had moved as unchanged, the E2E test would pass while
  * the viewpoint was being reset on every texture swap, which is exactly the
  * regression it exists to catch.
  */
@@ -70,43 +74,63 @@ describe('readCameraState', () => {
   })
 })
 
-describe('cameraStatesEqual', () => {
+describe('maxComponentDelta', () => {
   const base: DeckCameraState = {
     position: [1.5, -2.1, 2.4],
     quaternion: [0.1, 0.2, 0.3, 0.9],
     target: [0, 0, 0],
   }
 
-  it('accepts an identical viewpoint', () => {
-    expect(cameraStatesEqual(base, { ...base })).toBe(true)
-  })
-
-  it('tolerates a final-bit difference', () => {
-    const nudged: DeckCameraState = { ...base, position: [1.5 + CAMERA_EPSILON / 2, -2.1, 2.4] }
-    expect(cameraStatesEqual(base, nudged)).toBe(true)
+  it('is zero for an identical viewpoint', () => {
+    expect(maxComponentDelta(base, { ...base })).toBe(0)
   })
 
   it.each([
-    ['position', { ...base, position: [1.6, -2.1, 2.4] } as DeckCameraState],
-    ['quaternion', { ...base, quaternion: [0.1, 0.2, 0.4, 0.9] } as DeckCameraState],
-    ['target', { ...base, target: [0, 0.3, 0] } as DeckCameraState],
-  ])('rejects a change in %s', (_field, moved) => {
-    expect(cameraStatesEqual(base, moved)).toBe(false)
+    ['position', { ...base, position: [1.6, -2.1, 2.4] } as DeckCameraState, 0.1],
+    ['quaternion', { ...base, quaternion: [0.1, 0.2, 0.4, 0.9] } as DeckCameraState, 0.1],
+    ['target', { ...base, target: [0, 0.3, 0] } as DeckCameraState, 0.3],
+  ])('reports a change in %s', (_field, moved, expected) => {
+    expect(maxComponentDelta(base, moved)).toBeCloseTo(expected, 10)
   })
 
-  it('rejects a difference just above the tolerance', () => {
-    const moved: DeckCameraState = { ...base, position: [1.5 + CAMERA_EPSILON * 10, -2.1, 2.4] }
-    expect(cameraStatesEqual(base, moved)).toBe(false)
+  it('reports the LARGEST component, not the first or the average', () => {
+    const moved: DeckCameraState = {
+      position: [1.5, -2.1, 2.4],
+      quaternion: [0.1, 0.2, 0.3, 0.9],
+      target: [0, 0, 0.75],
+    }
+    expect(maxComponentDelta(base, moved)).toBeCloseTo(0.75, 10)
   })
 
-  it('rejects an orbit-sized move by a wide margin', () => {
-    // Representative of the drag the E2E test performs: whole units, not noise.
+  it('separates an orbit-sized move from damping noise by orders of magnitude', () => {
+    // Both taken from the real trace in docs/evidence/M8/ci/.
     const orbited: DeckCameraState = {
-      position: [2.9, -0.4, 1.7],
-      quaternion: [0.31, 0.05, -0.12, 0.94],
+      position: [-2.1716, -0.095, 2.774],
+      quaternion: [0.0127, -0.326, 0.0044, 0.9453],
       target: [0, 0, 0],
     }
-    expect(cameraStatesEqual(base, orbited)).toBe(false)
+    const noise: DeckCameraState = { ...base, position: [1.5 + 1e-8, -2.1, 2.4] }
+
+    expect(maxComponentDelta(base, orbited)).toBeGreaterThan(DISTINCT_VIEWPOINT)
+    expect(maxComponentDelta(base, noise)).toBeLessThan(CAMERA_EPSILON)
+  })
+})
+
+describe('toleranceForDrift', () => {
+  it('never goes below the floor, however still the camera is', () => {
+    expect(toleranceForDrift(0)).toBe(CAMERA_EPSILON)
+    expect(toleranceForDrift(1e-12)).toBe(CAMERA_EPSILON)
+  })
+
+  it('scales with the drift once it exceeds the floor', () => {
+    expect(toleranceForDrift(1e-3)).toBeCloseTo(1e-3 * DRIFT_TOLERANCE_FACTOR, 12)
+  })
+
+  it('stays well below an orbit-sized move even at the worst allowed drift', () => {
+    // This is the property that keeps the derived tolerance honest: even when
+    // the camera is drifting as much as the test will accept, the tolerance is
+    // still far smaller than the 3.7-unit move a camera reset would produce.
+    expect(toleranceForDrift(MAX_RESIDUAL_DRIFT)).toBeLessThan(DISTINCT_VIEWPOINT)
   })
 })
 

@@ -11,9 +11,16 @@ unpushed. Both halves were wrong by the time it was read:
 - **The work IS pushed.** `main` and `origin/main` are in sync. `git status -sb` showing no
   `[ahead]` marker is *not* evidence that a milestone is finished — a resumed session made exactly
   that inference on 2026-08-10 and started M9 on the strength of it.
-- **CI is NOT green.** The first GitHub Actions run of `68d1bf2` reported pytest **PASS**,
-  vitest/eslint/build **PASS**, and Playwright **37 passed, 1 failed** — the camera-preservation
-  scenario timed out after 300 000 ms on the Windows runner.
+- **CI is NOT green.** Run #4 (`68d1bf2`): pytest **PASS**, vitest/eslint/build **PASS**, Playwright
+  **37 passed, 1 failed** — the camera-preservation scenario timed out after 300 000 ms.
+  Run #5 (`316b2cd`, the first fix): pytest **PASS**, vitest/eslint/build **PASS**, Playwright
+  **35 passed, 3 failed** — the camera scenario still exceeded the 60 s test timeout, and the two
+  `errors.spec.ts` scenarios immediately after it went down with it.
+
+**A green local sweep is not evidence about CI, and this milestone has now proved that twice.**
+Attempt 1 passed pytest, vitest, eslint, typecheck, build, the bundle gate and all 38 Playwright
+scenarios locally, five times over, and still failed remotely. Do not report a local pass as a CI
+pass.
 
 **A local pass is not a remote pass**, and this project has already been bitten by exactly that
 distinction once: M8's own clean-clone test found an integrity hash that had only ever passed on
@@ -46,17 +53,29 @@ only by the Playwright `webServer`. **No application behaviour changed.** Full r
 literally, and only a literal makes the branch dead code; an env lookup leaves the handle name in
 the shipped bundle. `npm run verify:no-e2e-handle` asserts this after every build and runs in CI.
 
-**Do not loosen the camera tolerances without re-measuring.** They come from a real trace of the
-OrbitControls damping decay (`docs/evidence/M8/ci/camera-damping-trace.md`), not from taste:
-`SETTLE_EPSILON` 1e-5, `CAMERA_EPSILON` 1e-3, ~30x above damping residue and ~3700x below the
-3.7-unit move the test exists to catch. Damping means the camera never comes exactly to rest, so an
-equality rule does not work — that was the first rewrite's failure, 3/3.
+### Three things about the camera measurement that must not be undone
 
-### Local gates, measured 2026-08-10
+1. **Wait in FRAMES, never in milliseconds.** OrbitControls damping advances only when a frame
+   renders, so a wall-clock rule is a bet on the frame rate — and that bet is what failed on the
+   runner. Attempt 1 polled every 100 ms; attempt 2 counts rendered frames.
+2. **Keep the whole loop inside one `page.evaluate`.** Attempt 1 cost ~120 Node↔browser round trips
+   per phase. On a runner where the WebGL scenarios run ~15x slower, that alone blew the 60 s budget.
+3. **Keep the tolerance derived, not hard-coded.** The probe measures the camera's residual drift on
+   the machine running the test and derives the tolerance as `max(drift x 20, 1e-3)`. Drift above
+   `MAX_RESIDUAL_DRIFT` fails as **UNMEASURED**, not as a camera-preservation failure.
 
-**473 pytest** · **181 vitest** · **38 Playwright** · eslint clean · `typecheck:e2e` clean ·
+**Do not raise `MAX_RESIDUAL_DRIFT` back to 0.05.** At 0.05 the worst permitted tolerance is exactly
+`DISTINCT_VIEWPOINT` (1.0), wide enough to swallow a whole change of viewpoint and make the
+comparison decorative. A vitest case asserts
+`toleranceForDrift(MAX_RESIDUAL_DRIFT) < DISTINCT_VIEWPOINT`; it caught this before the commit.
+
+### Local gates, measured 2026-08-10 (attempt 2)
+
+**473 pytest** · **183 vitest** · **38 Playwright** · eslint clean · `typecheck:e2e` clean ·
 production build succeeds · production bundle contains no E2E handle (and the guard was proven to
-detect one in a `VITE_E2E=1` build). Camera scenario **6.6 s**, was ~138 s. Whole E2E suite 1.2 min.
+detect one in a `VITE_E2E=1` build). Camera scenario ~4 s, was ~138 s. Whole E2E suite 1.2 min.
+**All of this was also true of attempt 1, which failed on CI. Treat it as necessary, not
+sufficient.**
 
 ### The accidental M9 start on 2026-08-10 — nothing to clean up
 

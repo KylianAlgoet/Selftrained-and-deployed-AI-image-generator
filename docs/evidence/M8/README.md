@@ -27,14 +27,17 @@ locally, but criterion 1 is not evidenced remotely until CI is green.
 | gate | M7 close | M8 close (08-09) | after the CI fix (08-10) |
 |---|---:|---:|---:|
 | pytest | 406 | **473** | **473** |
-| vitest | 165 | **169** | **181** |
+| vitest | 165 | **169** | **183** |
 | **Playwright E2E** | **0 — did not exist** | **37** | **38** |
 | eslint | clean | clean | clean |
 | production build | succeeds | succeeds | succeeds |
-| production bundle carries no E2E handle | n/a | n/a | **asserted in CI** |
+| production bundle carries no E2E handle | n/a | n/a | **asserted in CI, and passing** |
 
 The E2E count moved 37 → 38 because `bd3a91f` added a progress scenario after the index was
-written; vitest moved 169 → 181 with the twelve unit tests covering the new camera read-out.
+written; vitest moved 169 → 183 with the unit tests covering the new camera read-out.
+
+**The last column is LOCAL.** The CI fix has taken two attempts, and attempt 1 produced exactly this
+kind of clean local sweep before failing remotely. Local green is necessary here, not sufficient.
 
 **Generation count: 27** — 25 research (closed at cap) + 1 M7 human review + 1 M8 deployment
 validation. Never reported as 25.

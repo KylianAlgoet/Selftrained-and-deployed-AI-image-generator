@@ -9,78 +9,93 @@ import {
   recordRequests,
 } from './fixtures/api'
 import {
-  CAMERA_EPSILON,
+  DISTINCT_VIEWPOINT,
   E2E_CAMERA_HANDLE,
-  SETTLE_EPSILON,
-  cameraStatesEqual,
+  MAX_RESIDUAL_DRIFT,
   describeCameraState,
   maxComponentDelta,
+  toleranceForDrift,
 } from '../src/viewer/e2eCameraState'
 import type { DeckCameraState } from '../src/viewer/e2eCameraState'
 
 /**
- * Read the live viewpoint, after at least one frame has actually rendered.
- *
- * The rAF wait matters. OrbitControls' damping only advances on a rendered
- * frame, so if the render loop stalls - which it does on a software rasteriser
- * - two wall-clock samples can be identical while the camera is still mid-
- * flight, and a settle loop would call that "at rest". Sampling per frame ties
- * the measurement to the thing that moves the camera. The 2 s ceiling stops a
- * genuinely dead render loop from hanging the test instead of failing it.
+ * Frames to let the damping decay after a real drag before measuring. At 90
+ * frames the measured drift is ~1.3e-3 per 5 frames, comfortably inside
+ * `MAX_RESIDUAL_DRIFT`. Counted in frames, not milliseconds, so it means the
+ * same thing on a 120 Hz laptop and on a software rasteriser.
  */
-async function readCameraState(page: Page): Promise<DeckCameraState> {
-  return page.evaluate(async (handle) => {
-    const probe = (window as unknown as Record<string, { cameraState(): DeckCameraState }>)[handle]
-    if (!probe) {
-      throw new Error(
-        `window.${handle} is missing. The suite's bundle must be built with ` +
-          'VITE_E2E=1, which playwright.config.ts sets on the webServer.',
-      )
-    }
-    await new Promise<void>((resolve) => {
-      const guard = setTimeout(resolve, 2_000)
-      requestAnimationFrame(() => {
-        clearTimeout(guard)
-        resolve()
-      })
-    })
-    return probe.cameraState()
-  }, E2E_CAMERA_HANDLE)
+const FRAMES_AFTER_DRAG = 90
+/** Frames to wait when the camera should already be still - it drifts ~1e-9. */
+const FRAMES_WHEN_STILL = 3
+/** Frames the residual drift is measured over. */
+const DRIFT_FRAMES = 4
+
+interface CameraProbe {
+  /** The pose at the end of the probe. */
+  state: DeckCameraState
+  /** How far the camera moved on its own over the last `DRIFT_FRAMES` frames. */
+  drift: number
+  /** Wall-clock cost, and with it the runner's effective frame rate. */
+  elapsedMs: number
+  /** Frames actually observed - short of the request means the guard fired. */
+  frames: number
 }
 
 /**
- * Wait until the viewpoint has come to rest, then return it.
+ * Wait a fixed number of RENDERED FRAMES, then measure the pose and how fast it
+ * is still changing.
  *
- * "At rest" is a threshold, not an equality: damping means the camera decays
- * towards its destination and never exactly arrives (see the tolerance note in
- * `e2eCameraState.ts` for the measured decay). Two consecutive samples under
- * the threshold are required, so one stalled frame cannot be mistaken for a
- * camera that has stopped.
+ * Everything happens inside one `page.evaluate`. The previous version polled
+ * from Node and cost ~120 round trips per phase, which is what blew the 60 s
+ * budget on CI; this costs one. Waiting in frames rather than milliseconds is
+ * the other half: OrbitControls' damping only advances when a frame renders, so
+ * a frame count behaves the same on a 120 Hz laptop and on a software
+ * rasteriser, where a millisecond count does not.
  *
- * This is the cheap successor to the old screenshot settle loop: two
- * `page.evaluate` calls per round instead of two WebGL canvas captures.
+ * The returned `drift` is what makes the comparison honest. Rather than
+ * assuming the camera has settled, the caller derives its tolerance from how
+ * much the camera is demonstrably still moving, measured on the machine running
+ * the test.
  */
-async function settledCameraState(page: Page): Promise<DeckCameraState> {
-  const history: number[] = []
-  let previous = await readCameraState(page)
-  let quietRounds = 0
+async function probeCamera(page: Page, settleFrames: number): Promise<CameraProbe> {
+  const { first, second, frames, elapsedMs } = await page.evaluate(
+    async ({ handle, settleFrames, driftFrames }) => {
+      const probe = (window as unknown as Record<string, { cameraState(): DeckCameraState }>)[
+        handle
+      ]
+      if (!probe) {
+        throw new Error(
+          `window.${handle} is missing. The suite's bundle must be built with ` +
+            'VITE_E2E=1, which playwright.config.ts sets on the webServer.',
+        )
+      }
 
-  for (let attempt = 0; attempt < 120; attempt += 1) {
-    await page.waitForTimeout(100)
-    const current = await readCameraState(page)
-    const delta = maxComponentDelta(previous, current)
-    history.push(delta)
-    previous = current
+      // A dead or crawling render loop must fail the test with a diagnosis, not
+      // hang it until the suite timeout reports nothing useful.
+      const started = Date.now()
+      const deadline = started + 15_000
+      let frames = 0
+      const nextFrame = () =>
+        new Promise<void>((resolve) => {
+          const guard = setTimeout(resolve, 1_000)
+          requestAnimationFrame(() => {
+            clearTimeout(guard)
+            frames += 1
+            resolve()
+          })
+        })
 
-    quietRounds = delta < SETTLE_EPSILON ? quietRounds + 1 : 0
-    if (quietRounds >= 2) return current
-  }
+      for (let i = 0; i < settleFrames && Date.now() < deadline; i += 1) await nextFrame()
+      const first = probe.cameraState()
+      for (let i = 0; i < driftFrames && Date.now() < deadline; i += 1) await nextFrame()
+      const second = probe.cameraState()
 
-  const tail = history.slice(-8).map((d) => d.toExponential(1)).join(', ')
-  throw new Error(
-    `the camera never came to rest within 12 s. Last read ` +
-      `${describeCameraState(previous)}; recent per-sample deltas: ${tail}.`,
+      return { first, second, frames, elapsedMs: Date.now() - started }
+    },
+    { handle: E2E_CAMERA_HANDLE, settleFrames, driftFrames: DRIFT_FRAMES },
   )
+
+  return { state: second, drift: maxComponentDelta(first, second), frames, elapsedMs }
 }
 
 /**
@@ -200,7 +215,7 @@ test.describe('user decal upload', () => {
     await expect(canvas).toBeVisible()
     await page.waitForFunction((handle) => handle in window, E2E_CAMERA_HANDLE)
 
-    const atRest = await settledCameraState(page)
+    const atRest = await probeCamera(page, FRAMES_WHEN_STILL)
 
     // Orbit the deck away from its default pose. A REAL interaction, unchanged:
     // the point is to move the camera the way a user does, not to call
@@ -219,53 +234,83 @@ test.describe('user decal upload', () => {
     await page.waitForTimeout(100)
     await page.mouse.up()
 
-    const orbited = await settledCameraState(page)
+    const orbited = await probeCamera(page, FRAMES_AFTER_DRAG)
 
     /**
-     * PRECONDITION, kept from the screenshot version.
+     * TWO PRECONDITIONS, both of which keep "not measured" off the same code
+     * path as "failed".
      *
-     * The original version never checked that the drag registered. If the orbit
-     * silently did nothing, the camera stayed at its default, "Reset view"
-     * became a no-op, and the final assertion failed with a message claiming
-     * the texture swap had reset the camera - reporting a drag that never
-     * happened as a regression that never happened. This project's own rule is
-     * that "not measured" and "failed" must not share a code path.
+     * The first is inherited from the screenshot version: if the drag silently
+     * did nothing, the camera stayed at its default, and every later assertion
+     * would report a drag that never happened as a regression that never
+     * happened.
+     *
+     * The second is new, and is what makes this rule frame-rate independent. If
+     * the camera is still visibly coasting on its damping, no comparison of two
+     * poses means anything - so the test says so, rather than blaming the
+     * texture swap for movement the drag caused.
      */
     expect(
-      cameraStatesEqual(atRest, orbited),
+      maxComponentDelta(atRest.state, orbited.state),
       'the orbit drag did not move the camera, so this test cannot say anything ' +
         'about camera preservation yet. It is NOT evidence that the texture swap ' +
-        `reset the view. Still at ${describeCameraState(atRest)}.`,
-    ).toBe(false)
+        `reset the view. Still at ${describeCameraState(atRest.state)}.`,
+    ).toBeGreaterThan(DISTINCT_VIEWPOINT)
+
+    expect(
+      orbited.drift,
+      `the camera was still moving ${orbited.drift.toExponential(2)} per ` +
+        `${DRIFT_FRAMES} frames after ${orbited.frames} of a requested ` +
+        `${FRAMES_AFTER_DRAG + DRIFT_FRAMES} damping frames (${orbited.elapsedMs} ms, ` +
+        `~${Math.round((orbited.frames / Math.max(orbited.elapsedMs, 1)) * 1000)} fps), ` +
+        'which is too much for a pose comparison to mean anything. This is an ' +
+        'UNMEASURED result, not a camera-preservation failure. If the frame count ' +
+        'fell short, the render loop is slower than the probe budget allows.',
+    ).toBeLessThan(MAX_RESIDUAL_DRIFT)
+
+    // The tolerance is derived from drift observed on THIS machine, not assumed.
+    const tolerance = toleranceForDrift(orbited.drift)
 
     // The artwork changes...
     await page.locator('#decal-upload').setInputFiles(DECAL_PNG)
     await expect(page.getByLabel('Decal on the deck')).toBeVisible()
-    const afterUpload = await settledCameraState(page)
+    const afterUpload = await probeCamera(page, FRAMES_WHEN_STILL)
 
-    // ...and the viewpoint is IDENTICAL, which the pixel comparison could never
+    // ...and the viewpoint does not, which the pixel comparison could never
     // assert - it could only show that Reset view still had work to do.
     expect(
-      cameraStatesEqual(orbited, afterUpload),
+      maxComponentDelta(orbited.state, afterUpload.state),
       'replacing the decal moved the camera. Before the swap ' +
-        `${describeCameraState(orbited)}; after it ${describeCameraState(afterUpload)}; ` +
-        `largest component moved by ${maxComponentDelta(orbited, afterUpload).toExponential(2)}, ` +
-        `tolerance ${CAMERA_EPSILON}.`,
-    ).toBe(true)
+        `${describeCameraState(orbited.state)}; after it ` +
+        `${describeCameraState(afterUpload.state)}. Tolerance ` +
+        `${tolerance.toExponential(2)}, from a measured drift of ` +
+        `${orbited.drift.toExponential(2)}.`,
+    ).toBeLessThan(tolerance)
 
-    // Reset view still returns to the default pose, and to exactly the pose the
-    // page opened at - so the control is proven working rather than assumed.
-    await page.getByRole('button', { name: 'Reset view' }).click()
-    const afterReset = await settledCameraState(page)
+    // And the decisive form of the same claim: a swap that had reset the camera
+    // would have put it back at the opening pose, 3.7 units away.
     expect(
-      cameraStatesEqual(afterUpload, afterReset),
+      maxComponentDelta(atRest.state, afterUpload.state),
+      'after replacing the decal the camera is back at the pose the page opened ' +
+        'at, which is exactly what a texture swap resetting the view looks like.',
+    ).toBeGreaterThan(DISTINCT_VIEWPOINT)
+
+    // Reset view still returns to the opening pose - so the control is proven
+    // working rather than assumed. `reset()` snaps, so no decay to wait out.
+    await page.getByRole('button', { name: 'Reset view' }).click()
+    const afterReset = await probeCamera(page, FRAMES_WHEN_STILL)
+
+    expect(
+      maxComponentDelta(afterUpload.state, afterReset.state),
       'pressing Reset view changed nothing, which means the camera was already ' +
         'at its default pose - the texture swap reset it.',
-    ).toBe(false)
+    ).toBeGreaterThan(DISTINCT_VIEWPOINT)
+
     expect(
-      cameraStatesEqual(atRest, afterReset),
-      `Reset view did not restore the opening viewpoint. Opened at ` +
-        `${describeCameraState(atRest)}; reset to ${describeCameraState(afterReset)}.`,
-    ).toBe(true)
+      maxComponentDelta(atRest.state, afterReset.state),
+      'Reset view did not restore the opening viewpoint. Opened at ' +
+        `${describeCameraState(atRest.state)}; reset to ` +
+        `${describeCameraState(afterReset.state)}.`,
+    ).toBeLessThan(toleranceForDrift(afterReset.drift))
   })
 })

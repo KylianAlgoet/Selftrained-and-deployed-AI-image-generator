@@ -4,6 +4,77 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-10 (later) — the CI fix failed on CI, and what the runner taught
+
+**Objective:** the first fix (`316b2cd`) passed every local gate and still failed remotely. Make the
+measurement survive a runner instead of a laptop.
+
+**Real CI result, run #5 on `316b2cd`:** pytest **PASS** (2m 31s) · vitest/eslint/build **PASS**
+(59s, 181 vitest, and the new production-bundle handle guard passed) · playwright **FAIL** — **35
+passed, 3 failed**, 16.8 m. The camera scenario exceeded the **60 s** test timeout inside the settle
+loop; `errors.spec.ts` 409 and 504 failed immediately after it, and everything from scenario 15
+onwards passed.
+
+**Diagnosis.** Two mistakes, neither visible without a runner:
+
+1. **The settle loop polled from Node** — up to 120 `waitForTimeout` + `page.evaluate` round trips
+   per phase, four phases per test. Locally 6.6 s; on a runner where the WebGL scenarios are ~15x
+   slower (scenario 11: 30.6 s against 2.1 s here) that is unaffordable.
+2. **It waited in milliseconds for something that happens in frames.** Damping advances only on a
+   rendered frame, so a wall-clock settle rule is a bet on the frame rate — and a software
+   rasteriser is where that bet loses.
+
+The two `errors.spec.ts` failures are **attributed, not diagnosed**: contiguous with the timed-out
+test, untouched by the change, green in the previous run, and followed by a clean recovery, which is
+what a poisoned context teardown looks like. Recorded as an inference. If they fail again once the
+camera test passes, they are independent.
+
+**Completed work:** the whole measurement moved inside the page — one `page.evaluate` per phase
+waits a fixed number of **rendered frames**, reads the pose, waits a few more and reads again. Four
+round trips instead of several hundred. The second read yields the **residual drift**, and the
+comparison tolerance is derived from it (`max(drift x 20, 1e-3)`) rather than hard-coded, so the
+rule adapts to whatever machine runs it. Drift above `MAX_RESIDUAL_DRIFT` fails the test as
+**UNMEASURED** rather than blaming the texture swap. Two tolerance-independent assertions were added:
+after the swap the camera must remain >1.0 from the opening pose, and after Reset view it must be
+back at it. The probe now reports frames and elapsed ms, so a third failure would arrive with the
+runner's frame rate attached instead of another guess.
+
+**A second defect, caught by a unit test rather than by CI.** The first draft used
+`MAX_RESIDUAL_DRIFT = 0.05`; with the factor of 20 that made the worst permitted tolerance exactly
+**1.0**, which is `DISTINCT_VIEWPOINT` — wide enough to swallow an entire change of viewpoint, making
+the comparison decorative. A vitest case asserting
+`toleranceForDrift(MAX_RESIDUAL_DRIFT) < DISTINCT_VIEWPOINT` failed and caught it before the commit.
+Tightened to **5e-3**: worst-case tolerance 0.1, a 10x margin under `DISTINCT_VIEWPOINT` and 37x
+under the 3.7-unit move a reset makes. This is exactly the failure the unit tests are biased to
+catch.
+
+**Commands and real results** (2026-08-10, validated machine):
+
+| gate | result |
+|---|---|
+| camera scenario x5 | **5 passed**, 40.3 s incl. build |
+| full Playwright suite | **38 passed**, 1.2 m |
+| `npm run test` | **183 passed** |
+| `npm run lint` · `npm run typecheck:e2e` | clean |
+| `npm run build` → `npm run verify:no-e2e-handle` | succeeds → ok |
+| `.venv/Scripts/python.exe -m pytest` | **473 passed** |
+
+**Lesson worth keeping for the report.** A green local sweep is not evidence about CI, and this
+milestone has now produced that lesson twice — first as a dataset hash that only ever passed on its
+author's machine, now as a test that only ever passed on its author's GPU. The fix in both cases was
+to change the measurement, not the threshold.
+
+**No GPU inference was run. The generation total remains 27.**
+
+**Blockers:** the remote run for attempt 2 has not happened. **Nothing here is CI evidence yet.**
+
+**Evidence:** `docs/evidence/M8/ci/camera-preservation-fix.md` (attempts 1 and 2, with the real run
+#5 table).
+
+**Next step:** commit, push, wait for the run. M8 closes only when all three jobs are green.
+
+---
+
 ## 2026-08-10 — M8 REOPENED: the last red CI job, fixed at the measurement
 
 **Objective:** make the remote CI run green. M8 was closed locally on 2026-08-09 and pushed; the
