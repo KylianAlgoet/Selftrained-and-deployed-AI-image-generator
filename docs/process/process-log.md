@@ -4,6 +4,47 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-10 (fourth) — the camera fix is CONFIRMED on CI; one pre-existing test remains red
+
+**Objective:** read run #7 and report what retries actually did, with counts rather than colour.
+
+**Real CI result, run #7 on `b09035a`:** pytest **PASS** (2m 26s) · vitest/eslint/build **PASS**
+(1m 0s, 183 vitest) · playwright **36 passed, 1 flaky, 1 failed**, 15.6 m.
+
+**The assigned defect is fixed and proven remotely.** `replacing the decal does not reset the
+camera` **passed in 40.2 s on its first attempt, with no retry**. Across three versions of the same
+scenario: screenshot comparison ~138 s local / 300 s CI timeout → structural with Node-side polling
+6.6 s local / 60 s CI timeout → structural, in-page, frame-counted ~4 s local / **40.2 s CI, green**.
+
+**What retries did, quoted:** `offers a PNG download and a metadata download` failed once and
+**passed on retry #1 in 9.1 s** — reported as flaky, and exactly the case retries exist for.
+`a completed generation shows the image, the duration and the metadata` **failed all three
+attempts** (2.3 m, 2.4 m, 2.0 m), so retries did **not** mask it. That is the property claimed for
+them when they were adopted, now demonstrated in both directions.
+
+**The finding: the runner stalls in multi-minute windows.** The remaining failure is a pre-existing
+test, untouched by this work, which passed in 11.4 s in run #5. Three of its neighbours share its
+setup exactly (`generateDelayMs: 300`, same flow) and, in the same run, took 5.6 s, 8.0 s and 9.1 s.
+The same code path took over two minutes in between. Because Playwright retries immediately, all
+three attempts of the failing scenario landed inside one stall; the other test's retry fell outside
+it and passed in nine seconds. **Retries cannot help a stall that outlasts a retry cycle.**
+
+**Decisions:** none taken. The remaining lever is the per-test budget, deliberately left alone until
+the measurement had been fixed — which it now demonstrably has, on a runner. That decision is
+Kylian's and was not pre-empted.
+
+**No GPU inference was run. The generation total remains 27.**
+
+**Blockers:** CI is not green. One pre-existing scenario fails inside runner stall windows. M8 stays
+open.
+
+**Evidence:** `docs/evidence/M8/ci/camera-preservation-fix.md`, run #7 section with the
+neighbour-timing table.
+
+**Next step:** Kylian's decision on the per-test budget for the E2E suite.
+
+---
+
 ## 2026-08-10 (third) — the camera test was never the whole problem: CI retries, approved
 
 **Objective:** understand why attempt 2 also failed remotely, and stop iterating on the wrong thing.

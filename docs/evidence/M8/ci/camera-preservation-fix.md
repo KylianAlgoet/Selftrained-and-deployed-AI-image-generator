@@ -256,6 +256,56 @@ feedback and still loses to a 22x swing; disabling damping in E2E builds would f
 scenario decisively but would stop the suite exercising the production control configuration — and
 would not have fixed the five unrelated failures at all.
 
+## CI run #7: the camera fix is confirmed, and the remaining failure is not it
+
+**`b09035a`:** pytest **PASS** (2m 26s) · vitest/eslint/build **PASS** (1m 0s, 183 vitest) ·
+playwright **36 passed, 1 flaky, 1 failed**, 15.6 m.
+
+**`replacing the decal does not reset the camera` PASSED — 40.2 s, first attempt, no retry.** That is
+the claim this whole document exists to establish, and it is now established on a GitHub runner
+rather than only on its author's machine. Three measurements, same scenario:
+
+| version | local | CI |
+|---|---|---|
+| screenshot comparison | ~138 s | **timeout at 300 000 ms** |
+| structural, Node-side polling | 6.6 s | **timeout at 60 000 ms** |
+| structural, in-page, frame-counted | ~4 s | **40.2 s, passing** |
+
+### What retries actually did, quoted rather than rounded
+
+- `offers a PNG download and a metadata download` — failed, then **passed on retry #1 in 9.1 s**.
+  Reported as **flaky**. This is exactly the case retries exist for.
+- `a completed generation shows the image, the duration and the metadata` — **failed all three
+  attempts** (2.3 m, 2.4 m, 2.0 m). Retries did **not** mask it, which is the property that was
+  claimed for them.
+
+### The runner stalls in multi-minute windows
+
+The failing test is pre-existing, untouched by any of this work, and passed in 11.4 s in run #5. Its
+setup is identical to three neighbours that passed in the same run:
+
+| # | scenario | same mock, same flow | result |
+|---:|---|---|---|
+| 22 | submits the bounded settings as multipart fields | `generateDelayMs: 300` | **5.6 s pass** |
+| 24 | a completed generation shows the image… | `generateDelayMs: 300` | **2.3 m fail x3** |
+| 27 | offers a PNG download… | `generateDelayMs: 300` | 1.8 m fail → **9.1 s pass** |
+| 29 | applies the generated artwork to the deck | `generateDelayMs: 300` | **8.0 s pass** |
+
+The same code path takes 5.6 s, then over two minutes, then 8.0 s, inside one run. **The runner
+degrades for a window of minutes and every test inside that window fails, whatever it is.** Because
+Playwright retries immediately, all three attempts of scenario 24 landed inside the same window —
+while scenario 27's retry fell outside it and passed in 9 seconds.
+
+That is why retries rescued one and not the other, and it is a property of the stall, not of the
+tests.
+
+### What this means for the remaining red
+
+Retries were the right call and are doing their job. They cannot help a stall that outlasts a whole
+retry cycle. The remaining lever is the per-test budget — the thing deliberately left alone until
+the measurement had been fixed, which it now demonstrably has. **That decision is open and is
+Kylian's**, and this document does not pre-empt it.
+
 ## What this still does not prove
 
 - **Nothing here has been observed passing on a GitHub runner.** Attempts 1 and 2 both passed every

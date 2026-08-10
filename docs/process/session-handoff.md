@@ -18,7 +18,28 @@ unpushed. Both halves were wrong by the time it was read:
   Run #6 (`f409b65`, the second fix): pytest **PASS**, vitest/eslint/build **PASS**, Playwright
   **32 passed, 6 failed** — and a *different* six.
 
-### The real finding: the runner, not the camera test
+### Run #7: the camera fix WORKS on CI. Do not reopen it.
+
+`b09035a` → **36 passed, 1 flaky, 1 failed.** `replacing the decal does not reset the camera`
+**passed in 40.2 s on its first attempt, no retry.** The assigned defect is fixed and proven
+remotely. Leave it alone.
+
+The remaining red is **`a completed generation shows the image, the duration and the metadata`** —
+pre-existing, untouched by this work, and it passed in 11.4 s in run #5. It failed all three
+attempts (2.3 m, 2.4 m, 2.0 m), so retries correctly did **not** mask it, while
+`offers a PNG download` failed once and passed on retry #1 in 9.1 s and was reported as flaky.
+
+**The runner stalls in multi-minute windows.** Three neighbours of the failing test share its setup
+exactly (`generateDelayMs: 300`) and took **5.6 s, 8.0 s and 9.1 s** in the same run, with the same
+code path taking over two minutes in between. Playwright retries immediately, so all three attempts
+landed inside one stall; the other test's retry fell outside it. **Retries cannot help a stall that
+outlasts a retry cycle** — do not just raise the retry count.
+
+**The open decision is the per-test budget** (`timeout` / `expect.timeout` in
+`playwright.config.ts`), deliberately left untouched until the measurement had been fixed. It now
+has been, on a runner. **That decision is Kylian's and has not been taken.**
+
+### The earlier finding: the runner, not the camera test
 
 Run #6 settled it. The camera scenario timed out at its **third** probe, the cheap 7-frame one,
 while the expensive 94-frame probe before it completed and passed its drift check. The measurement
