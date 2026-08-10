@@ -20,12 +20,16 @@ The public project planning (milestones M0–M11 with objectives, acceptance cri
 
 ## Project status
 
-**M7 — Prototype 5, the integrated MVP: COMPLETE** (approved at the final human visual gate,
-2026-08-07). **M8 — testing, deployment and demo preparation: in progress.** Prototypes 0–4 are
-complete: the 3D viewer, the 148-item dataset, the base-model benchmark (SD 1.5, DR-007),
-reference conditioning (IP-Adapter at 0.55, DR-008), the LoRA method (DR-009) and three per-style
-adapters at weight 0.7 (DR-010). The MVP serves them behind a FastAPI service with a React UI and
-the 3D deck preview. See `docs/02-planning.md` for the roadmap to submission (2026-08-17).
+**M8 — testing, deployment and demo preparation: COMPLETE** (2026-08-09; reopened 2026-08-10 for a
+remote CI failure, fixed, and all three GitHub Actions jobs now pass — with the qualifications
+recorded in `docs/evidence/M8/README.md`). **A feature freeze is in force**
+(`docs/process/feature-freeze.md`). **M9 — the research report and its PDF: in progress.**
+
+Prototypes 0–5 are complete: the 3D viewer, the 148-item dataset, the base-model benchmark
+(SD 1.5, DR-007), reference conditioning (IP-Adapter at 0.55, DR-008), the LoRA method (DR-009),
+three per-style adapters at weight 0.7 (DR-010) and the integrated MVP, which serves them behind a
+FastAPI service with a React UI and the 3D deck preview. See `docs/02-planning.md` for the roadmap
+to submission (2026-08-17).
 
 ## Running it locally
 
@@ -65,13 +69,16 @@ There is no CPU fallback and no container. Both are deliberate; DR-014 records w
 ## Tests
 
 ```powershell
-.venv\Scripts\python.exe -m pytest    # 461 — API + ML tooling, pipeline stubbed, no GPU
+.venv\Scripts\python.exe -m pytest    # 473 — API + ML tooling, pipeline stubbed, no GPU
 cd apps\web
-npm run test                          # 169 — vitest
+npm run test                          # 183 — vitest
 npm run lint
 npm run build
-npx playwright test                   # 37 — browser E2E against the built frontend, no GPU
+npx playwright test                   # 38 — browser E2E against the built frontend, no GPU
 ```
+
+A clean clone reports **468 passed / 5 skipped** for pytest: five tests skip conditionally on
+git-ignored assets that a fresh clone does not have. 468 + 5 = 473.
 
 No test in any of these suites loads the model or runs a generation. Real-model behaviour is
 evidenced separately by `scripts/validate_p5_api.py` against an actual uvicorn process, and by the
