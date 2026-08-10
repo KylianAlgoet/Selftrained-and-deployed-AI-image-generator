@@ -4,6 +4,60 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-10 (fifth) — traced the runner stall, then set the CI budgets from the measurement
+
+**Objective:** stop inferring. Read the trace of a real failure before touching any test budget.
+
+**Method:** downloaded run #7's `playwright-report` artifact (1 190 234 bytes) from GitHub Actions,
+expanded it outside the repository, and parsed the action and network timelines of
+`generate.spec.ts:121` retry #2 — the attempt that failed last in the test that failed all three.
+
+**Real results.**
+
+| measurement | value |
+|---|---:|
+| `Fill` into a textbox | **21.58 s** |
+| `Click` a button | **37.15 s** |
+| navigation + fill + click, before the assertion began | **59.1 s of a 60 s budget** |
+| gap between page load and the POST being sent | **59 s** |
+| `POST /api/generate` against a 300 ms mock | 2391.7 ms |
+| one Node-side route fulfilment, from a frozen fixture | **12.78 s** |
+
+**The application is ruled out.** It never received a response to act on; the DOM snapshot shows the
+button reading `Generating…` and the panel on the first progress stage — correct reporting of the
+only state it had been told about. The locator, the mock and the `generateDelayMs: 300` are
+identical to three neighbouring scenarios that passed in the same run in 5.6 s, 8.0 s and 9.1 s. No
+camera or E2E-probe code is involved; the test does not touch the viewer beyond loading the page.
+
+**A mechanism is offered and explicitly NOT claimed.** Every scenario loads the app, which mounts an
+R3F canvas rendering continuously through SwiftShader; on a two-core runner that is a plausible way
+to starve the CDP channel. **No CPU measurement was taken on the runner**, so this is recorded as a
+hypothesis, not a finding.
+
+**Decision (Kylian, 2026-08-10):** CI budgets become `timeout: 180 s` and `expect.timeout: 45 s`;
+**local stays 60 s / 10 s**. Both CI numbers are floors read off the measurements above, not headroom
+chosen to make something pass. The `e2e` job guard moved 45 → 60 minutes, because a job killed
+halfway produces nothing to act on.
+
+**Recorded as an accommodation, not a fix.** The stall is real and unexplained. A budget lets a slow
+environment finish; it does not improve it, and it does mean CI can no longer detect a genuine
+performance regression. Rejected: lifting only `expect` (59.1 s was gone before the first assertion,
+so it probably would not have saved the run); rendering the canvas on demand in E2E builds (attacks
+the *suspected* cause, changes rendering behaviour under test, needs its own decision record under
+the freeze).
+
+**Commands and real results:** `npm run lint` and `npm run typecheck:e2e` clean; full Playwright
+suite **38 passed in 1.2 m** with local budgets unchanged at 60 s / 10 s.
+
+**No GPU inference was run. The generation total remains 27.**
+
+**Evidence:** `docs/evidence/M8/ci/runner-stall-trace.md`.
+
+**Next step:** push and read the run. If a scenario still fails all three attempts under a 180 s
+budget, the problem is not a budget and this must not be raised again.
+
+---
+
 ## 2026-08-10 (fourth) — the camera fix is CONFIRMED on CI; one pre-existing test remains red
 
 **Objective:** read run #7 and report what retries actually did, with counts rather than colour.

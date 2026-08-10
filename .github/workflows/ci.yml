@@ -126,12 +126,13 @@ jobs:
   e2e:
     name: playwright (mocked API, no model)
     runs-on: windows-latest
-    # 45, not 30. This is the JOB's wall-clock guard, not a test timeout: the
-    # suite already takes ~18 minutes here, and playwright.config.ts retries
-    # failed scenarios twice on CI, so a bad run needs room to finish and report
-    # rather than being killed halfway with no output. No per-test budget was
-    # changed to make anything pass.
-    timeout-minutes: 45
+    # 60, not 30. This is the JOB's wall-clock guard, not a test timeout. The
+    # suite takes ~16-18 minutes here; on CI it also retries failed scenarios
+    # twice and allows 180 s per test, so a bad run needs room to finish and
+    # report rather than being killed halfway with no output at all - a killed
+    # job wastes more runner minutes than a generous guard does, because it
+    # produces nothing to act on.
+    timeout-minutes: 60
 
     steps:
       - uses: actions/checkout@v4

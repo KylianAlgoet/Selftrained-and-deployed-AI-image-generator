@@ -35,9 +35,20 @@ code path taking over two minutes in between. Playwright retries immediately, so
 landed inside one stall; the other test's retry fell outside it. **Retries cannot help a stall that
 outlasts a retry cycle** — do not just raise the retry count.
 
-**The open decision is the per-test budget** (`timeout` / `expect.timeout` in
-`playwright.config.ts`), deliberately left untouched until the measurement had been fixed. It now
-has been, on a runner. **That decision is Kylian's and has not been taken.**
+**The per-test budget decision has since been taken**, on measured evidence rather than guesswork.
+The trace of run #7's last failing attempt (`docs/evidence/M8/ci/runner-stall-trace.md`) recorded
+`fill` **21.58 s**, `click` **37.15 s** — 59.1 s of a 60 s budget gone before the assertion under
+test began — and a single mocked response taking **12.78 s** to fulfil against a 10 s `expect`
+timeout. The application was ruled out: it never received a response to act on, and the DOM snapshot
+shows it correctly reporting the only state it had been told about.
+
+CI budgets are now **`timeout: 180 s`, `expect.timeout: 45 s`**; **local stays 60 s / 10 s**, because
+the suite runs in ~1.2 minutes here and a local scenario needing more than 60 s has found something.
+The `e2e` job guard moved 45 → 60 minutes.
+
+**Do not raise the LOCAL budgets to match.** That would delete the suite's only performance signal.
+**Do not describe the CI budgets as a fix** — the stall is real and unexplained; a budget lets a slow
+environment finish, and it means CI can no longer detect a genuine performance regression.
 
 ### The earlier finding: the runner, not the camera test
 

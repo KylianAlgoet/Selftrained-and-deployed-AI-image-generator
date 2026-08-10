@@ -97,6 +97,30 @@ So the observed failure would very likely have passed under a larger budget: the
 progressing, just far slower than the budget allowed. That is a different situation from a test
 that is wrong.
 
+## The decision taken on this evidence
+
+Approved by Kylian on 2026-08-10, after the trace above and with the alternatives stated:
+
+**CI budgets become `timeout: 180 s` and `expect.timeout: 45 s`; local stays 60 s / 10 s.**
+Both CI numbers are floors read off the measurements — 60 s cannot survive a 59.1 s fill-and-click,
+10 s cannot survive a 12.78 s fulfilment. The `e2e` job's wall-clock guard moves 45 → 60 minutes,
+because a job killed halfway produces nothing to act on and wastes more runner minutes than a
+generous guard does.
+
+Local values are deliberately untouched. The whole suite runs in ~1.2 minutes on the validated
+machine, and a scenario needing more than 60 s here has found something worth reading; a CI-sized
+local budget would remove the suite's only performance signal.
+
+**This is an accommodation, not a fix, and must not be reported as one.** The stall is real and its
+cause is unproven. Raising a budget lets a slow environment finish; it does not make the environment
+better, and it does mean the suite can no longer detect a genuine performance regression on CI.
+
+Rejected alternatives, with reasons: lifting only `expect` would probably not have saved this run,
+since 59.1 s was gone before the first assertion; making the R3F canvas render on demand in E2E
+builds attacks the *suspected* cause but changes rendering behaviour under test, needs its own
+decision record under the freeze, and rests on a hypothesis this document explicitly refuses to
+treat as a finding.
+
 ## Honest limits of this evidence
 
 - **One trace, one attempt, one run.** The stall's shape is measured; its frequency and its cause are
