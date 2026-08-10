@@ -71,6 +71,12 @@ export default defineConfig({
     // that is no longer in `src/`, which is the one failure a build-then-preview
     // suite exists to prevent.
     command: 'npm run build && npm run preview -- --port 4173 --strictPort',
+    // The ONE difference between the suite's bundle and the shipped one: it
+    // carries the read-only camera read-out that `camera-preservation` measures
+    // against (see src/viewer/e2eCameraState.ts). Nothing else in the build
+    // changes, and the flag is set here rather than in a script so it cannot
+    // leak into a manual `npm run build`.
+    env: { VITE_E2E: '1' },
     url: 'http://localhost:4173',
     reuseExistingServer: false,
     timeout: 180_000,

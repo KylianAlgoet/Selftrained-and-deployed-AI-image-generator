@@ -115,6 +115,14 @@ jobs:
       - run: npm run build
         working-directory: apps/web
 
+      - name: Confirm the production bundle exposes no E2E handle
+        # The camera read-out the Playwright suite measures against is gated on
+        # a build-time constant and is supposed to disappear from an ordinary
+        # build. That is a claim about tree-shaking, so it is checked here
+        # against the dist/ this job just produced - with no VITE_E2E set.
+        working-directory: apps/web
+        run: npm run verify:no-e2e-handle
+
   e2e:
     name: playwright (mocked API, no model)
     runs-on: windows-latest

@@ -4,6 +4,7 @@ import { OrbitControls } from '@react-three/drei'
 import type { Texture } from 'three'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { createDeckGeometry } from '../deck/deckGeometry'
+import { E2ECameraProbe } from './E2ECameraProbe'
 
 /**
  * Dev-only hook: exposes a synchronous render trigger on window so evidence
@@ -84,6 +85,10 @@ export function DeckViewer({ texture, invertDemo, onControlsReady }: DeckViewerP
       <directionalLight position={[-4, 6, -3]} intensity={0.7} />
       <DeckMesh texture={texture} invertDemo={invertDemo} />
       {import.meta.env.DEV && <EvidenceCaptureHook />}
+      {/* E2E builds only, and read-only. `__DECKFORGE_E2E__` is replaced with a
+          literal `false` in an ordinary build, so this branch and everything it
+          imports are removed from the shipped bundle. */}
+      {__DECKFORGE_E2E__ && <E2ECameraProbe controlsRef={controlsRef} />}
       <OrbitControls
         ref={(instance) => {
           controlsRef.current = instance

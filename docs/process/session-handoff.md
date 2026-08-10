@@ -1,11 +1,78 @@
 # Session handoff
 
-**Last updated:** 2026-08-09 (M8 — testing, deployment, clean-clone validation and demo
-preparation: **COMPLETE**, all six acceptance criteria met, closed locally, under Opus 5)
+**Last updated:** 2026-08-10 (M8 **REOPENED** for the last red CI job; the camera-preservation fix
+is committed and awaiting a remote run, under Opus 5)
 
-## M8: COMPLETE
+## M8: OPEN — waiting on GitHub Actions
 
-All six acceptance criteria on issue #9 are met. Index: `docs/evidence/M8/README.md`.
+**Read this before anything else.** The 2026-08-09 version of this file said M8 was complete and
+unpushed. Both halves were wrong by the time it was read:
+
+- **The work IS pushed.** `main` and `origin/main` are in sync. `git status -sb` showing no
+  `[ahead]` marker is *not* evidence that a milestone is finished — a resumed session made exactly
+  that inference on 2026-08-10 and started M9 on the strength of it.
+- **CI is NOT green.** The first GitHub Actions run of `68d1bf2` reported pytest **PASS**,
+  vitest/eslint/build **PASS**, and Playwright **37 passed, 1 failed** — the camera-preservation
+  scenario timed out after 300 000 ms on the Windows runner.
+
+**A local pass is not a remote pass**, and this project has already been bitten by exactly that
+distinction once: M8's own clean-clone test found an integrity hash that had only ever passed on
+its author's machine.
+
+### Current position
+
+The failing scenario has been rewritten and every local gate is green (see below), but **the remote
+run has not happened yet**. M8 closes when all three CI jobs are green — not before.
+
+| what | state |
+|---|---|
+| the CI fix | committed locally |
+| the push | **do it, then wait for Actions** |
+| GitHub issue #9 | **not closed** — Kylian's |
+| the project board | **not moved** — Kylian's |
+| **M9** | **NOT STARTED, and must not start until CI is green and M8 is formally closed** |
+
+### The fix, in one paragraph
+
+`replacing the decal does not reset the camera` answered a structural question photographically: it
+settled the WebGL canvas four times and compared screenshots, which on a GPU-less runner is
+software-rasterised and unaffordable. It now reads the camera position, quaternion and orbit target
+directly, through read-only instrumentation gated on `__DECKFORGE_E2E__` — a Vite `define` that is
+literally `false` in ordinary builds, so the probe is tree-shaken out entirely. `VITE_E2E=1` is set
+only by the Playwright `webServer`. **No application behaviour changed.** Full record:
+`docs/evidence/M8/ci/camera-preservation-fix.md`.
+
+**Do not "simplify" the gate to `import.meta.env.VITE_E2E`.** Only a `define` is substituted
+literally, and only a literal makes the branch dead code; an env lookup leaves the handle name in
+the shipped bundle. `npm run verify:no-e2e-handle` asserts this after every build and runs in CI.
+
+**Do not loosen the camera tolerances without re-measuring.** They come from a real trace of the
+OrbitControls damping decay (`docs/evidence/M8/ci/camera-damping-trace.md`), not from taste:
+`SETTLE_EPSILON` 1e-5, `CAMERA_EPSILON` 1e-3, ~30x above damping residue and ~3700x below the
+3.7-unit move the test exists to catch. Damping means the camera never comes exactly to rest, so an
+equality rule does not work — that was the first rewrite's failure, 3/3.
+
+### Local gates, measured 2026-08-10
+
+**473 pytest** · **181 vitest** · **38 Playwright** · eslint clean · `typecheck:e2e` clean ·
+production build succeeds · production bundle contains no E2E handle (and the guard was proven to
+detect one in a `VITE_E2E=1` build). Camera scenario **6.6 s**, was ~138 s. Whole E2E suite 1.2 min.
+
+### The accidental M9 start on 2026-08-10 — nothing to clean up
+
+A resumed session misread this file and began M9 before being stopped. **No repository file was
+created or modified**, no commit was made, and the working tree stayed clean. Two findings are worth
+keeping for when M9 legitimately starts: pandoc, pdflatex, xelatex, tectonic, wkhtmltopdf and
+soffice are all **absent** from this machine, while `markdown-it-py` 4.2.0, Jinja2 3.1.6 and
+Pygments 2.20.0 are already in the venv and headless Chrome `--print-to-pdf` works — so a report
+build with **zero new dependencies** is feasible under the freeze.
+
+---
+
+## The 2026-08-09 close, superseded above
+
+*Kept because its warnings still apply. Its status line does not.* All six acceptance criteria on
+issue #9 are met **locally**. Index: `docs/evidence/M8/README.md`.
 
 | # | criterion | evidence |
 |---:|---|---|
@@ -16,13 +83,16 @@ All six acceptance criteria on issue #9 are met. Index: `docs/evidence/M8/README
 | 5 | Timed demo script | `docs/presentation/demo-script.md` |
 | 6 | Backup demo plan | `docs/presentation/demo-backup-plan.md` |
 
-**M8 is closed LOCALLY ONLY.** Three things remain Kylian's and are **not** done:
+~~**M8 is closed LOCALLY ONLY.** Three things remain Kylian's and are **not** done:~~
 
-1. **the push** — verify with `git status -sb`;
-2. **the GitHub issue #9** — not closed (`gh` unavailable here);
-3. **the project board** — not moved.
+1. ~~**the push** — verify with `git status -sb`;~~ — **done.** The push happened, and the CI run it
+   triggered is what reopened the milestone. Note the trap this line set: `git status -sb` tells you
+   whether commits were pushed, **not** whether they passed.
+2. **the GitHub issue #9** — still not closed (`gh` unavailable here), and it must not be closed
+   while CI is red.
+3. **the project board** — still not moved.
 
-**M9 (research report) has not begun.**
+**M9 (research report) has not begun**, and must not begin before M8 is formally closed.
 
 ### ⚠️ Eight things the next session must not do
 

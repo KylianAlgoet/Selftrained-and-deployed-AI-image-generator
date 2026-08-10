@@ -5,6 +5,18 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  define: {
+    // The E2E instrumentation gate. A `define` rather than
+    // `import.meta.env.VITE_E2E`, because only a define is guaranteed to be
+    // substituted literally: `false && <Probe />` is then dead code, and the
+    // probe plus the handle name disappear from the bundle instead of merely
+    // being switched off inside it. `npm run verify:no-e2e-handle` asserts that
+    // after every ordinary build.
+    //
+    // Set by playwright.config.ts for the suite's own build. Unset everywhere
+    // else, including production, where this is exactly `false`.
+    __DECKFORGE_E2E__: JSON.stringify(process.env.VITE_E2E === '1'),
+  },
   test: {
     // Default to the node environment; DOM-dependent test files opt in to
     // jsdom via a `// @vitest-environment jsdom` docblock.

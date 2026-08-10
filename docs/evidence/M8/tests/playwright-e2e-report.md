@@ -28,11 +28,14 @@ Reports, traces and screenshots are git-ignored.
 |---|---:|---|
 | `app.spec.ts` | 6 | shell, WebGL context, **production/review separation**, DR-012 disclosure, offline banner |
 | `generate.spec.ts` | 8 | styles list, bounded settings, reference attach/remove, **multipart request body**, result, downloads, deck application, partial-pass warning |
-| `progress.spec.ts` | 7 | waiting state, polling cadence, **real step counts**, estimate timing, **no percentage without a denominator**, finalising, telemetry loss |
+| `progress.spec.ts` | 7 → **8** | waiting state, polling cadence, **real step counts**, estimate timing, **no percentage without a denominator**, finalising, telemetry loss, gated-mock determinism |
 | `decal-upload.spec.ts` | 6 | upload without `POST /api/generate`, no false metadata, decode failure preserves the decal, preflight, restore, **camera survives a texture swap** |
 | `errors.spec.ts` | 6 | 409 busy, 504 with step counts, 503 with no path leak, 422 field binding, network abort, recoverable state |
 | `viewport.spec.ts` | 3 | 1440×900 demo viewport, 390×844 narrow, result panel overflow |
-| **total** | **37** | |
+| **total** | 37 → **38** | |
+
+*The arrows are 2026-08-10 corrections. `bd3a91f` added the gated-mock determinism scenario after
+this table was written; everything else is as it was at the 08-09 close.*
 
 ## The assertions that carry the most weight
 
@@ -86,6 +89,21 @@ test orbits the deck, screenshots the canvas, swaps the texture, and asserts the
 then presses **Reset view** and asserts the frame changed *again*. That second assertion is the
 load-bearing one, because a reset that visibly moves the deck proves the deck was not already in
 its default pose, which is what a texture swap resetting the camera would have caused.
+
+> **SUPERSEDED 2026-08-10, and the original judgement above was wrong on both counts.**
+>
+> This scenario was the **only** job to fail the first remote CI run: it timed out after 300 000 ms
+> on a GPU-less Windows runner, where every canvas screenshot is software-rasterised.
+>
+> "Reading the camera matrix out of the React tree proved unnecessary" is exactly backwards. It was
+> both necessary and *better*: the screenshot version could only ever conclude **the frame
+> changed**, which is why the claim had to be argued indirectly through Reset view still having
+> work to do. The scenario now reads camera position, quaternion and orbit target directly and
+> asserts the pose is **identical** after the swap, and that Reset view returns to the **opening**
+> pose — a stronger assertion that the pixel comparison could not express. Runtime fell from ~138 s
+> to 6.6 s.
+>
+> Full record: [`../ci/camera-preservation-fix.md`](../ci/camera-preservation-fix.md).
 
 ## Stability
 

@@ -11,6 +11,7 @@
     "test:e2e": "playwright test",
     "test:e2e:report": "playwright show-report",
     "typecheck:e2e": "tsc -p tsconfig.e2e.json",
+    "verify:no-e2e-handle": "node scripts/assert-no-e2e-handle.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

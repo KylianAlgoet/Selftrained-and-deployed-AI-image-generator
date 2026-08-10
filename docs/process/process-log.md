@@ -4,6 +4,83 @@ Newest entries first. Each entry: date, objective, plan, completed work, unfinis
 
 ---
 
+## 2026-08-10 — M8 REOPENED: the last red CI job, fixed at the measurement
+
+**Objective:** make the remote CI run green. M8 was closed locally on 2026-08-09 and pushed; the
+first GitHub Actions run then failed one Playwright scenario, so criterion 1 ("backend, frontend and
+E2E suites pass") was evidenced locally but not remotely.
+
+**Plan:** replace the screenshot-based camera-preservation measurement with read-only camera-state
+instrumentation gated to E2E builds. Change no application behaviour, and do not solve it with a
+larger timeout.
+
+**Reported CI state for `68d1bf2`:** pytest **PASS** · vitest/eslint/build **PASS** ·
+Playwright **37 passed, 1 failed** — `replacing the decal does not reset the camera`, timed out
+after **300 000 ms** on the Windows runner.
+
+**Completed work:**
+
+- `src/viewer/e2eCameraState.ts` — pure, import-free camera-state helpers plus the handle name,
+  shared by the app and the Playwright project.
+- `src/viewer/E2ECameraProbe.tsx` — publishes `window.__deckforgeE2ECamera.cameraState()`. Read-only:
+  it copies numbers out of the live camera and OrbitControls and writes nothing back.
+- `vite.config.ts` — `__DECKFORGE_E2E__`, a literal-substituted `define`, so an ordinary build makes
+  the probe dead code and the bundler removes it. `playwright.config.ts` sets `VITE_E2E=1` on its
+  own `webServer` build and nothing else does.
+- `scripts/assert-no-e2e-handle.mjs` + `npm run verify:no-e2e-handle`, wired into the `frontend` CI
+  job after `npm run build`. It reads the handle name from the source, so a rename cannot leave it
+  checking a dead string.
+- The test now compares camera position, quaternion and orbit target structurally, keeps the real
+  orbit drag and the precondition that the drag registered, and drops its `test.setTimeout` override.
+- Twelve vitest cases for the comparison rule, biased towards proving it is not too lax.
+
+**A defect found in my own work, recorded rather than hidden.** The first rewrite defined "at rest"
+as two consecutive reads equal to within 1e-6 and failed 3/3. drei enables OrbitControls damping by
+default, so the camera decays towards rest and **never exactly arrives**; that state does not exist.
+A temporary diagnostic spec traced the real decay *before* any threshold was chosen, and was deleted
+afterwards. The trace also exposed a second trap: damping only advances on a rendered frame, so a
+stalled render loop on a software rasteriser can emit two identical reads mid-flight. Each sample
+now waits for a real frame and two consecutive quiet samples are required.
+
+**Decisions:** a `define` rather than `import.meta.env.VITE_E2E`, because only a define is
+guaranteed to be substituted literally and therefore to remove the handle from the bundle rather
+than merely disable it. Tolerances taken from the measured decay, not chosen: `SETTLE_EPSILON` 1e-5,
+`CAMERA_EPSILON` 1e-3 — ~30x above damping residue and ~3700x below the 3.7-unit move the test must
+catch. No decision record: this changes no architecture and no production behaviour.
+
+**Commands and real results** (all 2026-08-10, validated machine):
+
+| gate | result |
+|---|---|
+| `npx playwright test -g "replacing the decal..." --repeat-each=5` | **5 passed**, 52.1 s incl. build |
+| `npx playwright test` | **38 passed**, 1.2 m (the scenario itself 6.6 s, was ~138 s) |
+| `npm run test` | **181 passed** (169 + 12 new) |
+| `npm run lint` · `npm run typecheck:e2e` | clean |
+| `npm run build` → `npm run verify:no-e2e-handle` | succeeds → `ok: none of the 6 built assets contain "__deckforgeE2ECamera"` |
+| `VITE_E2E=1 npm run build` → same guard | **FAIL**, as it must — the guard detects the handle |
+| `.venv/Scripts/python.exe -m pytest` | **473 passed** |
+
+The E2E build check is the load-bearing one: without it, "the production bundle is clean" would be a
+check that passes on everything.
+
+**Stronger, not merely faster.** The old pixel comparison could only say *the frame changed*, so
+camera preservation was argued indirectly from Reset view still having work to do. The test now
+asserts the pose is **identical** after the swap, and that Reset view returns to the **opening**
+pose — an assertion that could not previously be written.
+
+**No GPU inference was run. The generation total remains 27.**
+
+**Unfinished work / blockers:** **the remote CI run has not happened yet.** Nothing here may be
+reported as CI evidence until all three jobs are green. M8 stays open until then.
+
+**Evidence:** `docs/evidence/M8/ci/camera-preservation-fix.md`,
+`docs/evidence/M8/ci/camera-damping-trace.md`, updated `docs/evidence/M8/README.md`.
+
+**Next step:** commit, push, and wait for GitHub Actions. If green, close M8 formally; only then
+consider M9.
+
+---
+
 ## 2026-08-09 — M8 CLOSED: all six acceptance criteria met
 
 ### Milestone report

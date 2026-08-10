@@ -1,7 +1,15 @@
 # M8 evidence index
 
 **Milestone:** M8 — testing, deployment, clean-clone validation and demo preparation
-**Dates:** 2026-08-09 · **Status: COMPLETE**, all six acceptance criteria met.
+**Dates:** 2026-08-09, reopened 2026-08-10 · **Status: OPEN** — all six acceptance criteria are met
+locally, but criterion 1 is not evidenced remotely until CI is green.
+
+> **Reopened 2026-08-10.** M8 was closed locally on 2026-08-09 and the work was pushed. The first
+> GitHub Actions run then reported **pytest PASS · vitest/eslint/build PASS · Playwright 37 passed,
+> 1 failed**: `replacing the decal does not reset the camera` timed out after 300 000 ms on the
+> Windows runner. A suite that passes only on its author's machine is the same class of defect M8
+> itself found in the frozen dataset hash, so the milestone stays open until the remote run is
+> green. The fix is recorded in [`ci/camera-preservation-fix.md`](ci/camera-preservation-fix.md).
 
 ## Acceptance criteria → evidence
 
@@ -16,13 +24,17 @@
 
 ## Final measured state
 
-| gate | M7 close | M8 close |
-|---|---:|---:|
-| pytest | 406 | **473** |
-| vitest | 165 | **169** |
-| **Playwright E2E** | **0 — did not exist** | **37** |
-| eslint | clean | clean |
-| production build | succeeds | succeeds |
+| gate | M7 close | M8 close (08-09) | after the CI fix (08-10) |
+|---|---:|---:|---:|
+| pytest | 406 | **473** | **473** |
+| vitest | 165 | **169** | **181** |
+| **Playwright E2E** | **0 — did not exist** | **37** | **38** |
+| eslint | clean | clean | clean |
+| production build | succeeds | succeeds | succeeds |
+| production bundle carries no E2E handle | n/a | n/a | **asserted in CI** |
+
+The E2E count moved 37 → 38 because `bd3a91f` added a progress scenario after the index was
+written; vitest moved 169 → 181 with the twelve unit tests covering the new camera read-out.
 
 **Generation count: 27** — 25 research (closed at cap) + 1 M7 human review + 1 M8 deployment
 validation. Never reported as 25.
@@ -32,8 +44,10 @@ validation. Never reported as 25.
 ```
 baseline/test-baseline.md              the four gates re-measured before any M8 work
 security/upload-security-matrix.md     27 rules mapped to tests, incl. what is NOT tested
-tests/playwright-e2e-report.md         the 37-scenario E2E suite
+tests/playwright-e2e-report.md         the E2E suite as it stood at the 08-09 close
 tests/ci-workflow.md                   the CI workflow - and that it has never run
+ci/camera-preservation-fix.md          the one remote CI failure, and how it was fixed
+ci/camera-damping-trace.md             the OrbitControls decay the new tolerances come from
 deployment/preflight-and-lifecycle.md  real output of all four PowerShell scripts
 clean-clone/log.md                     18 ordered steps with real output
 clean-clone/environment.md             versions measured INSIDE the clone
