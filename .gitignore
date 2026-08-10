@@ -72,5 +72,16 @@ Desktop.ini
 # Claude Code local settings
 .claude/settings.local.json
 
-# Derived upload packages: duplicates of evidence already tracked under docs/evidence/
-deliverables/
+# Derived upload packages: duplicates of evidence already tracked under docs/evidence/.
+#
+# Ignore the CONTENTS, not the directory. `deliverables/` would exclude the
+# directory itself, and Git does not descend into an excluded directory - so the
+# negation below would never be reached and the report PDF could only be added
+# with `git add -f`. `deliverables/*` keeps the directory traversable.
+deliverables/*
+
+# The research report PDF is a submitted deliverable and must be present in the
+# GitHub result (M9, issue #10, acceptance criterion 4). One named file only: the
+# intermediate build HTML and every other derived package stay ignored, and M10
+# makes its own decision for the presentation PDF.
+!deliverables/DeckForge-AI-research-report.pdf
