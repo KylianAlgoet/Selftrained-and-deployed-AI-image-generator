@@ -198,6 +198,29 @@ def anchor_headings(html: str, section_id: str) -> str:
     return re.sub(r"<h2>(.*?)</h2>", replace, html, flags=re.DOTALL)
 
 
+SUBSECTION_NUMBER = re.compile(
+    r"(<h([23])(?:\s[^>]*)?>)\s*(\d+(?:\.\d+)+)\s+",
+)
+
+
+def mark_heading_numbers(html: str) -> str:
+    """Wrap a leading ``9.1`` style number in every h2/h3 in its own span.
+
+    Applied globally by the renderer rather than by authors typing markup, so
+    subsection numbering cannot drift between chapters.
+
+    The literal space after the number is deliberately KEPT outside the span. The
+    gap is therefore carried by a real space character rather than by CSS margin
+    alone, which matters in two places margin does not reach: the PDF's extracted
+    text layer, where a margin-only gap copies out as "9.1Base model", and any
+    context where the stylesheet is absent.
+    """
+    return SUBSECTION_NUMBER.sub(
+        lambda m: f'{m.group(1)}<span class="heading-number">{m.group(3)}</span> ',
+        html,
+    )
+
+
 # --------------------------------------------------------------------------
 # PDF
 # --------------------------------------------------------------------------
@@ -317,6 +340,7 @@ def build(strict: bool = False, make_pdf: bool = True) -> BuildResult:
         check_figures(text, entry["file"])
         html = md.render(text)
         html = anchor_headings(html, entry["id"])
+        html = mark_heading_numbers(html)
         return {**entry, "markdown": text, "html": html}
 
     front = [r for r in (render(e) for e in metadata.get("front_matter", [])) if r]

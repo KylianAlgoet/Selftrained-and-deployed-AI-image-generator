@@ -198,6 +198,13 @@ h1 .section-number {
   margin-right: 3mm;
 }
 
+/* Subsection numbers ("9.1", "9.2.1"), wrapped by the renderer rather than by
+ * authors. Tabular figures keep them aligned; the gap itself is a real space
+ * character in the markup, so it survives PDF text extraction. */
+.heading-number {
+  font-variant-numeric: tabular-nums;
+}
+
 h2 {
   font-size: 13pt;
   font-weight: 600;
