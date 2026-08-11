@@ -87,17 +87,20 @@ report describes can still be identified exactly.
 
 <div class="references">
 
-12. The Metropolitan Museum of Art, Open Access policy: images of public-domain artworks and
-    collection data released under Creative Commons Zero.
-    `https://www.metmuseum.org/policies/image-resources` (accessed 2026-08-11).
-    Source of the {{ facts.dataset_ukiyo_e }} ukiyo-e items.
+12. The Metropolitan Museum of Art, *Image and Data Resources* / Open Access policy.
+    `https://www.metmuseum.org/policies/image-resources`
+    Under this policy The Met makes images of artworks **it believes to be in the public domain**
+    available under a Creative Commons Zero designation. Source of the
+    {{ facts.dataset_ukiyo_e }} ukiyo-e items. **Retrieval blocked — see the note below.**
 
-13. Library of Congress, *Rights and Access*, Posters: WPA Posters digital collection. The rights
-    advisory for the collection is "No known restrictions on publication", and the Library states it
-    does not own rights to material in its collections and cannot grant or deny permission; assessing
-    restrictions remains the researcher's obligation.
+13. Library of Congress, *Rights and Access*, Posters: WPA Posters digital collection.
     `https://www.loc.gov/collections/works-progress-administration-posters/about-this-collection/rights-and-access/`
-    (accessed 2026-08-11). Source of the {{ facts.dataset_retro_poster }} retro-poster items.
+    Related, for Federal Theatre Project material:
+    `https://www.loc.gov/collections/federal-theatre-project-1935-to-1939/about-this-collection/rights-and-access/`
+    The Library does not own rights to material in its collections and does not grant or deny
+    permission to publish; **assessing rights and any necessary third-party permissions remains the
+    user's responsibility**, and this project treats it that way. Source of the
+    {{ facts.dataset_retro_poster }} retro-poster items. **Retrieval blocked — see the note below.**
 
 14. Creative Commons, "CC0 1.0 Universal" public-domain dedication.
     `https://creativecommons.org/publicdomain/zero/1.0/` (accessed 2026-08-11).
@@ -105,19 +108,23 @@ report describes can still be identified exactly.
 </div>
 
 <div class="callout">
-<span class="callout__label">A retrieval limitation, stated rather than hidden</span>
-References 12 and 13 <strong>could not be fetched directly</strong> while this chapter was written:
-the museum's server returned HTTP 429 and the library's returned HTTP 403 to every attempt,
-including alternative paths. Their content above was obtained from search-engine extracts quoting
-those pages, and the URLs are given so a reader can verify them.
+<span class="callout__label">Retrieval limitation on references 12 and 13</span>
+Both pages were attempted repeatedly from the authoring environment across five official paths and
+could not be fetched: the museum returned <strong>HTTP 429</strong> and the library
+<strong>HTTP 403</strong> every time. <strong>Neither page is quoted here</strong>, and no
+search-engine extract has been presented as though the page itself had been read. The official URLs
+are given so a reader with an unblocked connection can verify them directly. The full attempt record
+is in <code>docs/evidence/M9/reference-retrieval.md</code>.
 <br><br>
-The <strong>primary</strong> evidence for this project's licensing is not these pages in any case: it
-is the per-item licence, source URL and collection date recorded in
-<code>data/manifests/dataset-v1.csv</code> <strong>at the time each item was collected</strong>, when
-those servers were reachable. That manifest is in the repository and is hash-locked.
+<strong>These pages were never this project's primary licensing evidence.</strong> That evidence is
+<code>data/manifests/dataset-v1.csv</code>, which records the source URL, author, licence, collection
+date and permitted use for <strong>every one of the {{ facts.dataset_total }} items</strong>,
+captured at the moment each was collected — when those servers were reachable. The manifest is
+hash-locked and a test asserts it has not changed.
 <br><br>
-This is the same failure mode the project logged as a risk after three sources became unavailable
-during collection (§12.1) — and it happened again, to this chapter, on the day it was written.
+This is the <strong>fourth</strong> time third-party hosting has obstructed this project, after two
+dataset sources and one base-model repository (§12.1). The mitigation adopted after those three —
+record provenance at the moment of use — is why this one is a footnote rather than a gap.
 </div>
 
 ## 24.5 Libraries and tools
