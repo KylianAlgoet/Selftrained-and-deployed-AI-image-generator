@@ -279,9 +279,16 @@ figure {
   text-align: center;
 }
 
+/* Figures are capped in BOTH dimensions. Width alone is not enough: several
+ * evidence images are extremely tall - the near-copy comparison sheet is 512x2048,
+ * which at full text width would render about 680 mm, nearly three pages, inside a
+ * figure that must not break across pages. Constraining height keeps every figure
+ * on one page and stops tall evidence quietly consuming the document. */
 figure img,
 p > img {
   max-width: 100%;
+  max-height: 195mm;
+  width: auto;
   height: auto;
   border: 1px solid var(--rule);
 }
