@@ -53,7 +53,9 @@ Report §7, §20.1.
 **Visual evaluation was AI-assisted**: ChatGPT contributed visual analysis and proposed scoring at
 the review gates, while Kylian Algoet reviewed and approved the recorded scores and retained final
 authority over every production selection and research conclusion. Claude Code was the engineering
-and documentation assistant throughout. No generation was ever run by an assistant; the total is 27.
+and documentation assistant throughout. **Every GPU generation was explicitly authorised by Kylian
+Algoet; no AI assistant had authority to initiate GPU inference without that approval.** The total
+is 27.
 The offline indicators populated no rubric cell and selected no checkpoint, weight, style or verdict.
 
 The assistant's own work produced defects — a runner defect, a fixture reader that could not parse

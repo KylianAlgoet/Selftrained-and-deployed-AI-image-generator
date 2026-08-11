@@ -96,15 +96,16 @@ the boundary; the log holds the detail.
 | **AI-assisted implementation** | the training and inference runners, the API, the frontend, the test suites, the dataset and evaluation tooling |
 | **AI-assisted documentation** | this documentation set, written from executed results |
 | **AI-assisted review and debugging** | the reproducibility diagnosis behind R14, the five defects found during testing and deployment, the continuous-integration stall trace |
-| **Executed by the machine** | every GPU run. **No generation was ever run by an assistant.** All {{ facts.generations_total }} were authorised by the student |
+| **GPU execution** | all {{ facts.generations_total }} generations. **Every one was explicitly authorised by Kylian Algoet; no AI assistant had authority to initiate GPU inference without that approval** |
 | **Produced by tools** | VRAM figures, timings, hashes, perceptual and CLIP indicators, test counts |
 
 Three statements are load-bearing and are made without hedging.
 
-**No assistant validated its own results, and none concluded a production or research decision.**
-Measurements come from instrumented runs. Visual judgement was AI-assisted and human-approved, as
-above. **No offline indicator ever populated a rubric cell or selected a checkpoint, weight, style or
-verdict** — that boundary is absolute and is asserted in the gate records.
+**No AI assistant had final validation or decision authority over its own work.** Measurements come
+from instrumented runs; **AI-assisted visual evaluation was reviewed and approved by Kylian Algoet**,
+who retained final authority over every production selection and research conclusion. **No offline
+indicator ever populated a rubric cell or selected a checkpoint, weight, style or verdict** — that
+boundary is absolute and is asserted in the gate records.
 
 **It stopped rather than deciding when a decision was not its to make.** When the clean-clone test
 failed on a value documented as frozen across an earlier milestone's evidence, it diagnosed the

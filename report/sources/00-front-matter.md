@@ -29,9 +29,11 @@ purpose, and the conclusions in section 19 are qualified where the evidence is q
 engineering and documentation assistant, and **visual evaluation was AI-assisted**: ChatGPT
 contributed visual analysis and proposed scoring at the review gates, while Kylian Algoet reviewed
 and approved the recorded scores and retained final authority over every production selection and
-research conclusion. No generation was ever run by an assistant, no automated indicator populated a
-rubric cell, and no assistant validated its own results. The full account is in section 6.4, and the
-session-by-session record in `docs/ai-usage.md`.
+research conclusion. **Every GPU generation was explicitly authorised by Kylian Algoet; no AI
+assistant had authority to initiate GPU inference without that approval.** No automated indicator
+populated a rubric cell, and **no AI assistant had final validation or decision authority over its
+own work**. The full account is in section 6.4, and the session-by-session record in
+`docs/ai-usage.md`.
 
 **Reproducing this document.** `python scripts/build_report.py` renders the Markdown in
 `report/sources/` through the template in `report/templates/` and prints it to PDF with headless
