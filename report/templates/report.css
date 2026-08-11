@@ -397,11 +397,21 @@ hr {
 .section { break-before: page; }
 .section:first-of-type { break-before: avoid; }
 
-/* References: hanging indent so the [n] markers line up down the page. */
+/* References: hanging indent so the [n] markers line up down the page.
+ *
+ * The counter is reset ONCE, on the section, not on each list. The bibliography
+ * is split into four subsections (methods, weights, dataset sources, tools), and
+ * resetting per list restarted the numbering at [1] in each one - so the printed
+ * markers disagreed with the citations in the body, which cite 1-20 continuously.
+ * Caught by rendered-page inspection, not by the validator: the validator checks
+ * the Markdown source, where the numbering was correct all along. */
+#references {
+  counter-reset: ref;
+}
+
 .references ol {
   list-style: none;
   padding: 0;
-  counter-reset: ref;
 }
 
 .references li {
