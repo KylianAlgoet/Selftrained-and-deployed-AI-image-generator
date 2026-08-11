@@ -14,8 +14,8 @@ React + Three.js  ──HTTP──>  FastAPI (one process, one worker)
                                    └── resident pipeline
                                           SD 1.5 @ 451f4fe1
                                           + one of three style LoRAs @ weight 0.7
-                                          + IP-Adapter @ 018e4027, scale 0.55
-                                          -> 512x1536, 30 steps, guidance 7.5
+                                          + IP-Adapter [11] @ 018e4027, scale 0.55
+                                          -> 512x1536, 30 steps, guidance 7.5, DPM-Solver++ [9]
 ```
 
 Generation is direct to the deck format. The pipeline loads on the **first** request, so that one

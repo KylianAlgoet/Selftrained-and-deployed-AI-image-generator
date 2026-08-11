@@ -55,7 +55,7 @@ by care:
 | control | what it does |
 |---|---|
 | weights manifest | records exact path, byte size and SHA-256 per adapter; **asserted against the code by a test** so it cannot drift |
-| `verify-weights.ps1` | restores from a **parameterised** source and verifies, failing loudly per style |
+| `scripts/verify-weights.ps1` | restores from a **parameterised** source and verifies, failing loudly per style |
 | runtime verification | the service re-verifies each adapter's SHA-256 **on every style activation**, not once at startup |
 
 The integrity gate was proved in both directions — 3 of 3 failing before restore, 3 of 3 passing

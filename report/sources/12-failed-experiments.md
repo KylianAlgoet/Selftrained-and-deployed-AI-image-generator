@@ -156,10 +156,7 @@ regression.
 
 ## 12.7 The lesson these share
 
-Three of the six subsections above are defects in verification rather than in the product: a
+Three of the six subsections above are defects in **verification** rather than in the product: a
 contaminated measurement, an integrity check that had never run anywhere but its author's machine,
-and a test that measured the wrong thing twice.
-
-**A green local suite is not evidence about a different environment, and this project proved it
-twice** — once when a hash passed everywhere except a fresh clone, and once when a full local sweep
-of every gate passed five times over and still failed remotely.
+and a test that measured the wrong thing twice. That is the pattern worth carrying forward, and
+§18.4 records what it costs the evidence in this report.

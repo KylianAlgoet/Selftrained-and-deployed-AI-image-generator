@@ -93,8 +93,8 @@ the mandated method <strong>demonstrated feasible on this hardware</strong>.
 
 ### What was measured
 
-A rank-{{ facts.lora_rank }} LoRA on the UNet attention projections, with the text encoder and VAE
-frozen. Thirteen runs across eight experiments, every one at the lowest memory tier, with no
+A rank-{{ facts.lora_rank }} LoRA [3], implemented with PEFT [16], on the UNet attention
+projections, with the text encoder and VAE frozen. Thirteen runs across eight experiments, every one at the lowest memory tier, with no
 escalation anywhere.
 
 | run | geometry | steps | peak allocated | spare | s/step |

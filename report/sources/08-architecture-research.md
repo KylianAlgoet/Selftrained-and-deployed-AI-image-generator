@@ -34,7 +34,7 @@ commit sequence, the experiments and the documentation move together and can be 
 | Time to productivity in 19 days (4) | 4 | 4 | 3 |
 | **weighted total (max 125)** | **121** | **81** | **65** |
 
-**FastAPI with Pydantic** (DR-002). Express would have forced a second process boundary between the
+**FastAPI with Pydantic** [18] (DR-002). Express would have forced a second process boundary between the
 API and the model for no benefit. The validation criterion is weighted at 5 because every upload is
 untrusted input reaching an image decoder (§17.3).
 
@@ -49,8 +49,8 @@ untrusted input reaching an image decoder (§17.3).
 | Time to first prototype (4) | 4 | 3 | 3 |
 | **weighted total (max 105)** | **101** | **66** | **72** |
 
-**React, Vite, TypeScript and React Three Fiber** (DR-003), with plain Three.js recorded as the
-revision path. Prototype 0 was scheduled immediately afterwards precisely to test this choice against
+**React, Vite, TypeScript and React Three Fiber** [19] (DR-003), with plain Three.js recorded as
+the revision path. Prototype 0 was scheduled immediately afterwards precisely to test this choice against
 reality rather than leave it on paper (§11.0).
 
 ## 8.4 ML toolchain

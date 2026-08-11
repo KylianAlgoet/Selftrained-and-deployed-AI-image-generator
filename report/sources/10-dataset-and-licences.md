@@ -8,9 +8,9 @@ split.
 
 | style | items | licence | source |
 |---|---:|---|---|
-| ukiyo-e woodblock | {{ facts.dataset_ukiyo_e }} | CC0 | Metropolitan Museum of Art, open access |
+| ukiyo-e woodblock | {{ facts.dataset_ukiyo_e }} | CC0 [14] | Metropolitan Museum of Art, open access [12] |
 | minimal geometric | {{ facts.dataset_minimal_geometric }} | project-original | seeded programmatic generation |
-| retro silkscreen poster | {{ facts.dataset_retro_poster }} | public domain | Library of Congress — WPA / Federal Theatre Project |
+| retro silkscreen poster | {{ facts.dataset_retro_poster }} | public domain | Library of Congress — WPA / Federal Theatre Project [13] |
 | **total** | **{{ facts.dataset_total }}** | | |
 
 Splits: **{{ facts.dataset_train }} train**, **{{ facts.dataset_val }} validation**,

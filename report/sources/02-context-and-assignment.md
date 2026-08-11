@@ -62,7 +62,7 @@ taken:
 | GPU | NVIDIA GeForce RTX 4060 Laptop, **{{ facts.device_total_mib }} MiB VRAM** |
 | System memory | 16 GB |
 | OS / shell | Windows 11 Home, PowerShell 5.1 |
-| Python | 3.11 (3.14 is the system default; 3.11 was used for all PyTorch work) |
+| Python | 3.11 (3.14 is the system default; 3.11 was used for all PyTorch [17] work) |
 | Node | 24.18.0 |
 | Not available | FFmpeg, nvcc, conda |
 

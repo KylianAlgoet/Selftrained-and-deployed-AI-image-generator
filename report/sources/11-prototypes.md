@@ -40,30 +40,22 @@ close enough to the deck's UV domain that no mismatch was visible. That is why t
 **Questions (RQ2, RQ8):** which base model is feasible on 8 GB, and how should the deck's aspect ratio
 be produced?
 
-Covered in detail in §9.1. Three results carried forward: **SD 1.5 selected**, **SDXL rejected on
-memory despite winning on quality**, and **direct 1:3 generation at
-{{ facts.generation_width }}×{{ facts.generation_height }} selected** — the latter refuting the
-hypothesis that tall generation would degrade and that generate-then-crop would be more reliable.
-Cropping a 1:3 strip from a square generation leaves roughly 170×512 usable pixels, far below print
-needs.
+Measured and argued in §9.1. Three results carried forward: **SD 1.5 selected**, **SDXL rejected
+on memory despite winning on quality**, and **direct 1:3 generation selected** — the last refuting
+its own hypothesis, which had predicted that tall generation would degrade composition.
 
 ## 11.2 Prototype 2 — text and reference conditioning
 
 **Question (RQ6):** how should text prompting and a reference image be combined?
 
 Four arms were compared on measured data: img2img, standard IP-Adapter, IP-Adapter-Plus, and a
-text-only baseline. ControlNet was compared on criteria and **deliberately not implemented**, with the
-screen-out reason recorded.
-
-| method | extra VRAM at 512² | control | near-copy flags |
-|---|---:|---|---:|
-| text-only baseline | 0 | n/a | 0 |
-| img2img | **0** | monotone in strength | **6 — all of them** |
-| **standard IP-Adapter** | **+1 248.69 MiB** | monotone in scale | **0** |
-| IP-Adapter-Plus | +1 303.49 MiB | one level only, by design | 0 |
+text-only baseline. ControlNet [7] was compared on criteria and **deliberately not implemented**, with
+the screen-out reason recorded.
 
 **Standard IP-Adapter was selected** at a default scale of
-**{{ facts.ip_adapter_scale_default }}**, user-adjustable 0.40–0.60 (DR-008).
+**{{ facts.ip_adapter_scale_default }}**, user-adjustable 0.40–0.60 (DR-008). IP-Adapter-Plus showed
+no decisive advantage at slightly higher memory cost and was not selected. The measured comparison is
+in §13.4; what follows is why the numbers decided it.
 
 ### The result that decided it
 

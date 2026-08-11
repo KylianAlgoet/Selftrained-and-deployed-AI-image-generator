@@ -6,7 +6,7 @@
 |---|---:|---|
 | pytest (`ml` + `apps/api`) | **{{ facts.pytest_tests }}** | dataset tooling, ML inference and training tooling, API contracts, upload security |
 | vitest (`apps/web`) | **{{ facts.vitest_tests }}** | API client, form validation, decal provenance, texture-fit geometry, texture swapping |
-| Playwright (Chromium) | **{{ facts.playwright_tests }}** | the built frontend, every `/api/**` call answered from frozen fixtures |
+| Playwright (Chromium) [20] | **{{ facts.playwright_tests }}** | the built frontend, every `/api/**` call answered from frozen fixtures |
 | eslint | — | clean |
 | production build | — | succeeds |
 
@@ -84,12 +84,9 @@ that usually goes missing.
 The workflow runs the Python suite, the frontend suite with linting and build, and the browser suite,
 on a GPU-less runner.
 
-**All three jobs pass.** How that green must be read is set out in §12.6 and repeated here in short,
-because a green badge invites over-reading: a green run also occurred under the **old** budgets; the
-**per-scenario retry counts of the final green retry-enabled run are unknown, not zero**; and a green
-under two retries with a 180 s budget is **weaker evidence** than a first-attempt green under 60 s.
-The unqualified result is the camera scenario's **first-attempt 40.2 s remote pass before any budget
-was raised**.
+**All three jobs pass** — under three qualifications that materially weaken what the green means, set
+out in full in §12.6 and carried as validity threats in §18.4. They are not repeated here, because a
+green badge invites over-reading and a summary of a qualification tends to lose it.
 
 **CI depends on an external host for a tokenizer**, so a red build with no defect behind it is
 possible. That is recorded rather than worked around.

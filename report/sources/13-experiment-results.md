@@ -59,15 +59,14 @@ principle.
 
 ## 13.3 Training results
 
-Ten runs, all at the lowest memory tier, none escalated.
+Ten runs, all at the lowest memory tier, none escalated. Six were pilots comparing captions and set
+size; the four that produced or tested production candidates are below. The full set is indexed in
+Appendix A.
 
 | run | style | steps | s/step | wall | first → last loss |
 |---|---|---:|---:|---:|---|
-| EXP-020 | minimal-geometric | 600 | 0.284 | — | 0.0780 → 0.0044 |
-| EXP-021 | ukiyo-e | 600 | **0.408** | — | 0.6583 → 0.0302 |
-| EXP-022 | retro-poster | 600 | 0.294 | — | 0.4973 → 0.0351 |
 | EXP-027 | minimal-geometric | 600 | 0.283 | 175.9 s | 0.0780 → 0.0025 |
-| EXP-028 | ukiyo-e | 600 | 0.398 | 244.1 s | 0.6583 → 0.2297 |
+| EXP-028 | ukiyo-e | 600 | **0.398** | 244.1 s | 0.6583 → 0.2297 |
 | EXP-029 | retro-poster | 600 | 0.308 | 189.5 s | 0.4973 → 0.1425 |
 | EXP-030 | **multi-style** | 1800 | 0.350 | 633.8 s | 0.6290 → 0.1960 |
 
@@ -92,7 +91,7 @@ bar. The differences that decided the selection were elsewhere.
 | near-copy flags | **6 of 6 in the milestone** | **0** |
 | originality score at the deck format | **1** | 4 |
 
-**The latency advantage is an artefact and is reported as one.** Diffusers runs `int(steps ×
+**The latency advantage is an artefact and is reported as one.** Diffusers [15] runs `int(steps ×
 strength)` steps, so a stronger reference is also a shorter run; cost per *effective* step is flat at
 0.11–0.13 s for both. Reading the wall-clock figure alone would have credited img2img with a speed-up
 it does not have.
@@ -131,8 +130,7 @@ serving is the thing being measured. Its record says so, and states that its fig
 ## 13.7 The result that closes the loop
 
 A clean clone, in a freshly built environment three days later, reproduced an earlier output
-**byte for byte**: SHA-256 `{{ facts.output_sha256 }}`, {{ facts.output_bytes }} bytes.
+**byte for byte** (§16.2): SHA-256 `{{ facts.output_sha256 }}`, {{ facts.output_bytes }} bytes.
 
-**Inference is deterministic and portable given a fixed adapter.** This does **not** contradict the
-finding that training is not reproducible from seed (§12.4) — those are different halves of the
-pipeline, and both statements are true.
+**Inference is deterministic and portable given a fixed adapter** — which does **not** contradict
+training being irreproducible from seed (§12.4). Different halves of the pipeline; both true.
