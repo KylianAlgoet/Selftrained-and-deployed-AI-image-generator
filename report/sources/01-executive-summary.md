@@ -27,7 +27,7 @@ Six prototypes were built in sequence, each answering a question the next one de
 experiments are registered with their configuration, measured hardware readings and conclusions.
 
 The central constraint governed every decision. SDXL produces better artwork than SD 1.5 at its
-native resolution — the student's own rubric scores say so — and it was **rejected anyway**, because
+native resolution — the project's own rubric scores say so — and it was **rejected anyway**, because
 at 1024×1024 it allocated 10 738 MiB on a card with {{ facts.device_total_mib }} MiB. Windows spilled
 silently into host memory rather than raising an out-of-memory error, so all thirty runs "succeeded".
 That experiment set the method for everything after it: **read every memory figure against the

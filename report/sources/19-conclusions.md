@@ -28,7 +28,7 @@ The answer is bounded in three ways that matter more than the affirmative:
 
 | RQ | conclusion | strength |
 |---|---|---|
-| RQ1 | LoRA is **demonstrated feasible** on 8 GB: rank {{ facts.lora_rank }}, 3 133 MiB at 512², 300 steps in 91 s | feasibility only — four alternatives screened, never run |
+| RQ1 | LoRA is **demonstrated feasible** on 8 GB: rank {{ facts.lora_rank }}, 3 133 MiB at 512², 300 steps in 91 s | **bounded** — "most effective" not established; four alternatives screened, never run |
 | RQ2 | SD 1.5 is feasible; **SDXL is not**, at the resolution where it is better | strong, on two candidates |
 | RQ3 | A {{ facts.dataset_total }}-item dataset of public-domain, CC0 and self-created work is sufficient and legally documentable | strong |
 | RQ4 | Style-only captions beat verbatim captions; **image count: no conclusion** | split — captions strong, count inconclusive |
@@ -37,16 +37,19 @@ The answer is bounded in three ways that matter more than the affirmative:
 | RQ7 | Reference strength and adapter weight dominate perceived control | partial — rank and LR not swept |
 | RQ8 | **Generate the deck ratio directly.** The hypothesis that this would degrade was refuted | strong |
 | RQ9 | UV layout alone controls orientation; textures swap at runtime | strong |
-| RQ10 | A pre-declared rubric with fixed seeds and blinding at the first gate gives usable comparability | adequate — one scorer |
+| RQ10 | A pre-declared rubric with fixed seeds and blinding at the first gate gives usable comparability | adequate — one human approver, AI-assisted analysis, no second rater |
 | RQ11 | Licensing and privacy are settled; **memorisation is not** | partial |
 | RQ12 | A documented two-process local run, validated by a clean clone | strong |
 
-**Ten of twelve are answered. RQ4's count half is inconclusive and RQ7 and RQ11 are partial**, and
-§18.2 states exactly what limits each.
+**Eight of the twelve research questions are answered within their stated scope. Four are only
+partially or boundedly answered: RQ1, RQ4, RQ7 and RQ11. RQ4's image-count component remains
+explicitly inconclusive.** §18.2 states exactly what limits each.
 
 ## 19.3 The findings worth carrying beyond this project
 
-Four results generalise past the assignment.
+Four findings are useful beyond this assignment as engineering lessons, **without claiming
+statistical generalisability** — they rest on one GPU, one human approver and the validity threats
+in §18.4.
 
 **A successful run is not a run that fitted.** SDXL reported 30 of 30 successes at 1024×1024 while
 allocating 10 738 MiB on an 8 187.5 MiB card, because the operating system spilled into host memory

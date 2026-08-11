@@ -25,12 +25,14 @@ tolerances live in code and in plans that predate the runs they judge. This is w
 report a diagnostic as a diagnostic rather than promoting it to a pass after the fact, and what makes
 "the adapter changed the output" a measured claim instead of an impression.
 
-**Human judgement was separated from automated measurement, and the separation was enforced.** The
-rubric scores in this report are the student's. Automated indicators — perceptual hashes, CLIP
-similarity — populate no rubric cell, select no checkpoint and decide no verdict; they live in
-separate files from human judgement, and §6.3 explains why that boundary was drawn where it was. At
-the first review gate the completed score sheet was hashed **before** the blinding map was opened, so
-"no score was edited after unblinding" is a check rather than a promise, and a test still asserts it.
+**Human judgement was separated from automated measurement, and the separation was enforced.**
+Visual evaluation was **AI-assisted** — ChatGPT contributed visual analysis and proposed scoring at
+the review gates — and **Kylian Algoet reviewed and approved every recorded score and retained final
+decision authority** (§6.4). Separately, the offline indicators — perceptual hashes, CLIP similarity
+— populate **no** rubric cell, select no checkpoint and decide no verdict; they live in separate
+files from human judgement, and §6.3 explains why that boundary was drawn where it was. At the first
+review gate the completed score sheet was hashed **before** the blinding map was opened, so "no score
+was edited after unblinding" is a check rather than a promise, and a test still asserts it.
 
 ## 3.2 What the outcomes are not claimed on
 
@@ -38,6 +40,7 @@ D4 asks for comparison of multiple solution methods. Four of the five mandated f
 were **screened on criteria and never executed** (§9.2). The comparison that exists is real and
 documented; it is not a measured five-way benchmark, and this report does not present it as one.
 
-D6 asks for justified conclusions. Two of the twelve research questions end **inconclusive or only
-partially answered** (§5.2), and they are reported that way. A learning outcome is not better served
-by a tidy answer than by an honest one.
+D6 asks for justified conclusions. **Four of the twelve research questions are only partially or
+boundedly answered — RQ1, RQ4, RQ7 and RQ11 — and RQ4's image-count component is explicitly
+inconclusive** (§5.2). They are reported that way. A learning outcome is not better served by a tidy
+answer than by an honest one.

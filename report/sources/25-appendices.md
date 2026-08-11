@@ -70,7 +70,12 @@ EXP-006 and EXP-015 are **not runs**: those identifiers name the human scoring d
 
 ## Appendix C — Research-question matrix
 
-See §5.2 for the full statement of each question and §19 for the conclusions drawn.
+**Eight of twelve answered within their stated scope: RQ2, RQ3, RQ5, RQ6, RQ8, RQ9, RQ10, RQ12.
+Four bounded or partially answered: RQ1, RQ4, RQ7, RQ11.** RQ4's image-count component is explicitly
+**inconclusive**.
+
+The full statement of each question is in §5.2, the status table in §26.3, and the conclusions drawn
+in §19.2.
 
 ## Appendix D — Risk register summary
 
@@ -80,7 +85,7 @@ See §5.2 for the full statement of each question and §19 for the conclusions d
 | R3 | Dataset licensing gaps | open — policy enforced pre-collection |
 | R5 | Windows CUDA/tooling friction | **closed** — occurred, resolved, pins recorded |
 | R8 | Style-learning quality plateau | open — one partial pass |
-| R9 | Evaluation subjectivity | open — one scorer, mitigated not eliminated |
+| R9 | Evaluation subjectivity | open — AI-assisted analysis, one human approver, no second rater |
 | R10 | 3D model licensing | **closed** — procedural geometry |
 | R11 | Third-party hosting unavailable | **occurred four times** (§12.1, §24.4) |
 | R12 | Combined stack does not fit | **re-scoped, not closed** — fits by {{ facts.worst_spare_mib }} MiB |

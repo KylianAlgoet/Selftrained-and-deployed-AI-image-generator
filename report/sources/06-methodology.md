@@ -44,7 +44,14 @@ predates the runs it judges.
 
 A nine-dimension rubric, scored 1–5, was defined **before** the first experiment: prompt adherence,
 style consistency, reference influence, visual quality, decal suitability, composition, artefacts,
-originality, and diversity across seeds. Scoring is the student's.
+originality, and diversity across seeds.
+
+**Scoring was AI-assisted, and the division of labour is recorded in the gate artifacts themselves.**
+ChatGPT contributed visual analysis and proposed scoring of the contact sheets; Kylian Algoet
+reviewed the material, approved the recorded scores, and made every production selection and research
+conclusion. The Gate-1 scoring file's own header records its reviewer line as "ChatGPT visual review
+with Kylian present", and the Gate-2 file records "Final human approver: Kylian Algoet" with
+"Visual-analysis assistance: ChatGPT". Both are preserved unedited.
 
 Three rules govern how scores are recorded, and each exists because the alternative would have
 flattered the results:
@@ -83,7 +90,8 @@ the boundary; the log holds the detail.
 
 | category | what it covered |
 |---|---|
-| **Human decisions** | every decision-record conclusion · all rubric scores · the Gate-1 and Gate-2 selections · the texture-fit choice, quoted verbatim in DR-012 · the CI remedy · authorising every GPU generation |
+| **Human decisions** | every decision-record conclusion · **approval of all recorded rubric scores** · the Gate-1 and Gate-2 selections · the texture-fit choice, quoted verbatim in DR-012 · the CI remedy · authorising every GPU generation |
+| **AI-assisted evaluation** | **ChatGPT contributed visual analysis and proposed scoring** of the contact sheets at both review gates, with Kylian reviewing and approving the recorded result |
 | **AI-assisted planning** | milestone plans — **which the student's review changed**: the two-phase split of the style-learning milestone, twelve mandatory corrections to the MVP plan, and the correction that gradient accumulation is not a memory tier |
 | **AI-assisted implementation** | the training and inference runners, the API, the frontend, the test suites, the dataset and evaluation tooling |
 | **AI-assisted documentation** | this documentation set, written from executed results |
@@ -93,8 +101,10 @@ the boundary; the log holds the detail.
 
 Three statements are load-bearing and are made without hedging.
 
-**The assistant did not validate its own results.** Measurements come from instrumented runs; the
-judgements that turned them into decisions are the student's.
+**No assistant validated its own results, and none concluded a production or research decision.**
+Measurements come from instrumented runs. Visual judgement was AI-assisted and human-approved, as
+above. **No offline indicator ever populated a rubric cell or selected a checkpoint, weight, style or
+verdict** — that boundary is absolute and is asserted in the gate records.
 
 **It stopped rather than deciding when a decision was not its to make.** When the clean-clone test
 failed on a value documented as frozen across an earlier milestone's evidence, it diagnosed the

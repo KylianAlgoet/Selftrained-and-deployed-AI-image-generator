@@ -41,8 +41,11 @@ could not be reclassified retroactively to suit the writing.
    are authoritative **as files, by SHA-256, not as a recipe**, and cannot be regenerated (§12.4).
 6. **Zero near-copy flags is not proof of no memorisation.** A perceptual-hash threshold is a coarse
    indicator (§13.5).
-7. **One scorer.** All rubric scores are the student's. Fixed anchors, fixed seeds and blinding at
-   the first gate limit subjectivity; they do not eliminate it.
+7. **One human approver, and AI-assisted visual analysis.** ChatGPT proposed scoring of the contact
+   sheets and Kylian Algoet reviewed and approved the recorded scores (§6.3). There was **no second
+   independent human rater**, so no inter-rater agreement can be reported, and the AI's proposals are
+   a further influence on the recorded values that fixed anchors and blinding limit but do not
+   remove.
 8. **The Gate-2 sheets were labelled**, and labelled sheets carry an expectation effect the blinded
    Gate-1 sheets did not. Recorded at the time rather than noticed later.
 9. **The caption A/B ran on the lead style, not on the style whose captions were the problem**
@@ -108,6 +111,7 @@ in §18.2.5 is a finding about how LoRA training pipelines silently fail to be d
 validity threats in §18.4 are a record of a project repeatedly discovering that its own verification
 was weaker than it looked.
 
-**The honest summary is that this system works, on this hardware, within a margin of about 2.4 %, and
-that two of its twelve research questions did not resolve.** §19 draws conclusions on that basis and
-no wider one.
+**The honest summary is that this system works, on this hardware, within a margin of about 2.4 %,
+and that four of its twelve research questions are only partially or boundedly answered — with RQ4's
+image-count component explicitly inconclusive.** §19 draws conclusions on that basis and no wider
+one.

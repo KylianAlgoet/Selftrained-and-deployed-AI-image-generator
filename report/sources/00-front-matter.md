@@ -26,9 +26,11 @@ drifts from its evidence fails the build rather than reaching this page.
 purpose, and the conclusions in section 19 are qualified where the evidence is qualified.
 
 **Use of AI assistance.** This project was carried out with Claude Code (Anthropic) as an
-engineering and documentation assistant, disclosed rather than implied. Every research conclusion,
-rubric score and production selection is the student's; no generation was ever run by an assistant;
-and the assistant did not validate its own results. The full account is in section 6.4, and the
+engineering and documentation assistant, and **visual evaluation was AI-assisted**: ChatGPT
+contributed visual analysis and proposed scoring at the review gates, while Kylian Algoet reviewed
+and approved the recorded scores and retained final authority over every production selection and
+research conclusion. No generation was ever run by an assistant, no automated indicator populated a
+rubric cell, and no assistant validated its own results. The full account is in section 6.4, and the
 session-by-session record in `docs/ai-usage.md`.
 
 **Reproducing this document.** `python scripts/build_report.py` renders the Markdown in

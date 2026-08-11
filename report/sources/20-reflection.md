@@ -88,8 +88,10 @@ that was wrong, and the real cause was the measurement design.
 The assistant wrote most of the code and most of the documentation. Three things made that
 defensible rather than dangerous, and they are worth stating because none of them is automatic.
 
-**The gates were real.** Every conclusion, score and production selection was the student's, and
-twice the milestone stopped with the work finished and nothing decided.
+**The gates were real.** Visual analysis at the style-learning gates was AI-assisted — ChatGPT
+proposed scoring of the contact sheets — and **every recorded score was reviewed and approved by
+Kylian, who made every production selection and research conclusion himself.** Twice the milestone
+stopped with the work finished and nothing decided.
 
 **Plan review caught real errors before execution.** The claim that gradient accumulation would save
 memory was wrong, and was corrected by the student before any GPU time was spent on it. A review gate

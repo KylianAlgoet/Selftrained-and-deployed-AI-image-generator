@@ -21,7 +21,15 @@ two different things for inference and for training (§18.2).
 ## 5.2 Subquestions and where they stand
 
 Twelve subquestions were registered before any experiment ran, each with a hypothesis, a method and
-the prototype expected to answer it. **Two are reported as not fully answered.**
+the prototype expected to answer it.
+
+**Eight are answered within their stated scope: RQ2, RQ3, RQ5, RQ6, RQ8, RQ9, RQ10 and RQ12. Four
+are only partially or boundedly answered: RQ1, RQ4, RQ7 and RQ11.** RQ4's image-count component
+remains explicitly **inconclusive**.
+
+RQ1 is counted as bounded rather than answered for a specific reason: it asks which method is
+*feasible and most effective*. Feasibility is demonstrated; **"most effective" was never established,
+because four of the five candidate methods were screened and never measured** (§9.2).
 
 | RQ | question | status | answered by |
 |---|---|---|---|
@@ -38,7 +46,10 @@ the prototype expected to answer it. **Two are reported as not fully answered.**
 | RQ11 | What are the copyright, privacy, bias and ethics constraints? | **partially answered** | §17 |
 | RQ12 | What deployment setup is reproducible on this hardware? | **answered** | §16 · DR-014 |
 
-### The two that did not resolve
+### The four that are bounded
+
+**RQ1 is bounded to feasibility.** See above: the "most effective" half of the question is
+unanswered, and DR-009 says so rather than implying a comparison that did not happen.
 
 **RQ4's image-count half is inconclusive.** Training the lead style on 12, 24 and 44 images at equal
 compute produced a **non-monotonic** ordering, and **no minimum image count was established**. Two
