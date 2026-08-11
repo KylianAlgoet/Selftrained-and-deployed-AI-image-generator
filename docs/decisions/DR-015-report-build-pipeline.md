@@ -127,6 +127,40 @@ opening the PDF at the M9.12 visual gate, which happens anyway.
 
 **No dependency will be installed for page counting without Kylian's approval.**
 
+## Table-of-contents page numbers — open, with a designed approach
+
+The table of contents currently carries section numbers and no page numbers. Reviewed at the M9.3
+gate (2026-08-11): the design was approved, with an instruction to attempt reliable page numbers for
+the final long report, and to preserve the section-numbered TOC and document the limitation if they
+cannot be made reliable **without new dependencies**.
+
+**Two approaches were rejected before any was built.**
+
+1. **Estimating from screen layout** — emulate print media, measure each heading's offset, divide by
+   the printable page height. Rejected: it ignores the `break-before`, `break-inside: avoid` and
+   orphan/widow rules Chrome applies *during* pagination, so it is wrong by a page exactly where the
+   document is most complex. That is the "fragile fake page number" the gate forbade.
+2. **Reading destinations out of the finished PDF** — the correct method, and unavailable: it needs a
+   real PDF parser, and none is installed.
+
+**The approach that can work, and will be tested rather than assumed.** Every section carries
+`break-before: page`, so sections paginate independently of one another. The start page of section
+*k+1* is therefore exactly one more than the page count of a document containing sections 1…*k*.
+Rendering 26 cumulative prefixes and counting the pages of each yields every section's start page
+without estimating anything.
+
+Its **acceptance test**, to be run when all 26 sections exist (M9.9):
+
+- the per-prefix page counts must be **monotonically non-decreasing**;
+- the prefix containing every section must equal the full document's page count;
+- the page-count heuristic must succeed for **every** prefix — one `not measured` and the whole
+  mechanism is unusable, because a TOC with some page numbers missing is worse than one with none;
+- a spot check of three sections against the human-read PDF must agree exactly.
+
+**If any of those fail, the section-numbered TOC ships unchanged and this limitation is stated in the
+report.** The cost of the mechanism is roughly 26 extra Chrome renders (~80 s), paid only when the
+final PDF is built.
+
 ## Structural PDF validation is NOT optional
 
 Independently of page counting, every build asserts the output exists, is non-empty, begins with
