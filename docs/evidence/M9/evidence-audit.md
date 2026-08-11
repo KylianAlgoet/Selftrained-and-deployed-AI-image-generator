@@ -248,3 +248,60 @@ no hard page limit exists in the assignment material, all 26 mandated sections a
 evidence completeness takes precedence. The earlier compression pass had already removed genuine
 repetition and moved the count by under one page, which identified the cause as structural: 26
 mandated sections each beginning on a new page account for roughly 13 pages.
+
+---
+
+## Appended 2026-08-11 — M9.12 final gate and the submitted artifact
+
+### The final wording correction
+
+`No generation was ever run by an assistant` was replaced everywhere. It was more absolute than the
+evidence supports, and ambiguous besides, because project commands were executed through the
+development tooling environment. No evidence record states who physically launched each historical
+generation, so the report no longer claims it. The established fact is stated instead:
+
+> Every GPU generation was explicitly authorised by Kylian Algoet; no AI assistant had authority to
+> initiate GPU inference without that approval.
+
+`No assistant validated its own results` was likewise replaced, because it sat awkwardly beside the
+corrected disclosure that visual evaluation **was** AI-assisted:
+
+> No AI assistant had final validation or decision authority over its own work; AI-assisted visual
+> evaluation was reviewed and approved by Kylian Algoet.
+
+Corrected in the front matter, §6.4 (twice) and `docs/09-final-reflection.md`. Unchanged because
+each is separately evidenced: the total is **27**, every generation required explicit authorisation,
+the offline indicators populated no rubric cell and selected no checkpoint, and Kylian retained final
+authority over production selections and research conclusions.
+
+### A defect the rendered-page inspection caught, and the validator could not
+
+**The bibliography printed `[1]` again at the start of each of its four subsections.** Reference 10
+rendered as `[1]`, 12 as `[1]`, 15 as `[1]` — so the printed markers disagreed with the body, which
+cites 1–20 continuously. The CSS counter was reset per list rather than per section.
+
+**The validator was not wrong to miss it.** It checks the Markdown source, where the numbering was
+correct throughout. The fault existed only in the presentation layer that replaced the list markers.
+A source-level check cannot see a presentation-level defect — which is the argument for the visual
+gate, restated as a finding rather than a principle.
+
+### The submitted artifact
+
+| | |
+|---|---|
+| path | `deliverables/DeckForge-AI-research-report.pdf` |
+| pages | **90** (heuristic: page-tree `/Count` agrees with the `/Type /Page` object count) |
+| bytes | **2 756 980** |
+| SHA-256 | `5c394e7a111374d3c1e7aa0d178db25144f22e1cc5736477b985095710ca8a93` |
+| built from | `42b0ca9` |
+| structural check | `%PDF-1.4` header, `%%EOF` trailer, non-empty |
+
+**The SHA-256 identifies this artifact and makes no reproducibility claim.** The PDF is reproducible
+in *content* from tracked sources; it is not byte-identical between builds, because Chrome embeds a
+creation timestamp and its own version (DR-015).
+
+### Final state at M9 closure
+
+26 of 26 sections · all hard validator checks pass · 29 fact locks resolve · 20 references cited,
+contiguous, no orphans · **489 pytest** · **no application, model or dataset file changed** ·
+**generation total remains 27** · **no GPU inference occurred during M9**.
