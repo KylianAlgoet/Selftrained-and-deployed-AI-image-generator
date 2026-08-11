@@ -63,7 +63,8 @@ finding exists only because checkpoints were saved at four points and a human co
 
 ## What it means
 
-The system meets every mandatory requirement of the assignment, and the report states plainly where
-its evidence stops. The strongest claim it makes is not that the pipeline works, but that the reasons
-for each choice are measured, recorded, and in several cases the opposite of what was expected at the
-start.
+The implemented system meets the mandatory technical requirements addressed by this report;
+remaining submission deliverables are tracked separately in the project planning. Where the evidence
+stops, the report says so. The strongest claim it makes is not that the pipeline works, but that the
+reasons for each choice are measured, recorded, and in several cases the opposite of what was
+expected at the start.
