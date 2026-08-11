@@ -1,5 +1,59 @@
 # Process log
 
+## 2026-08-10 / 08-11 — M9: research report, build pipeline and reproducible PDF
+
+**Objective.** Produce the mandated research documentation as a PDF, built reproducibly from tracked
+sources, with every quantitative claim traceable to repository evidence.
+
+**Plan.** Audit the evidence first; build the pipeline before writing; author chapters in
+evidence-density order and judgement last; stop at six human gates.
+
+**Completed.** All **26 mandated sections** authored. A Markdown → markdown-it-py → Jinja2 → headless
+Chrome pipeline at **zero new dependencies** (DR-015). A fact-lock mechanism with 29 locks and 16
+tests. A report validator separating hard failures from advisories. Three documentation gaps closed:
+`prototype-3.md` had never existed, the prototype overview listed three completed prototypes as not
+started, and the README carried stale suite counts.
+
+**Unfinished.** The M9.12 final PDF review gate has not been held. The PDF is built but deliberately
+**not committed** as the deliverable. Nothing pushed. Issue #10 not closed. M10 not started.
+
+**Blockers.** Two institutional reference pages could not be retrieved — HTTP 429 and HTTP 403 across
+five official paths on two occasions. Recorded in `docs/evidence/M9/reference-retrieval.md` rather
+than worked around; the extract-based wording drafted from them was removed.
+
+**Decisions.** DR-015 (report build pipeline). Numbered `[n]` citations, chosen partly because the
+absent `mdit-py-plugins` means no footnote syntax exists. The final PDF is tracked via the narrowest
+possible ignore exception. 90 pages accepted rather than compressed.
+
+**Commands and tests.** `python scripts/build_report.py --strict` · `scripts/validate_report.py` ·
+`scripts/report_facts.py --check` · `.venv/Scripts/python.exe -m pytest`.
+
+**Real results.** 26 of 26 sections · **90 pages** · all hard validator checks pass, 8 advisories ·
+29 fact locks resolve · **489 pytest** (473 pre-existing, unchanged, + 16 new).
+
+**Three corrections at the M9.10 gate, two of which corrected claims rather than wording.**
+
+1. **The AI-scoring disclosure overstated the human/AI separation.** The report said every rubric
+   score was the student's. The Gate-1 artifact's own header records *"ChatGPT visual review with
+   Kylian present"* and Gate-2 records *"Visual-analysis assistance: ChatGPT"* with Kylian as final
+   human approver. Corrected in nine places. **No historical evidence file was edited** — the gate
+   records remain hash-locked, and it was the report that was wrong, not the evidence.
+2. **The RQ status count contradicted the report's own table.** Now: eight answered within their
+   stated scope, four bounded (RQ1, RQ4, RQ7, RQ11), RQ4's image-count component inconclusive.
+3. **A generalisability overclaim** was reduced to engineering lessons without a statistical claim.
+
+**A defect found in the report's own tooling.** A 512×2048 evidence figure rendered about 680 mm
+tall — nearly three pages — inside a figure that must not break across pages. Figures are now capped
+in both dimensions.
+
+**Evidence.** `docs/evidence/M9/evidence-audit.md`, `docs/evidence/M9/reference-retrieval.md`,
+`report/`, `DR-015`.
+
+**Next step.** Kylian reviews the built PDF end to end (M9.12).
+
+---
+
+
 Newest entries first. Each entry: date, objective, plan, completed work, unfinished work, blockers, decisions, commands/tests, real results, evidence, commits, next step.
 
 ---

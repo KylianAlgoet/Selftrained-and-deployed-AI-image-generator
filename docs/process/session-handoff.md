@@ -1,7 +1,127 @@
 # Session handoff
 
-**Last updated:** 2026-08-10 (M8 reopened for the last red CI job, fixed, and **CI is now GREEN**;
-awaiting Kylian's formal closure, under Opus 5)
+**Last updated:** 2026-08-11 (M9 — research report authored through M9.11, **stopped at the M9.12
+final PDF review gate**, under Opus 5)
+
+## M9: 26 of 26 sections authored — WAITING AT THE FINAL PDF GATE
+
+**Do not commit the PDF as the submission deliverable before Kylian reviews it.** That is the whole
+point of the gate M9 is currently stopped at.
+
+| item | state |
+|---|---|
+| report sources | **26 of 26 mandated sections authored** in `report/sources/` |
+| build | `python scripts/build_report.py --strict` → **90 pages**, zero new dependencies |
+| validation | `python scripts/validate_report.py` → **all hard checks pass**, 8 advisories |
+| fact locks | **29 resolve** against their evidence |
+| pytest | **489** (473 pre-existing + 16 new fact-lock tests) |
+| the PDF | built, **UNTRACKED and deliberately uncommitted** |
+| push | **nothing pushed** |
+| GitHub issue #10 | **not closed** — Kylian's |
+| **M10** | **NOT STARTED** |
+
+### The gates M9 has passed, and what each changed
+
+None passed automatically. Each produced recorded corrections, and three of them corrected claims
+the report was making rather than merely its wording.
+
+1. **Plan gate** — 15 corrections, including that `deliverables/` cannot be negated into
+   (`deliverables/*` is required, because Git does not descend into an excluded directory) and that
+   a naive `/Type /Page` regex is not a PDF parser.
+2. **Toolchain gate (M9.2)** — DR-015 accepted on a measured Chrome probe.
+3. **Visual sample gate (M9.3)** — four corrections; front matter refitted to one page, subsection
+   numbering made structural.
+4. **Reference gate (M9.8)** — 20 references, all retrieved and read except two that could not be.
+5. **Conclusions gate (M9.10)** — three corrections, below.
+6. **Final PDF gate (M9.12)** — **CURRENT. Not yet held.**
+
+### ⚠️ The M9.10 correction the next session must not undo
+
+**The report had overstated the human/AI separation in scoring.** It claimed every rubric score was
+the student's. The preserved evidence says otherwise and always did:
+
+- Gate 1 scoring artifact header: **"ChatGPT visual review with Kylian present"**
+- Gate 2 scoring artifact: **"Final human approver: Kylian Algoet"** ·
+  **"Visual-analysis assistance: ChatGPT"**
+- `docs/ai-usage.md` has recorded this since 2026-08-05.
+
+**The approved wording, used in nine places** (front matter, §3.1, §6.3, §6.4, §18.2.7, §19.2,
+§20.6, appendix D, §26.1):
+
+> Visual evaluation was AI-assisted: ChatGPT contributed visual analysis and proposed scoring at the
+> review gates, while Kylian Algoet reviewed and approved the recorded scores and retained final
+> authority over every production selection and research conclusion.
+
+**Do not restore the stronger claim, and do not make the opposite error** by implying Kylian had no
+role in scoring. Three things remain true and separately evidenced: the **offline** indicators
+(perceptual hash, CLIP) populated no rubric cell and selected no checkpoint, weight, style or
+verdict; Kylian was final approver at both gates; no decision was concluded solely by an assistant.
+
+The limitations entry no longer says "one scorer" — it says **one human approver, AI-assisted visual
+analysis, no second independent rater**, so no inter-rater agreement can be reported.
+
+### The other two M9.10 corrections
+
+**RQ taxonomy, now consistent everywhere.** **Eight answered within their stated scope** — RQ2, RQ3,
+RQ5, RQ6, RQ8, RQ9, RQ10, RQ12. **Four bounded** — RQ1, RQ4, RQ7, RQ11. **RQ4's image-count
+component is explicitly inconclusive.** RQ1 is bounded rather than answered because the question
+asks for *feasible and most effective*, and "most effective" was never established.
+**Do not report ten of twelve.**
+
+**Generalisability.** §19.3 no longer says four results "generalise past the assignment". They are
+**engineering lessons without a claim to statistical generalisability** — one GPU, one human
+approver, and the §18.4 validity threats.
+
+### Length: 90 pages, accepted — do not compress
+
+Kylian accepted 90 at the M9.10 gate. No hard page limit exists in the assignment material, all 26
+sections are authored, and evidence completeness takes precedence. A genuine repetition pass had
+already moved the count by **under one page**, which identified the cause as structural: 26 sections
+each starting on a new page cost roughly 13 pages.
+
+**Do not** reduce font size, compress tables, merge mandated sections, or delete evidence to hit a
+number. Obvious accidental duplication may still be removed.
+
+### Two references could not be retrieved, and this is recorded rather than papered over
+
+The Met returned **HTTP 429** and the Library of Congress **HTTP 403** to every attempt across five
+official paths, on two occasions. The search-extract wording drafted from them was **removed**;
+neither page is quoted. Full attempt log: `docs/evidence/M9/reference-retrieval.md`.
+
+**The primary licensing evidence was never those pages** — it is the per-item licence, source URL and
+collection date in `data/manifests/dataset-v1.csv`, captured when those servers were reachable.
+
+This is the **fourth** time third-party hosting has obstructed this project (two dataset sources in
+M2, a base model in M3, these two in M9).
+
+### What M9 built
+
+```
+report/sources/          26 mandated sections + front matter
+report/templates/        report.html.j2, cover.html.j2, report.css
+report/facts.yaml        29 fact locks, each with its extraction method
+report/metadata.yaml     document identity + the 26-section spine
+scripts/build_report.py  markdown-it-py -> Jinja2 -> Chrome --print-to-pdf
+scripts/report_facts.py  graded extraction: structural / exact_hash / prose_regex
+scripts/validate_report.py  hard checks vs advisories
+tests/test_report_facts.py  16 tests, 6 of them negative
+docs/decisions/DR-015-report-build-pipeline.md
+docs/evidence/M9/        evidence-audit.md, reference-retrieval.md
+docs/prototypes/prototype-3.md   (gap G2 — it had never existed)
+```
+
+**A fact lock is not satisfied by a substring.** `"473"` appears three times in one M8 table whose
+other columns hold superseded counts, so anchors carry context and must match **exactly once**; an
+ambiguous anchor is treated as broken. Six negative tests prove the guards bite.
+
+### Next action
+
+**Kylian reviews the built PDF end to end (M9.12).** Then M9.11 corrections if any, the deliverable
+commit, the milestone report, and only then M10.
+
+---
+
+## Prior state — M8, superseded above
 
 ## M8: CI GREEN — waiting only on formal closure
 
