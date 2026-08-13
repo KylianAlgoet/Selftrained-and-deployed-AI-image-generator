@@ -67,6 +67,7 @@ EXP-006 and EXP-015 are **not runs**: those identifiers name the human scoring d
 | DR-013 | Real progress telemetry | no percentage without a denominator |
 | DR-014 | Native local deployment | Docker **screened out, not benchmarked** |
 | DR-015 | Report build pipeline | zero new dependencies under the freeze |
+| DR-016 | Presentation build pipeline | extends DR-015; the deck inherits the report's fact locks |
 
 ## Appendix C — Research-question matrix
 

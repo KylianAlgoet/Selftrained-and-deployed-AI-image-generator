@@ -34,11 +34,13 @@ table states them, and where in this report each is addressed.
 | 10 | Provide research documentation as PDF | this document |
 | 11 | Provide prototype evidence | §11, §13 |
 | 12 | Provide the final GitHub result | §16 |
-| 13 | Provide a presentation as PDF | **not addressed by this report** — a later milestone |
+| 13 | Provide a presentation as PDF | **not addressed by this report** — see §26 and DR-016 |
 
-Requirement 13 is deliberately marked outstanding. It belongs to the presentation milestone, which
-had not run when this report was written, and claiming it complete would be exactly the kind of
-unevidenced statement the rest of this document avoids.
+Requirement 13 is not discharged by this report. It belongs to the presentation milestone (M10),
+which had not run when this report was first written; the deck has since been built and is recorded
+in §26 and DR-016, but it **has not passed a human visual gate** and its length is unvalidated.
+Claiming it complete here would be exactly the kind of unevidenced statement the rest of this
+document avoids.
 
 ## 2.3 Scope, and what was deliberately excluded
 

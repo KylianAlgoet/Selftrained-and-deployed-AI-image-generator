@@ -48,6 +48,25 @@ playwright_tests:
   pattern: '\|\s*\*\*Playwright E2E\*\*\s*\|[^|]*\|\s*\*\*37\*\*\s*\|\s*\*\*(?P<value>\d+)\*\*\s*\|'
   description: Playwright E2E scenarios at the M8 close, after the CI fix
 
+# `pytest_tests` above is the PRODUCT/RESEARCH count at the M8 close. It is not the
+# whole suite, and the two must never be collapsed into one ambiguous number: M9 added
+# report-validation tests that test the report rather than the system. Both halves and
+# their sum are locked separately so a slide or a chapter has to choose which it means.
+
+pytest_report_tests:
+  value: 16
+  source: docs/process/process-log.md
+  method: prose_regex
+  pattern: '\(473 pre-existing, unchanged, \+ (?P<value>\d+) new\)'
+  description: report-validation tests added in M9, on top of the 473 product tests
+
+pytest_total:
+  value: 489
+  source: docs/process/process-log.md
+  method: prose_regex
+  pattern: '\*\*(?P<value>\d+) pytest\*\* \(473 pre-existing'
+  description: total pytest tests in a full repository run at the M9 close
+
 # ------------------------------------------------------------------ generation ---
 
 generations_total:
@@ -237,8 +256,8 @@ sha_retro_poster:
 # ------------------------------------------------------------------- decisions ---
 
 decision_record_count:
-  value: 15
+  value: 16
   source: docs/decisions
   method: structural
   extractor: decision_record_count
-  description: decision records, DR-001 to DR-015
+  description: decision records, DR-001 to DR-016

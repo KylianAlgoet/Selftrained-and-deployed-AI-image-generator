@@ -32,11 +32,14 @@ complete without a repository path behind it.
 | 10 | Research documentation as PDF | this document | **met on delivery** |
 | 11 | Prototype evidence | `docs/evidence/`, six prototype documents | **met** |
 | 12 | Final GitHub result | the repository | **met** |
-| 13 | Presentation as PDF | — | **NOT MET — a later milestone** |
+| 13 | Presentation as PDF | `deliverables/DeckForge-AI-presentation.pdf`, DR-016 | **built, NOT yet gated** |
 
-**Requirement 13 is outstanding and is reported as outstanding.** The presentation belongs to the
-milestone after this one. No claim of full assignment completion is made anywhere in this report
-(§2.2).
+**Requirement 13 was outstanding when this report was first built, and is now partially discharged.**
+The presentation belongs to M10, which ran on 2026-08-11 and 2026-08-14, after the report's first
+build: 26 slides are authored and both PDFs are tracked and produced by the pipeline of DR-016. **It
+has not passed a human visual gate, and its length is unvalidated** — no authoritative presentation
+duration is recorded anywhere in this repository. "Built" is therefore not "met", and this row says
+so. No claim of full assignment completion is made anywhere in this report (§2.2).
 
 ## 26.3 Where each research question is answered
 
