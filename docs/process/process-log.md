@@ -1,5 +1,88 @@
 # Process log
 
+## 2026-08-14 — M10: the defence deck builds, and the artifact on disk was not the one in the sources
+
+**Objective.** Produce the presentation as PDF — mandatory requirement 13, the last one outstanding
+after M9 — built from tracked sources by the same pipeline as the report, and record what it does and
+does not establish.
+
+**Plan.** Resume the deck authored on 2026-08-11, verify it against the sources rather than trusting
+it, write the decision record it was already citing, and stop before any judgement about the deck's
+content.
+
+**Completed.** DR-016 written. The deck rebuilt from current sources and both PDFs tracked. An M10
+build record with per-slide measurements. The M9 evidence audit marked superseded where it names the
+report artifact. Present-tense "90-page report" claims corrected to 91.
+
+**Unfinished, and deliberately.** **No human visual gate has been held on the deck.** Every check
+run is structural; none of them is a judgement about legibility or about whether the argument
+survives compression onto a slide. Nothing pushed. Issue #10 still open. The deck's **length is
+unvalidated** — see blockers.
+
+**Blockers.** **No authoritative presentation duration is recorded anywhere in this repository.**
+Searched 2026-08-11 and re-checked 2026-08-14 across the project brief, the planning, the governing
+prompt and the report sources. The 26-slide count is therefore **provisional**, and the estimate of
+~30 minutes cannot be checked against a requirement that does not exist here. Kylian has to supply
+it.
+
+**Decisions.** DR-016 (presentation build pipeline) — extends DR-015 rather than adding a second
+pipeline, imports its stages from `build_report.py`, and gives the deck **no facts of its own** so a
+number corrected in the report is corrected on the slide by the same edit. Both presentation PDFs
+tracked via the same narrow ignore exception the report uses.
+
+**Commands and tests.** `python scripts/validate_slides.py` · `python scripts/build_slides.py
+--strict` · `python scripts/build_report.py --strict` · `python scripts/validate_report.py` ·
+`python scripts/report_facts.py --check` · `.venv/Scripts/python.exe -m pytest`.
+
+**Real results.** 26 of 26 slides · **26 PDF pages for 26 slides**, which is the overflow test · **960
+× 540 pt = 16:9** · 0 hard validator failures, 0 advisories · **31 fact locks** resolve · **518
+pytest** (489 pre-existing, unchanged, + 29 slide-source tests) · deck 1 313 731 bytes, notes handout
+380 486 bytes · estimated **26.4 min** of slides plus a 4-minute demo target, from note word counts at
+130 wpm — **an estimate, not a rehearsal; no rehearsal has been run.**
+
+**The finding: the committed PDF did not match its own sources.** The deck PDFs were built at
+05:00:44 on 2026-08-11; `slides/templates/slides.css` and `slides/sources/13-step-300.md` were edited
+at 05:03:57–58 and the deck was never rebuilt. Rebuilding produced **1 313 730 bytes against the
+1 097 724 on disk — about 20 % of the deliverable was missing**, and nothing in the repository would
+have reported it. The HTML timestamps were *newer* than the PDFs, which is only possible if a later
+run rendered HTML without printing a PDF.
+
+This is the third time this project has met the same class of defect, and the first time it was in a
+deliverable rather than a test: M8 found an integrity hash that had only ever passed on its author's
+machine, M9 found a bibliography defect a source-level validator structurally could not see, and M10
+found a build artifact that looked identical to success in `git status`. **A tracked artifact is only
+evidence if something proves it corresponds to its sources.** Nothing did.
+
+**A second finding: a decision record that changed the report by existing.** Writing DR-016 failed
+the deck build — `decision_record_count` is extracted by globbing `docs/decisions/DR-*.md`, so
+creating the record moved it 15 → 16. `report/facts.yaml` and Appendix B were updated and the report
+rebuilt, which moved it **90 → 91 pages** and in turn invalidated the typed literal "90-page report"
+on slide 26 and in the traceability matrix. The fact lock caught the first drift and could not catch
+the second: **a page count cannot be extracted from Markdown**, because it only exists after Chrome
+paginates. Recorded as a live drift risk in DR-016 rather than fixed, since fixing it needs a PDF
+parser and none is installed.
+
+**A third finding, in the report build, and it is OPEN.** One report build came out at **1 968 295
+bytes against 2 769 385 for the same sources — 800 KB short — at the same 91 pages**, and it passed
+the structural check and the page-count heuristic. **It did not recur in 14 attempts** and, having
+been overwritten, could not be examined; the cause is **unknown**. What it establishes is not in
+doubt, though: the report build's checks **cannot detect the loss of 800 KB of content**, so a report
+with missing figures would ship looking exactly like a correct one. No guard was added — a threshold
+picked from a single unreproduced observation is guesswork, and it would mean editing
+`build_report.py` under the freeze. **Kylian's call, and the risk is live until he takes it.**
+
+**A wrong inference caught inside this session.** Those repeat builds were first recorded as
+"byte-identical" on the strength of their **matching sizes alone**. Hashing three of them returned
+three different digests at the same length, which confirms DR-015's timestamp explanation and
+retires the claim. Equal length is not equal content.
+
+**Evidence.** `docs/evidence/M10/build-record.md`, `DR-016`, `slides/`.
+
+**Next step.** Kylian opens `deliverables/DeckForge-AI-presentation.pdf` and reviews all 26 slides —
+the M10 visual gate — and supplies the required presentation duration.
+
+---
+
 ## 2026-08-10 / 08-11 — M9: research report, build pipeline and reproducible PDF
 
 **Objective.** Produce the mandated research documentation as a PDF, built reproducibly from tracked

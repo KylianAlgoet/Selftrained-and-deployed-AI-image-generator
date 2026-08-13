@@ -10,6 +10,48 @@ Honest record of how Claude Code (Anthropic) is used in this project, per sessio
 
 ## Session log
 
+> **Gap, stated rather than back-filled: there is no M9 entry in this log.** The report milestone ran
+> on 2026-08-10/11 and its process-log entry, `DR-015` and `docs/evidence/M9/` record what happened,
+> but no AI-usage entry was written at the time. The 2026-08-14 session did not invent one, because
+> this log's whole purpose is the human/AI boundary and reconstructing that boundary three days later
+> from commits would be exactly the kind of plausible-but-unwitnessed account it exists to prevent.
+> **Kylian should write the M9 entry, or it stays absent and is reported as absent.**
+
+### 2026-08-14 — M10: the defence deck, DR-016 and a stale deliverable
+
+**AI assistance:** verifying the deck authored on 2026-08-11 against its sources rather than trusting
+it; rebuilding both presentation PDFs and the report; writing **DR-016**, the M10 build record, the
+process-log entry, the planning row and this entry; correcting the report's requirement-13 rows and
+the "90-page" literals; recording the M9 evidence audit as superseded.
+
+**What the AI found, and it was in its own predecessor's work.** The presentation PDFs committed to
+the working tree **did not match their sources** — built at 05:00 on 2026-08-11, with the CSS and one
+slide edited at 05:03 and never rebuilt, leaving about **20 % of the deliverable missing**. Four
+files also cited a decision record, `DR-016`, that **did not exist**. Both were defects in AI-produced
+work from a previous session, found by checking rather than reported by any tool, and both are
+written up in `docs/evidence/M10/build-record.md` instead of being quietly corrected.
+
+**What the AI did NOT decide.** It did not judge the deck's content, its design, its legibility or
+whether its argument survives compression onto a slide — **no human visual gate has been held, and
+every check run is structural**. It did not decide the deck's length: no authoritative presentation
+duration is recorded anywhere in this repository, so the 26-slide count is reported as **provisional**
+rather than assumed adequate. It did not convert the speaking estimate into a rehearsal time, and it
+did not run a rehearsal. It did not push, close issue #10, or move the board.
+
+**A decision the AI took on its own, and flagged.** Writing DR-016 moved `decision_record_count` from
+15 to 16, which **failed the deck build** and made the already-pushed report state a number that was
+no longer true. The AI updated the fact lock and Appendix B and rebuilt the report — taking it from
+**90 to 91 pages** and superseding the M9 artifact's SHA-256. That was a judgement call about a
+submitted deliverable, taken because leaving the report misstating its own decision-record count was
+the worse option, and it is recorded here, in DR-016 and in the planning log rather than absorbed.
+
+**Verification status:** every figure quoted for M10 is from a command that ran in this session —
+`validate_slides.py` (0 hard failures, 0 advisories), `build_slides.py --strict` (26 pages for 26
+slides, 960 × 540 pt), `build_report.py --strict` (91 pages), `validate_report.py`,
+`report_facts.py --check` (31 locks), and **518 pytest** collected and passing. The stale-PDF byte
+figures are the two files' actual sizes, before and after. **The speaking time is an estimate from
+speaker-note word counts at 130 wpm and is labelled as one everywhere it appears.**
+
 ### 2026-08-09 — M8: testing, deployment, clean-clone validation, demo preparation
 
 **AI assistance:** re-measuring the four gates and diagnosing the stale Node audit entry; writing
