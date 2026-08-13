@@ -82,6 +82,13 @@ deliverables/*
 
 # The research report PDF is a submitted deliverable and must be present in the
 # GitHub result (M9, issue #10, acceptance criterion 4). One named file only: the
-# intermediate build HTML and every other derived package stay ignored, and M10
-# makes its own decision for the presentation PDF.
+# intermediate build HTML and every other derived package stay ignored.
 !deliverables/DeckForge-AI-research-report.pdf
+
+# M10 makes the same decision for the presentation, and for the same reason: the
+# assignment requires a presentation as PDF (`docs/00-project-brief.md`, mandatory
+# requirement 13), so it must be present in the GitHub result. Two named files, both
+# built by `scripts/build_slides.py` (DR-016). The intermediate HTML of both stays
+# ignored and is rebuilt on every run.
+!deliverables/DeckForge-AI-presentation.pdf
+!deliverables/DeckForge-AI-presentation-notes.pdf
