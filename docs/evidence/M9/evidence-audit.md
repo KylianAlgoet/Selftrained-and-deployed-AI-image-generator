@@ -287,6 +287,13 @@ gate, restated as a finding rather than a principle.
 
 ### The submitted artifact
 
+> **⚠️ SUPERSEDED on 2026-08-14 by M10.** The figures in this table were correct when M9 closed and
+> are kept unchanged as the M9 record. They no longer identify the file on disk. Writing **DR-016**
+> moved `decision_record_count` from 15 to 16, which added a row to Appendix B and rebuilt the report
+> to **91 pages · 2 769 385 bytes ·
+> `73f574158d83f7452a605d57b8c40541c45b2a0693fb69d66f280e9ea2677157`**. Current record:
+> `docs/evidence/M10/build-record.md`.
+
 | | |
 |---|---|
 | path | `deliverables/DeckForge-AI-research-report.pdf` |
