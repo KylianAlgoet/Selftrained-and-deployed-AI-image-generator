@@ -1,7 +1,130 @@
 # Session handoff
 
+**Last updated:** 2026-08-14 (M10 — the defence deck is **built, committed locally, and NOT gated**;
+under Opus 5)
+
+## M10: the deck builds and is committed. NOTHING ABOUT ITS CONTENT HAS BEEN JUDGED
+
+| item | state |
+|---|---|
+| slide sources | **26 of 26 authored** |
+| validator | **0 hard failures, 0 advisories** |
+| deck PDF | **committed** — `deliverables/DeckForge-AI-presentation.pdf`, 1 313 731 B, `42c5e8e2…` |
+| notes handout | **committed** — `DeckForge-AI-presentation-notes.pdf`, 380 486 B, `71442da2…` |
+| report PDF | **REBUILT and superseded** — 2 769 385 B, `73f57415…`, **91 pages** (was 90) |
+| pages / geometry | **26 pages for 26 slides** · **960 × 540 pt = 16:9** |
+| fact locks | **31** resolve |
+| pytest | **518** (489 pre-existing + 29 slide-source tests) |
+| **human visual gate** | **NOT HELD — this is the blocker** |
+| **presentation duration** | **UNKNOWN — not recorded anywhere in this repository** |
+| push | **NOT DONE** — 6 commits ahead of `origin/main` |
+| **GitHub issue #10** | **still open** — `gh` still absent |
+
+### What Kylian has to do, in order
+
+1. **Open `deliverables/DeckForge-AI-presentation.pdf` and review all 26 slides.** Every check that
+   has run is *structural*. Nothing in this repository says the deck is legible, well designed, or
+   that its argument survives compression onto a slide. **M9's bibliography defect is the precedent:
+   a source-level validator structurally cannot see a presentation-level fault.**
+2. **Supply the real presentation duration** from the assessment material or the programme. It is
+   **not recorded anywhere here** — searched twice. Until then the 26-slide length is *provisional*.
+3. Decide the open report-build guard (see below).
+4. Push, comment on and close **issue #10**, move the board.
+
+### ⚠️ Do not undo these
+
+**1. The deck holds no facts of its own.** Values resolve from `report/facts.yaml`, so a number
+corrected in the report is corrected on the slide by the same edit. **Do not add `slides/facts.yaml`.**
+
+**2. The text budgets and the page-count equality are HARD failures, not warnings.** A slide is a
+fixed 190.5 mm box with `overflow: hidden`, so over-full content is **clipped silently**. **Do not
+raise a budget to make a slide fit** — cut the slide or move the words into the speaker note.
+
+**3. `tier` is why the deck can be shortened without lying.** A `supporting` slide folds into the
+adjacent `core` slide's speaker note; it is never deleted. But only **4 of 26** are `supporting`, so
+this absorbs a modest overrun, not a large one. **If the real duration is 15 or 20 minutes the deck
+needs restructuring, not trimming.**
+
+**4. ~30 minutes is an ESTIMATE, never a rehearsal time.** 26.4 min of slides (note word counts at
+130 wpm) + a 4-minute demo target. **No rehearsal has been run.** Do not report it as measured.
+
+**5. Slide 17's evaluation concession must stay**: one human approver, AI-assisted visual analysis,
+**no second independent human rater**, so no inter-rater agreement can be reported. Same for slide
+24's five refused conclusions.
+
+### Two defects M10 found — do not re-discover these
+
+**1. The committed deck PDF did not match its own sources.** Built 05:00:44 on 2026-08-11; the CSS
+and one slide were edited at 05:03:57 and it was never rebuilt. **1 097 724 bytes on disk against
+1 313 730 rebuilt — about 20 % of the deliverable was missing**, and nothing reported it. In
+`git status` it looked exactly like success. Third instance of one class: M8's hash that only ever
+passed locally, M9's bibliography defect, M10's stale artifact.
+
+**2. OPEN — one report build came out 800 KB short and passed every check.** 1 968 295 bytes against
+2 769 385 for the same sources, **same 91 pages**, structural check fine. **Did not recur in 14
+attempts; cause unknown** (the file was overwritten before it could be examined). What it proves is
+not in doubt: **the report build cannot detect the loss of 800 KB of content**, so a report with
+missing figures would ship looking correct. **No guard was added on purpose** — a threshold from one
+unreproduced observation is guesswork, and it means editing `build_report.py` under the freeze.
+**Kylian's call; the risk is live until he takes it.**
+
+### Writing DR-016 changed the report — this is the fact lock working
+
+`decision_record_count` globs `docs/decisions/DR-*.md`, so creating DR-016 moved it 15 → 16 and
+**failed the deck build**. `report/facts.yaml` and Appendix B were updated and the report rebuilt,
+taking it **90 → 91 pages**, which invalidated the typed literal "90-page report" on slide 26 and in
+the traceability matrix. **The page count is NOT fact-locked and cannot be** — it exists only after
+Chrome paginates — so it stands as a live drift risk in DR-016. Dated historical records that say 90
+pages are correct for their date and **were not rewritten**.
+
+Requirement 13's rows now read **"built, NOT yet gated"**. **Do not upgrade them to "met"** before
+the visual gate.
+
+### A wrong inference caught inside the session — keep the correction
+
+Repeat builds were first recorded as "byte-identical" from their **matching sizes alone**. Hashing
+three returned **three different digests at the same length**, confirming DR-015's timestamp
+explanation. **Equal length is not equal content.**
+
+### There is no M9 entry in `docs/ai-usage.md`
+
+Stated as a gap rather than reconstructed. That log exists to record the human/AI boundary, and
+writing one three days later from commits would be exactly the plausible-but-unwitnessed account it
+guards against. **Kylian should write it, or it stays absent and is reported as absent.**
+
+### Rebuilding the deck
+
+```
+python scripts/validate_slides.py           # 0 hard failures expected
+python scripts/build_slides.py --strict     # 26/26; Chrome is a prerequisite (DR-016)
+python scripts/build_report.py --strict     # rebuild the report too - they share facts.yaml
+python scripts/report_facts.py --check      # 31 locks
+```
+
+**Rebuilding changes every PDF's SHA-256** (Chrome embeds a timestamp), so hash *after* the final
+build and before `git add`, and update the digests recorded in `docs/evidence/M10/build-record.md`,
+DR-016 and this file.
+
+### M10 commits
+
+```
+3e5a9b3 build(slides): add the defence deck build pipeline and its validator
+f531abd docs(slides): author the 26 defence slides and their speaker notes
+126bf89 docs(decisions): record DR-016 and track the presentation PDFs
+6d21600 docs(report): count DR-016 and rescope the requirement 13 claims
+1398042 docs(m10): add the presentation PDFs and the M10 build record
+b63ecbc docs(m10): update the process, planning, traceability and AI-usage records
+```
+
+---
+
+## Prior state — M9, superseded above
+
 **Last updated:** 2026-08-11 (M9 — research report **finalised and PUSHED**; issue and board remain
 open and are Kylian's, under Opus 5)
+
+> **Note added 2026-08-14:** M9's report artifact figures below (90 pages, `5c394e7a…`) are the M9
+> record and are **no longer the file on disk** — see the M10 section above.
 
 ## M9: report finalised and pushed. TWO REMOTE ITEMS REMAIN, AND THEY ARE KYLIAN'S
 
