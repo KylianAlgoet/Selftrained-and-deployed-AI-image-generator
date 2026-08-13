@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{ document.title }} — {{ document.event }}</title>
+<style>
+{{ css }}
+</style>
+</head>
+<body>
+{%- for slide in slides %}
+<section class="slide slide--{{ slide.layout }}" id="slide-{{ slide.id }}">
+  {%- if slide.layout == "title" %}
+  <div class="slide__rule"></div>
+  <h1>{{ document.title }}</h1>
+  <p class="subtitle">{{ document.subtitle }}</p>
+  <div class="slide__body">{{ slide.html }}</div>
+  {%- else %}
+  <h2 class="slide__title">{{ slide.title }}</h2>
+  <div class="slide__rule"></div>
+  <div class="slide__body">{{ slide.html }}</div>
+  {%- endif %}
+  <span class="slide__brand">DeckForge AI</span>
+  <span class="slide__number">{{ slide.n }} / {{ slides | length }}</span>
+</section>
+{%- endfor %}
+</body>
+</html>
