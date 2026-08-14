@@ -256,8 +256,8 @@ sha_retro_poster:
 # ------------------------------------------------------------------- decisions ---
 
 decision_record_count:
-  value: 16
+  value: 17
   source: docs/decisions
   method: structural
   extractor: decision_record_count
-  description: decision records, DR-001 to DR-016
+  description: decision records, DR-001 to DR-017

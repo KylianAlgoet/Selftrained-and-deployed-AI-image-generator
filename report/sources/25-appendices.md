@@ -68,6 +68,7 @@ EXP-006 and EXP-015 are **not runs**: those identifiers name the human scoring d
 | DR-014 | Native local deployment | Docker **screened out, not benchmarked** |
 | DR-015 | Report build pipeline | zero new dependencies under the freeze |
 | DR-016 | Presentation build pipeline | extends DR-015; the deck inherits the report's fact locks |
+| DR-017 | Deck length for a 20-minute slot | a constraint absent from the repository could not be checked |
 
 ## Appendix C — Research-question matrix
 

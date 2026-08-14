@@ -35,11 +35,19 @@ complete without a repository path behind it.
 | 13 | Presentation as PDF | `deliverables/DeckForge-AI-presentation.pdf`, DR-016 | **built, NOT yet gated** |
 
 **Requirement 13 was outstanding when this report was first built, and is now partially discharged.**
-The presentation belongs to M10, which ran on 2026-08-11 and 2026-08-14, after the report's first
-build: 26 slides are authored and both PDFs are tracked and produced by the pipeline of DR-016. **It
-has not passed a human visual gate, and its length is unvalidated** — no authoritative presentation
-duration is recorded anywhere in this repository. "Built" is therefore not "met", and this row says
-so. No claim of full assignment completion is made anywhere in this report (§2.2).
+The presentation belongs to M10, which ran after the report's first build: **15 slides** are
+authored and both PDFs are tracked and produced by the pipeline of DR-016.
+
+The authoritative slot — **20:00 including the live demo** — became known on 2026-08-14, after a
+26-slide deck had already been built to a provisional length. It did not fit, by roughly 50 %, and
+**every structural check had passed on it**: a validator can only enforce a requirement it has been
+told. The deck was restructured to 15 slides against an enforced timing budget (DR-017), and
+estimated narration is now **14:56** against a **1:04** buffer.
+
+**It has still not passed a human visual gate, and no rehearsal has been run** — every timing figure
+is an estimate from speaker-note word counts, not a measured delivery. "Built" is therefore not
+"met", and this row says so. No claim of full assignment completion is made anywhere in this report
+(§2.2).
 
 ## 26.3 Where each research question is answered
 
