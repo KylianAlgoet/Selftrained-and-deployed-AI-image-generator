@@ -15,34 +15,29 @@ fit: a concurrent request gets a clean refusal, never an out-of-memory crash.
     <text x="28" y="148" font-size="21" fill="#46525f">Three.js / R3F deck</text>
     <text x="28" y="180" font-size="21" fill="#46525f">Procedural geometry,</text>
     <text x="28" y="206" font-size="21" fill="#46525f">runtime texture swap</text>
-
     <rect x="404" y="40" width="360" height="200" rx="14" fill="#f4f6f9" stroke="#d9dee6" stroke-width="2"/>
     <text x="428" y="80" font-size="24" font-weight="700" fill="#11151c">FastAPI service</text>
     <text x="428" y="116" font-size="21" fill="#46525f">uvicorn, <tspan font-weight="700" fill="#11151c">one worker</tspan></text>
     <text x="428" y="148" font-size="21" fill="#46525f">Busy lock &#8594; 409, never OOM</text>
     <text x="428" y="180" font-size="21" fill="#46525f">Upload validation, timeouts</text>
     <text x="428" y="206" font-size="21" fill="#46525f">SHA-256 checkpoint verify</text>
-
     <rect x="834" y="40" width="380" height="200" rx="14" fill="#11151c"/>
     <text x="858" y="80" font-size="24" font-weight="700" fill="#ffffff">One resident pipeline</text>
     <text x="858" y="116" font-size="21" fill="#c8d0dc">Stable Diffusion 1.5</text>
     <text x="858" y="148" font-size="21" fill="#c8d0dc">+ one per-style LoRA</text>
     <text x="858" y="180" font-size="21" fill="#c8d0dc">+ IP-Adapter (optional)</text>
     <text x="858" y="206" font-size="21" fill="#8fa0ff">{{ facts.generation_width }} &#215; {{ facts.generation_height }}, direct</text>
-
     <rect x="1284" y="40" width="152" height="200" rx="14" fill="#2438d8"/>
     <text x="1306" y="80" font-size="24" font-weight="700" fill="#ffffff">GPU</text>
     <text x="1306" y="116" font-size="21" fill="#ccd2fb">RTX 4060</text>
     <text x="1306" y="148" font-size="21" fill="#ccd2fb">Laptop</text>
     <text x="1306" y="186" font-size="24" font-weight="700" fill="#ffffff">8 GB</text>
-
     <g stroke="#2438d8" stroke-width="3" marker-end="url(#a2)">
       <line x1="338" y1="140" x2="398" y2="140"/>
       <line x1="768" y1="140" x2="828" y2="140"/>
       <line x1="1218" y1="140" x2="1278" y2="140"/>
     </g>
     <text x="342" y="126" font-size="18" fill="#7b8794">HTTP</text>
-
     <text x="4" y="296" font-size="22" fill="#46525f">Two processes, one machine. Single-worker is a correctness requirement enforced in code, not a deployment convenience.</text>
   </g>
 </svg>

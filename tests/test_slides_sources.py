@@ -37,6 +37,7 @@ from validate_slides import (  # noqa: E402
     REQUIRED,
     Report,
     check_forbidden,
+    check_inline_html_blocks,
     check_layout_markup,
     check_literal_facts,
     check_required,
@@ -253,6 +254,20 @@ def test_two_column_markup_under_the_wrong_layout_is_caught(deck: dict) -> None:
     report = Report()
     check_layout_markup(deck, mismatched, report)
     assert any("split" in msg for msg in report.hard), report.hard
+
+
+def test_no_inline_svg_contains_a_blank_line(sources: dict[str, str]) -> None:
+    report = Report()
+    check_inline_html_blocks(sources, report)
+    assert not report.hard, report.hard
+
+
+def test_a_blank_line_inside_an_svg_is_caught() -> None:
+    """The defect that shipped: CommonMark ends an HTML block at the first blank line."""
+    broken = '<svg viewBox="0 0 10 10">\n  <rect x="1"/>\n\n  <text>lost</text>\n</svg>\n'
+    report = Report()
+    check_inline_html_blocks({"probe.md": broken}, report)
+    assert any("blank line" in msg for msg in report.hard), report.hard
 
 
 def test_the_authored_deck_fits_its_timing_budget(deck: dict, sources: dict[str, str]) -> None:

@@ -229,6 +229,41 @@ def check_layout_markup(deck: dict, texts: dict[str, str], report: Report) -> No
                 )
 
 
+SVG_BLOCK = re.compile(r"<svg\b.*?</svg>", re.DOTALL)
+
+
+def check_inline_html_blocks(texts: dict[str, str], report: Report) -> None:
+    """A blank line inside an inline SVG silently turns the rest of it into text.
+
+    CommonMark's HTML block rule 7 - the one that catches ``<svg ...>``, since ``svg``
+    is not a known block tag - **ends at the first blank line**. Everything after that
+    blank line is parsed as Markdown and HTML-escaped, so the diagram renders as a wall
+    of ``&lt;text ...&gt;`` source code on the slide.
+
+    This shipped. The architecture slide carried 5 blank lines inside its SVG, and
+    16 ``<text>``, 3 ``<rect>`` and 3 ``<line>`` elements were printed as literal code
+    in the PDF. The prototype-ladder SVG on another slide had none and rendered
+    perfectly, which is exactly why the defect looked like a one-slide mystery.
+
+    Nothing else caught it: the file is valid Markdown, the SVG is valid XML, the slide
+    stayed inside its character budget (SVG is budget-exempt), and it produced exactly
+    one PDF page. Only a human looking at the rendered page saw it.
+    """
+    for name, text in texts.items():
+        for match in SVG_BLOCK.finditer(text):
+            blanks = [
+                i for i, line in enumerate(match.group(0).splitlines()) if not line.strip()
+            ]
+            if blanks:
+                line = text[: match.start()].count("\n") + 1
+                report.fail(
+                    f"{name}:{line}: the inline <svg> contains {len(blanks)} blank line(s). "
+                    "CommonMark ends an HTML block at the first blank line, so the rest of "
+                    "the diagram renders as escaped source code on the slide. Remove the "
+                    "blank lines inside the <svg>."
+                )
+
+
 def check_forbidden(texts: dict[str, str], report: Report) -> None:
     """Denylist hits fail the deck build.
 
@@ -398,6 +433,7 @@ def main(argv: list[str] | None = None) -> int:
 
     check_structure(deck, texts, report)
     check_layout_markup(deck, texts, report)
+    check_inline_html_blocks(texts, report)
     check_placeholders(texts, report)
     check_identifiers(texts, report)
     check_forbidden(texts, report)
