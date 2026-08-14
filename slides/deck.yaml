@@ -5,12 +5,18 @@
 # (report/facts.yaml - this deck has no facts of its own), and a slide is included
 # only if its source file exists, exactly as a report section is.
 #
-# `tier` exists because NO authoritative presentation duration is recorded anywhere in
-# this repository - searched 2026-08-11 across the brief, the planning, the governing
-# prompt and the report sources; see DR-016. The slide count is therefore PROVISIONAL.
-# A `supporting` slide can be cut, and when it is, its content folds into the adjacent
-# `core` slide's speaker notes rather than being deleted. A shorter cut costs stage
-# time; it never costs a claim.
+# ---------------------------------------------------------------------------------
+# 2026-08-14: THE DURATION IS NOW KNOWN, AND IT RESTRUCTURED THE DECK.
+#
+# The authoritative slot is 20:00 TOTAL, including the live demo. The first deck was
+# built when no duration was recorded anywhere in this repository, ran to 26 slides and
+# an estimated 26.4 minutes of narration, and did not fit. It was cut to 15 slides
+# against the budget below - see DR-017.
+#
+# `tier` no longer carries the shortening strategy, because there is no longer room to
+# shorten by cutting: the deck is already at the size the slot allows. Every slide is
+# `core` except the two that a genuinely over-running talk can still drop.
+# ---------------------------------------------------------------------------------
 
 document:
   title: DeckForge AI
@@ -25,45 +31,39 @@ document:
 
 # Layout budgets. Exceeding one is a HARD build failure, because a slide that overflows
 # its fixed height does not error - it silently spills onto a second page, and the
-# reader of a 26-page PDF may not notice. This is the deterministic half of the overflow
+# reader of a PDF may not notice. This is the deterministic half of the overflow
 # defence; the human visual gate is the other half.
+#
+# Every budget was TIGHTENED on 2026-08-14. The first deck's budgets allowed
+# report-density text on a slide - up to 900 visible characters - which is readable on
+# a laptop and not from the back of a room. The rule now is one central claim per
+# slide, so the budgets enforce it rather than trusting the author to.
 layouts:
-  title:       {max_bullets: 0,  max_chars: 320}
-  statement:   {max_bullets: 3,  max_chars: 620}
-  bullets:     {max_bullets: 6,  max_chars: 900}
-  split:       {max_bullets: 5,  max_chars: 700}
-  figure:      {max_bullets: 3,  max_chars: 600}
-  two-figures: {max_bullets: 4,  max_chars: 620}
-  table:       {max_bullets: 2,  max_chars: 900}
-  demo:        {max_bullets: 4,  max_chars: 480}
+  title:       {max_bullets: 0, max_chars: 260}
+  statement:   {max_bullets: 3, max_chars: 430}
+  bullets:     {max_bullets: 5, max_chars: 580}
+  split:       {max_bullets: 4, max_chars: 470}
+  figure:      {max_bullets: 3, max_chars: 360}
+  two-figures: {max_bullets: 3, max_chars: 390}
+  table:       {max_bullets: 2, max_chars: 560}
+  demo:        {max_bullets: 3, max_chars: 300}
 
 slides:
-  - {n: 1,  id: title,             file: 01-title.md,             tier: core,       layout: title,       title: "DeckForge AI"}
-  - {n: 2,  id: assignment,        file: 02-assignment.md,        tier: core,       layout: bullets,     title: "The assignment, and the problem underneath it"}
-  - {n: 3,  id: research-question, file: 03-research-question.md, tier: core,       layout: statement,   title: "The research question"}
-  - {n: 4,  id: constraint,        file: 04-constraint.md,        tier: core,       layout: statement,   title: "One constraint governs everything"}
-  - {n: 5,  id: method,            file: 05-method.md,            tier: core,       layout: bullets,     title: "How the work was done"}
-  - {n: 6,  id: ladder,            file: 06-prototype-ladder.md,  tier: core,       layout: figure,      title: "The prototype ladder"}
-  - {n: 7,  id: dataset,           file: 07-dataset.md,           tier: core,       layout: split,       title: "The dataset was built, not downloaded"}
-  - {n: 8,  id: licensing,         file: 08-licensing.md,         tier: core,       layout: bullets,     title: "Licensing, decided before training"}
-  - {n: 9,  id: base-model,        file: 09-base-model.md,        tier: core,       layout: split,       title: "Base model: SDXL was better, and was rejected"}
-  - {n: 10, id: memory-habit,      file: 10-memory-habit.md,      tier: supporting, layout: statement,   title: "The habit that came out of it"}
-  - {n: 11, id: conditioning,      file: 11-conditioning.md,      tier: core,       layout: split,       title: "Reference conditioning: IP-Adapter over img2img"}
-  - {n: 12, id: why-lora,          file: 12-why-lora.md,          tier: core,       layout: bullets,     title: "Why LoRA, and what that does not claim"}
-  - {n: 13, id: step-300,          file: 13-step-300.md,          tier: core,       layout: two-figures, title: "Training longer made it less obedient"}
-  - {n: 14, id: adapters,          file: 14-adapters.md,          tier: supporting, layout: table,       title: "What actually ships"}
-  - {n: 15, id: retro-poster,      file: 15-retro-poster.md,      tier: core,       layout: split,       title: "One style is a partial pass"}
-  - {n: 16, id: rq4,               file: 16-rq4-inconclusive.md,  tier: core,       layout: bullets,     title: "How many images does a style need?"}
-  - {n: 17, id: other-failures,    file: 17-other-failures.md,    tier: supporting, layout: bullets,     title: "The rest of what did not work"}
-  - {n: 18, id: architecture,      file: 18-architecture.md,      tier: core,       layout: figure,      title: "The integrated system"}
-  - {n: 19, id: mvp,               file: 19-mvp.md,               tier: core,       layout: split,       title: "The MVP, on screen"}
-  - {n: 20, id: texture-fit,       file: 20-texture-fit.md,       tier: supporting, layout: two-figures, title: "A trade-off the interface admits to"}
-  - {n: 21, id: testing,           file: 21-testing.md,           tier: core,       layout: bullets,     title: "Testing"}
-  - {n: 22, id: determinism,       file: 22-determinism.md,       tier: core,       layout: split,       title: "Determinism has halves"}
-  - {n: 23, id: deployment,        file: 23-deployment.md,        tier: core,       layout: bullets,     title: "Deployment: local, and chosen"}
-  - {n: 24, id: conclusions,       file: 24-conclusions.md,       tier: core,       layout: bullets,     title: "Conclusions"}
-  - {n: 25, id: demo,              file: 25-demo.md,              tier: core,       layout: demo,        title: "Live demo"}
-  - {n: 26, id: close,             file: 26-close.md,             tier: core,       layout: bullets,     title: "Learning outcomes, and what I would change"}
+  - {n: 1,  id: title,           file: 01-title.md,           tier: core,       layout: title,       title: "DeckForge AI"}
+  - {n: 2,  id: assignment,      file: 02-assignment.md,      tier: core,       layout: statement,   title: "The assignment, and the question under it"}
+  - {n: 3,  id: method,          file: 03-method.md,          tier: core,       layout: figure,      title: "One constraint, and how the work was done"}
+  - {n: 4,  id: dataset,         file: 04-dataset.md,         tier: core,       layout: split,       title: "The dataset was built, not downloaded"}
+  - {n: 5,  id: base-model,      file: 05-base-model.md,      tier: core,       layout: split,       title: "SDXL was better, and was rejected"}
+  - {n: 6,  id: conditioning,    file: 06-conditioning.md,    tier: core,       layout: split,       title: "The free method lost"}
+  - {n: 7,  id: lora,            file: 07-lora.md,            tier: core,       layout: two-figures, title: "Training longer made it less obedient"}
+  - {n: 8,  id: limits,          file: 08-limits.md,          tier: core,       layout: split,       title: "What did not work"}
+  - {n: 9,  id: system,          file: 09-system.md,          tier: core,       layout: figure,      title: "The integrated system"}
+  - {n: 10, id: testing,         file: 10-testing.md,         tier: supporting, layout: bullets,     title: "Testing, and what it cannot tell you"}
+  - {n: 11, id: reproducibility, file: 11-reproducibility.md, tier: core,       layout: split,       title: "Reproducible has halves"}
+  - {n: 12, id: deployment,      file: 12-deployment.md,      tier: supporting, layout: bullets,     title: "Local, and chosen"}
+  - {n: 13, id: conclusions,     file: 13-conclusions.md,     tier: core,       layout: statement,   title: "Conclusions"}
+  - {n: 14, id: demo,            file: 14-demo.md,            tier: core,       layout: demo,        title: "Live demo"}
+  - {n: 15, id: close,           file: 15-close.md,           tier: core,       layout: bullets,     title: "What I would change"}
 
 build:
   output_pdf: deliverables/DeckForge-AI-presentation.pdf
@@ -76,9 +76,36 @@ build:
     - C:/Program Files (x86)/Google/Chrome/Application/chrome.exe
     - C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe
 
-# Spoken-time estimation. Reported as an ESTIMATE with its method, never as a measured
-# rehearsal time - no rehearsal has been run. 130 wpm is a deliberate, slightly slow
-# defence pace; the estimate is derived from the speaker notes' word count.
+# ------------------------------------------------------------------------ timing ---
+#
+# The binding constraint of the whole deck, and the reason it is 15 slides.
+#
+# Narration is ESTIMATED from the speaker notes' word count at `words_per_minute`. It
+# is not a rehearsal time, and no rehearsal has been run - see DR-017. 130 wpm is a
+# deliberately slow defence pace, chosen so the estimate errs toward over-running
+# rather than under-running.
+#
+# The demo is NOT counted as zero. Its slide note is a set of directions rather than a
+# script, so it is excluded from the word-count total and its two real costs are
+# declared here instead: the spoken handoff, and the demo itself.
+#
+#     narration = sum(word-count estimate of every non-demo slide) + demo_handoff
+#     combined  = narration + demo
+#     buffer    = total_budget - combined
+#
+# `narration_min_seconds`/`narration_max_seconds` are a HARD build failure in both
+# directions. Over the maximum is an overrun. Under the minimum matters too: it means
+# the estimate has drifted far enough from the design that the buffer is no longer the
+# one that was reasoned about, and it usually means a note was gutted rather than cut.
 timing:
   words_per_minute: 130
-  demo_target_minutes: 4
+  total_budget_seconds: 1200        # the authoritative slot: 20:00, demo included
+  demo_target_seconds: 240          # ~4:00, timed separately by docs/presentation/demo-script.md
+  demo_handoff_seconds: 15          # spoken while moving to the browser
+  narration_min_seconds: 870        # 14:30
+  narration_max_seconds: 900        # 15:00
+  min_buffer_seconds: 60            # 1:00 for transitions, pauses and timing variation
+  # Advisory per-slide ceiling. Raised from 75s to 90s when the 20-minute budget was
+  # confirmed: a major comparison slide is allowed up to ~1:30 by design. The ceiling
+  # is now the weaker of the two timing checks - the total above is what binds.
+  note_ceiling_seconds: 90

@@ -1,20 +1,25 @@
-- A skateboard manufacturer wants **customer-designed decks**, without a designer in the loop for every order
-- The assignment: a **self-trained** generator, **text + reference image**, an **interactive 3D deck**, deployed or demonstrably reproducible
-- The hard part is not the pipeline. It is that **all of it has to run on one consumer laptop GPU**
-- Assessed deliverable: the **research process**, not the artefact
+A skateboard manufacturer wants **customer-designed decks** — without a designer in the loop for
+every order.
 
-<p class="source">docs/00-project-brief.md · thirteen mandatory requirements · learning outcomes D1–D7</p>
+> How can a **locally fine-tuned** diffusion model, conditioned on **text and a reference image**,
+> generate decal artwork in **multiple visually distinct styles** with **reproducible quality** on
+> **8 GB of VRAM**?
+
+<p class="source">docs/00-project-brief.md · thirteen mandatory requirements · RQ1–RQ12 · assessed on the research process, not the artefact</p>
 
 ## Speaker notes
 
 A skateboard manufacturer wants customers to design their own decks. Today that needs a designer
 for every order, which does not scale to one-offs.
 
-The assignment sets four things. The model must be self-trained, not an API call. It must take both
-a prompt and a reference image. The result must land on an interactive 3D deck. And it must be
-deployed, or reproducible by someone else.
+The assignment sets four things: the model must be self-trained, it must take both a prompt and a
+reference image, the result must land on an interactive three-D deck, and it must be reproducible
+by someone else. The hard part is none of those individually — it is that all of it runs on one
+consumer laptop GPU.
 
-The hard part is none of those individually — it is that all of it runs on one consumer laptop GPU.
+Every clause of the question was chosen to be falsifiable. Distinct styles is a claim needing
+evidence, not an adjective. Reproducible quality is where my answer splits in half. And eight
+gigabytes is a number, so a configuration either fits or it does not.
 
-The last line I want to plant early. This is assessed on the research process. So when I show you a
-failure later, I am not apologising; I am showing you the deliverable.
+This is assessed on the research process. So when I show you a failure later, I am not apologising
+— I am showing you the deliverable.
