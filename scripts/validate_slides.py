@@ -2,20 +2,26 @@
 
 Read-only. Exits non-zero when a hard check fails.
 
-The deck compresses a 91-page report onto 26 slides, and compression is exactly where
-an honest claim quietly becomes a marketable one. So this validator is weighted
-differently from ``validate_report.py``: alongside the usual structural checks it
-enforces a **denylist** of wordings this project has decided are wrong, and a
+The deck compresses a 91-page report onto 15 slides in a 20-minute slot, and compression
+is exactly where an honest claim quietly becomes a marketable one. So this validator is
+weighted differently from ``validate_report.py``: alongside the usual structural checks
+it enforces a **denylist** of wordings this project has decided are wrong, and a
 **requirement list** of concessions that must survive onto the slide that makes the
 claim. A slide can fail here for saying too little as easily as for saying too much.
+
+Timing is a hard check for the same reason. The first deck ran to 26 slides and roughly
+26 minutes against a slot that turned out to be 20, and every structural check passed on
+it, because nothing here knew what the slot was. A talk that overruns fails in front of
+a jury rather than in a build log, so the budget now lives in ``deck.yaml`` and is
+enforced (DR-017).
 
     HARD      placeholders - unknown or missing slide sources - invalid tier or
               layout - invalid EXP/DR/RQ identifiers - missing speaker notes -
               denylist hits - missing required concessions - a locked quantity
-              typed as a literal instead of a fact placeholder - stale fact locks
+              typed as a literal instead of a fact placeholder - stale fact locks -
+              estimated narration outside its band, or too little buffer
 
-    ADVISORY  slides with an unusually long note - supporting slides that no core
-              slide could absorb
+    ADVISORY  slides with an unusually long note
 
 Usage::
 
@@ -83,13 +89,24 @@ DECK_FORBIDDEN = [
 # Concessions that must appear on the slide that makes the claim. The deck is where a
 # bounded finding is most likely to lose its bound, so the bound is checked positively
 # rather than hoped for.
+# Slide ids changed when the deck was cut from 26 to 15 for the 20-minute slot (DR-017).
+# Three separate slides - retro-poster, rq4 and other-failures - merged into one `limits`
+# slide, so all three of their concessions are now required on it. That is a stricter
+# test than before, not a looser one: the merged slide has to carry every bound its three
+# predecessors carried, and `test_every_required_check_names_a_real_slide` fails the suite
+# if a future edit renames a slide out from under this list.
 REQUIRED: list[tuple[str, str, str]] = [
-    ("retro-poster", r"(?i)partial", "the retro-poster slide must carry its PARTIAL PASS verdict"),
-    ("rq4", r"(?i)inconclusive", "the image-count slide must say INCONCLUSIVE"),
+    ("limits", r"(?i)partial", "the limits slide must carry retro-poster's PARTIAL PASS verdict"),
+    ("limits", r"(?i)inconclusive", "the limits slide must say the image count is INCONCLUSIVE"),
     (
-        "determinism",
+        "limits",
+        r"(?i)no second independent human rater",
+        "the limits slide must carry the corrected M9 evaluation disclosure",
+    ),
+    (
+        "reproducibility",
         r"(?i)training[^.]{0,80}not\b|not[^.]{0,40}reproducible",
-        "the determinism slide must state that training is NOT reproducible from seed",
+        "the reproducibility slide must state that training is NOT reproducible from seed",
     ),
     (
         "deployment",
@@ -102,14 +119,9 @@ REQUIRED: list[tuple[str, str, str]] = [
         "the base-model slide must concede SDXL scored better before saying it was rejected",
     ),
     (
-        "why-lora",
+        "lora",
         r"(?i)not\b[^.]{0,40}\b(best|most effective)|feasib",
         "the LoRA slide must claim feasibility, not superiority (DR-009)",
-    ),
-    (
-        "other-failures",
-        r"(?i)no second independent human rater",
-        "the limitations slide must carry the corrected M9 evaluation disclosure",
     ),
 ]
 
@@ -186,6 +198,37 @@ def check_identifiers(texts: dict[str, str], report: Report) -> None:
                 report.fail(f"{name}: RQ{rq} is outside RQ1-RQ12")
 
 
+# Markup that only renders correctly under one declared layout. The CSS grid for a
+# two-column slide is scoped to `.slide--split`, and the figure pair to
+# `.slide--two-figures`, so authoring that markup under any other layout produces a
+# slide that is valid HTML, passes every budget, and silently renders wrong - the
+# figure stacks under the text instead of sitting beside it.
+#
+# Found on the `limits` slide during the 20-minute restructuring (DR-017): it was
+# authored as two columns and declared as `bullets`, and nothing caught it. A layout
+# name is a promise about the markup, so it is now checked.
+LAYOUT_MARKUP = [
+    (re.compile(r'class="col-(?:text|figure)"'), "split", "two-column markup"),
+    (re.compile(r'class="figure-pair"'), "two-figures", "a figure pair"),
+]
+
+
+def check_layout_markup(deck: dict, texts: dict[str, str], report: Report) -> None:
+    """A slide's markup must match the layout it declares."""
+    for entry in deck["slides"]:
+        text = texts.get(entry["file"])
+        if not text:
+            continue
+        for pattern, required, what in LAYOUT_MARKUP:
+            if pattern.search(text) and entry["layout"] != required:
+                report.fail(
+                    f"{entry['file']}: uses {what} but declares layout "
+                    f"{entry['layout']!r}. That markup is styled only under "
+                    f"'{required}', so the slide would render wrong while passing every "
+                    "other check."
+                )
+
+
 def check_forbidden(texts: dict[str, str], report: Report) -> None:
     """Denylist hits fail the deck build.
 
@@ -260,33 +303,85 @@ def check_facts(report: Report) -> None:
         report.fail(f"fact locks failed:\n{exc}")
 
 
-NOTE_CEILING_SECONDS = 75
-
-
-def check_notes_length(deck: dict, texts: dict[str, str], report: Report) -> None:
-    """Notes are what gets said; background belongs in the jury Q&A.
-
-    The ceiling is here because the whole deck's estimated running time is derived from
-    these notes, so a note that quietly grows is a talk that quietly overruns. The
-    layout budgets stop a slide overflowing in space; this stops it overflowing in time.
-    The demo slide is exempt - its note is a set of directions, and the demo is timed
-    separately.
-    """
+def note_seconds(deck: dict, texts: dict[str, str]) -> dict[str, float]:
+    """Estimated spoken seconds per slide file, from its speaker note's word count."""
     wpm = deck["timing"]["words_per_minute"]
+    out: dict[str, float] = {}
     for entry in deck["slides"]:
         text = texts.get(entry["file"])
-        if not text or entry["layout"] == "demo":
+        if not text:
             continue
         parts = NOTES_HEADING.split(text)
         if len(parts) != 2:
             continue
-        seconds = len(parts[1].split()) / wpm * 60
-        if seconds > NOTE_CEILING_SECONDS:
+        out[entry["file"]] = len(parts[1].split()) / wpm * 60
+    return out
+
+
+def check_notes_length(deck: dict, texts: dict[str, str], report: Report) -> None:
+    """Advisory per-slide ceiling. The total below is what actually binds.
+
+    The layout budgets stop a slide overflowing in space; this stops one slide
+    overflowing in time. The demo slide is exempt - its note is a set of directions
+    rather than a script, and the demo is timed separately.
+    """
+    ceiling = deck["timing"]["note_ceiling_seconds"]
+    seconds = note_seconds(deck, texts)
+    for entry in deck["slides"]:
+        if entry["layout"] == "demo" or entry["file"] not in seconds:
+            continue
+        value = seconds[entry["file"]]
+        if value > ceiling:
             report.warn(
-                f"{entry['file']}: note is ~{seconds:.0f}s spoken, over the "
-                f"{NOTE_CEILING_SECONDS}s ceiling. Trim it, or move the background into "
+                f"{entry['file']}: note is ~{value:.0f}s spoken, over the {ceiling}s "
+                "ceiling. Trim it, or move the background into "
                 "docs/presentation/jury-questions.md where it is available if asked."
             )
+
+
+def check_timing(deck: dict, texts: dict[str, str], report: Report) -> None:
+    """The whole talk must fit the slot. HARD, in both directions.
+
+    This check exists because the first deck did not fit and nothing said so. It was
+    built to 26 slides and ~26 minutes of narration while no authoritative duration was
+    recorded anywhere in the repository, and every structural check passed on it. A deck
+    that overruns its slot is as broken as one whose text is clipped - it just fails in
+    front of a jury instead of in a build log.
+
+    Over the maximum is an overrun. UNDER the minimum fails too: it means the estimate
+    has drifted far enough from the design that the buffer is no longer the one that was
+    reasoned about, and in practice it means a note was gutted rather than deliberately
+    cut. Both directions are a signal to re-derive the budget, not to nudge a bound.
+
+    The demo is never counted as zero. Its note is directions, so the demo slide is
+    excluded from the word-count total and its two real costs - the spoken handoff and
+    the demo itself - are declared in deck.yaml instead.
+    """
+    timing = deck["timing"]
+    seconds = note_seconds(deck, texts)
+    if len(seconds) != len(deck["slides"]):
+        return  # slides missing; check_structure has already reported it
+
+    spoken = sum(
+        seconds[entry["file"]] for entry in deck["slides"] if entry["layout"] != "demo"
+    )
+    narration = spoken + timing["demo_handoff_seconds"]
+    combined = narration + timing["demo_target_seconds"]
+    buffer = timing["total_budget_seconds"] - combined
+
+    lo, hi = timing["narration_min_seconds"], timing["narration_max_seconds"]
+    if not lo <= narration <= hi:
+        report.fail(
+            f"narration is ~{narration:.0f}s ({narration / 60:.1f} min), outside the "
+            f"{lo}-{hi}s target. Restructure the deck - do not plan to speak faster, "
+            "and do not widen the band to fit the notes."
+        )
+    if buffer < timing["min_buffer_seconds"]:
+        report.fail(
+            f"buffer is ~{buffer:.0f}s against a {timing['min_buffer_seconds']}s minimum. "
+            f"narration {narration:.0f}s + demo {timing['demo_target_seconds']}s exceeds "
+            f"the {timing['total_budget_seconds']}s slot."
+        )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -302,6 +397,7 @@ def main(argv: list[str] | None = None) -> int:
     report = Report()
 
     check_structure(deck, texts, report)
+    check_layout_markup(deck, texts, report)
     check_placeholders(texts, report)
     check_identifiers(texts, report)
     check_forbidden(texts, report)
@@ -309,6 +405,7 @@ def main(argv: list[str] | None = None) -> int:
     check_literal_facts(texts, report)
     check_facts(report)
     check_notes_length(deck, texts, report)
+    check_timing(deck, texts, report)
 
     for msg in report.hard:
         print(f"HARD     {msg}")

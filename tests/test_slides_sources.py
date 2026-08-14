@@ -37,8 +37,11 @@ from validate_slides import (  # noqa: E402
     REQUIRED,
     Report,
     check_forbidden,
+    check_layout_markup,
     check_literal_facts,
     check_required,
+    check_timing,
+    note_seconds,
 )
 
 
@@ -192,7 +195,7 @@ def test_denylisted_wordings_are_caught(phrase: str) -> None:
 def test_dropping_the_partial_pass_verdict_is_caught(deck: dict) -> None:
     """The single most important thing the deck must not quietly upgrade."""
     by_id = {e["id"]: e["file"] for e in deck["slides"]}
-    softened = {by_id["retro-poster"]: "retro-poster learned the style well.\n"}
+    softened = {by_id["limits"]: "retro-poster learned the style well.\n"}
     report = Report()
     check_required(deck, softened, report)
     assert any("PARTIAL PASS" in msg for msg in report.hard), report.hard
@@ -200,10 +203,21 @@ def test_dropping_the_partial_pass_verdict_is_caught(deck: dict) -> None:
 
 def test_dropping_the_inconclusive_verdict_is_caught(deck: dict) -> None:
     by_id = {e["id"]: e["file"] for e in deck["slides"]}
-    softened = {by_id["rq4"]: "More images gave better results.\n"}
+    softened = {by_id["limits"]: "More images gave better results.\n"}
     report = Report()
     check_required(deck, softened, report)
     assert any("INCONCLUSIVE" in msg for msg in report.hard), report.hard
+
+
+def test_the_merged_limits_slide_carries_all_three_of_its_concessions(deck: dict) -> None:
+    """Three slides became one; none of their bounds may be lost in the merge.
+
+    retro-poster, rq4 and other-failures were separate slides in the 26-slide deck. If a
+    future edit trims the merged slide, this is what notices that a concession went with
+    the trimming rather than only the prose.
+    """
+    limits = [entry for entry in REQUIRED if entry[0] == "limits"]
+    assert len(limits) == 3, "the limits slide must require all three merged concessions"
 
 
 def test_a_typed_literal_instead_of_a_fact_placeholder_is_caught() -> None:
@@ -220,7 +234,85 @@ def test_two_character_values_are_not_literal_checked() -> None:
 
 
 # --------------------------------------------------------------------------
-# 3. The test-count split the deck reports
+# 3. Timing - the constraint that restructured the deck (DR-017)
+# --------------------------------------------------------------------------
+
+
+def test_every_slide_declares_the_layout_its_markup_needs(
+    deck: dict, sources: dict[str, str]
+) -> None:
+    report = Report()
+    check_layout_markup(deck, sources, report)
+    assert not report.hard, report.hard
+
+
+def test_two_column_markup_under_the_wrong_layout_is_caught(deck: dict) -> None:
+    """The defect this guard was written for: valid HTML, every budget passed, renders wrong."""
+    bullets_slide = next(e for e in deck["slides"] if e["layout"] == "bullets")
+    mismatched = {bullets_slide["file"]: '<div class="col-text">\n\n- a\n\n</div>\n'}
+    report = Report()
+    check_layout_markup(deck, mismatched, report)
+    assert any("split" in msg for msg in report.hard), report.hard
+
+
+def test_the_authored_deck_fits_its_timing_budget(deck: dict, sources: dict[str, str]) -> None:
+    """The whole talk must fit the 20-minute slot, demo included."""
+    report = Report()
+    check_timing(deck, sources, report)
+    assert not report.hard, report.hard
+
+
+def test_the_declared_budget_is_internally_consistent(deck: dict) -> None:
+    """narration_max + demo + min_buffer must not exceed the slot.
+
+    Without this, the three bounds could be set to values no deck can satisfy, and the
+    failure would look like a deck problem rather than a budget problem.
+    """
+    t = deck["timing"]
+    assert (
+        t["narration_max_seconds"] + t["demo_target_seconds"] + t["min_buffer_seconds"]
+        <= t["total_budget_seconds"]
+    )
+    assert t["narration_min_seconds"] < t["narration_max_seconds"]
+
+
+def test_an_overrunning_deck_is_caught(deck: dict, sources: dict[str, str]) -> None:
+    """The guard has to bite, or it is decoration.
+
+    The first deck overran its slot by six minutes and every check passed on it. This is
+    the test that would have failed then.
+    """
+    bloated = dict(sources)
+    first = deck["slides"][0]["file"]
+    bloated[first] = sources[first] + ("\n\n" + "filler " * 900)
+    report = Report()
+    check_timing(deck, bloated, report)
+    assert any("narration" in msg for msg in report.hard), report.hard
+
+
+def test_the_demo_is_never_counted_as_zero(deck: dict, sources: dict[str, str]) -> None:
+    """The demo slide's note is directions, so it is excluded from the word count.
+
+    Excluded must not mean free: the handoff and the demo itself are declared costs, and
+    the combined total has to carry both.
+    """
+    t = deck["timing"]
+    assert t["demo_target_seconds"] > 0 and t["demo_handoff_seconds"] > 0
+
+    demo_files = [e["file"] for e in deck["slides"] if e["layout"] == "demo"]
+    assert demo_files, "the deck must have a demo slide"
+
+    seconds = note_seconds(deck, sources)
+    narration = (
+        sum(seconds[e["file"]] for e in deck["slides"] if e["layout"] != "demo")
+        + t["demo_handoff_seconds"]
+    )
+    combined = narration + t["demo_target_seconds"]
+    assert combined <= t["total_budget_seconds"] - t["min_buffer_seconds"]
+
+
+# --------------------------------------------------------------------------
+# 4. The test-count split the deck reports
 # --------------------------------------------------------------------------
 
 

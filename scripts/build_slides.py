@@ -87,6 +87,12 @@ BUDGET_EXEMPT = re.compile(
 )
 
 
+def _clock(seconds: float) -> str:
+    """Seconds as m:ss. The deck's timing is read off a stage clock, not a decimal."""
+    total = int(round(seconds))
+    return f"{total // 60}:{total % 60:02d}"
+
+
 @dataclass
 class SlideResult:
     n: int
@@ -114,6 +120,10 @@ class BuildResult:
     slides: list[SlideResult] = field(default_factory=list)
     missing: list[str] = field(default_factory=list)
     total_seconds: int = 0
+    narration_seconds: int = 0
+    demo_seconds: int = 0
+    combined_seconds: int = 0
+    buffer_seconds: int = 0
     duration_s: float = 0.0
 
 
@@ -228,7 +238,8 @@ def build(strict: bool = False, make_pdf: bool = True) -> BuildResult:
 
     md = make_markdown()
     budgets = deck["layouts"]
-    wpm = deck["timing"]["words_per_minute"]
+    timing = deck["timing"]
+    wpm = timing["words_per_minute"]
 
     def render(entry: dict[str, Any]) -> dict[str, Any] | None:
         path = SOURCES_DIR / entry["file"]
@@ -274,7 +285,8 @@ def build(strict: bool = False, make_pdf: bool = True) -> BuildResult:
 
     # The demo slide's note is a set of directions, not a script to read aloud, and the
     # demo is timed separately at its own target. Counting it in the slide total would
-    # inflate the estimate and double-count the demo.
+    # inflate the estimate and double-count the demo. It is NOT counted as zero either:
+    # the spoken handoff and the demo itself are declared in deck.yaml and added below.
     total_seconds = sum(s["seconds"] for s in slides if s["layout"] != "demo")
     next_titles = {
         s["n"]: (slides[i + 1]["title"] if i + 1 < len(slides) else "— end of deck —")
@@ -297,7 +309,18 @@ def build(strict: bool = False, make_pdf: bool = True) -> BuildResult:
             supporting_count=sum(1 for s in slides if s["tier"] == "supporting"),
             total_minutes=round(total_seconds / 60, 1),
             wpm=wpm,
-            demo_minutes=deck["timing"]["demo_target_minutes"],
+            narration_clock=_clock(total_seconds + timing["demo_handoff_seconds"]),
+            demo_clock=_clock(timing["demo_target_seconds"]),
+            combined_clock=_clock(
+                total_seconds + timing["demo_handoff_seconds"] + timing["demo_target_seconds"]
+            ),
+            buffer_clock=_clock(
+                timing["total_budget_seconds"]
+                - total_seconds
+                - timing["demo_handoff_seconds"]
+                - timing["demo_target_seconds"]
+            ),
+            budget_clock=_clock(timing["total_budget_seconds"]),
             next_titles=next_titles,
         )
     )
@@ -313,6 +336,17 @@ def build(strict: bool = False, make_pdf: bool = True) -> BuildResult:
         notes_html=notes_html_path,
         missing=missing,
         total_seconds=total_seconds,
+        narration_seconds=total_seconds + timing["demo_handoff_seconds"],
+        demo_seconds=timing["demo_target_seconds"],
+        combined_seconds=(
+            total_seconds + timing["demo_handoff_seconds"] + timing["demo_target_seconds"]
+        ),
+        buffer_seconds=(
+            timing["total_budget_seconds"]
+            - total_seconds
+            - timing["demo_handoff_seconds"]
+            - timing["demo_target_seconds"]
+        ),
         slides=[
             SlideResult(
                 n=s["n"], id=s["id"], title=s["title"], tier=s["tier"], layout=s["layout"],
@@ -379,8 +413,14 @@ def main(argv: list[str] | None = None) -> int:
         print(f"pages             : {pages}  ({result.page_count_note})")
         print(f"page geometry     : {result.aspect}")
 
-    minutes = result.total_seconds / 60
-    print(f"estimated speaking: {minutes:.1f} min, slides only (ESTIMATE from note word counts)")
+    def clock(seconds: int) -> str:
+        return f"{seconds // 60}:{seconds % 60:02d}"
+
+    print("--- timing (ESTIMATE from note word counts, NOT a rehearsal) ---")
+    print(f"slide narration   : {clock(result.narration_seconds)}  (incl. demo handoff)")
+    print(f"live demo         : {clock(result.demo_seconds)}")
+    print(f"combined          : {clock(result.combined_seconds)}")
+    print(f"buffer            : {clock(result.buffer_seconds)}")
     print(f"commit            : {git_head()}")
     print(f"build time        : {result.duration_s:.2f}s")
     return 0

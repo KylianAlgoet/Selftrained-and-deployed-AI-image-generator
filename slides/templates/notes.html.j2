@@ -110,17 +110,21 @@ html, body { background: #fff; color: #11151c; font-size: 11pt; }
   <p class="sub">{{ document.event }} · {{ document.author }} · {{ document.date }}</p>
   <table>
     <tr><th>Deck</th><td>{{ slides | length }} slides ({{ core_count }} core, {{ supporting_count }} supporting)</td></tr>
-    <tr><th>Estimated speaking time</th><td>{{ total_minutes }} min at {{ wpm }} wpm, slides only — <strong>an estimate from the word count of these notes, not a measured rehearsal</strong></td></tr>
-    <tr><th>Live demo</th><td>{{ demo_minutes }} min target, timed separately — <code>docs/presentation/demo-script.md</code></td></tr>
+    <tr><th>Slide narration</th><td><strong>{{ narration_clock }}</strong> at {{ wpm }} wpm, including the spoken demo handoff</td></tr>
+    <tr><th>Live demo</th><td><strong>{{ demo_clock }}</strong> target, timed separately — <code>docs/presentation/demo-script.md</code></td></tr>
+    <tr><th>Combined</th><td><strong>{{ combined_clock }}</strong> against a <strong>{{ budget_clock }}</strong> slot — buffer <strong>{{ buffer_clock }}</strong></td></tr>
     <tr><th>Backup plan</th><td><code>docs/presentation/demo-backup-plan.md</code> — read it before presenting</td></tr>
     <tr><th>Jury questions</th><td><code>docs/presentation/jury-questions.md</code></td></tr>
     <tr><th>Built from</th><td>commit <code>{{ build_commit }}</code> on {{ built_on }}</td></tr>
   </table>
   <div class="warn">
-    <strong>No authoritative presentation duration is recorded anywhere in this repository.</strong>
-    The slide count is provisional. If a duration is set by the school, cut the
-    <strong>supporting</strong> slides first — each one folds into the note of the slide beside it,
-    so a shorter talk loses stage time and not a claim.
+    <strong>Every time above is an ESTIMATE from the word count of these notes — not a measured
+    rehearsal.</strong> No rehearsal has been run. The buffer is {{ buffer_clock }}, so the estimate
+    does not have to be wrong by much to matter: <strong>rehearse against a clock before the
+    defence</strong> and re-cut from the notes if it runs long. Do not solve an overrun by speaking
+    faster, and do not drop a bounded claim to save time — the concessions on the limits,
+    reproducibility, base-model and LoRA slides are enforced by <code>validate_slides.py</code> and
+    are not negotiable against the clock.
   </div>
 </div>
 
