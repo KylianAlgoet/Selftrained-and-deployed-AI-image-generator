@@ -1,9 +1,107 @@
 # Session handoff
 
-**Last updated:** 2026-08-14 (M10 — the defence deck is **built, committed locally, and NOT gated**;
-under Opus 5)
+**Last updated:** 2026-08-14 (M10 — the deck is **cut to 15 slides for the 20-minute slot, committed
+locally, and NOT gated**; under Opus 5)
 
-## M10: the deck builds and is committed. NOTHING ABOUT ITS CONTENT HAS BEEN JUDGED
+## M10: the slot is 20:00. The deck fits on paper. IT HAS NOT BEEN REHEARSED OR SEEN
+
+| item | state |
+|---|---|
+| authoritative slot | **20:00 TOTAL, live demo included** — supplied by Kylian 2026-08-14 |
+| deck | **15 slides** (was 26 — it overran by ~11 min and every check passed on it) |
+| slide narration | **14:56** — ESTIMATE at 130 wpm, includes the 0:15 demo handoff |
+| live demo | **4:00** target |
+| combined / buffer | **18:56** / **1:04** |
+| pages / geometry | **15 pages for 15 slides** · **960 × 540 pt = 16:9** |
+| validator | **0 hard failures, 0 advisories** (now includes timing + layout-markup checks) |
+| pytest | **523** (489 pre-existing + 34 slide tests) |
+| deck PDF | 1 054 584 B · `abaf1233…` |
+| notes PDF | 255 936 B · `38d0c724…` |
+| report PDF | 2 772 732 B · `4305d0be…` · **91 pages** |
+| **human timing + visual gate** | **NOT HELD — this is the blocker** |
+| **rehearsal** | **NEVER RUN.** No measured delivery time exists |
+| push | **NOT DONE** |
+| **issue** | **still open** — `gh` still absent |
+
+### What Kylian has to do, in order
+
+1. **Open `deliverables/DeckForge-AI-presentation.pdf` and review all 15 slides.** Every check is
+   *structural*. Nothing here says the deck is legible or that the argument survives compression.
+2. **Rehearse against a clock.** The buffer is **1:04 — 5 % of the slot**, and 14:56 is a word count
+   at a *chosen* 130 wpm, not a measurement of how you speak. If it runs long, **re-cut from the
+   notes**; the validator will tell you when you are back inside the band.
+3. Push, comment on and close the issue, move the board.
+
+### ⚠️ Do not undo these
+
+**1. Do not solve an overrun by speaking faster.** 26 minutes of notes into a 15-minute slot needs
+~220 wpm. That was rejected in DR-017 with its arithmetic.
+
+**2. Do not trade a bounded claim for time.** `validate_slides.py` enforces the concessions on the
+`limits`, `reproducibility`, `base-model` and `lora` slides, and the merged `limits` slide carries
+**all three** bounds its three predecessor slides carried — retro-poster **partial pass**, image
+count **inconclusive**, **no second independent human rater**.
+
+**3. The narration band is hard in BOTH directions** (870–900 s). Under the minimum means a note was
+gutted rather than cut, and the buffer is no longer the one that was reasoned about. **Do not widen
+the band to fit the notes** — that is the check doing its job.
+
+**4. The demo is never counted as zero.** Its note is directions, so the slide is excluded from the
+word count and the handoff (0:15) and demo (4:00) are declared costs in `deck.yaml`.
+
+**5. Do not add `slides/facts.yaml`.** The deck holds no facts of its own; values resolve from
+`report/facts.yaml`, so a number corrected in the report is corrected on the slide by the same edit.
+
+**6. Everything cut is in `docs/presentation/jury-questions.md`**, structured for 30–60-second
+answers with evidence paths. **Nothing was deleted.** Do not re-add it to a slide.
+
+### The finding worth presenting, not just fixing
+
+**Every structural check passed on a deck that did not fit.** 26 pages for 26 slides, 0 failures, 0
+advisories, all fact locks green — and it overran by ~11 minutes. The checks were sound; **the
+binding constraint was absent from the repository, so nothing could fail on it.**
+
+Fourth instance of one pattern, and the first where the missing check was a *requirement* rather
+than a *method*: M8's hash that only ran on its author's machine · M9's presentation-level
+bibliography defect · M10's stale PDF that looked like success in `git status` · this.
+
+It also showed DR-016's `core`/`supporting` tiering was **inadequate on its own**: only 4 of 26
+slides were cuttable, saving ~4 min against an ~11 min overrun. **Tiering absorbs variation; it does
+not absorb being wrong about the budget.**
+
+### A defect the budgets could not see
+
+The `limits` slide was authored with two-column markup and declared `bullets`. That grid is scoped
+to `.slide--split`, so it was valid HTML, passed every budget, produced one PDF page — and would
+have rendered with its evidence figure stacked under the text. `check_layout_markup` now fails a
+build whose markup and declared layout disagree.
+
+### Still OPEN from earlier in the day
+
+**One report build came out 800 KB short at the same 91 pages and passed every check.** Did not
+recur in 14 attempts; cause unknown. **The report build cannot detect the loss of 800 KB of
+content.** No guard added — a threshold from one unreproduced observation is guesswork, and it means
+editing `build_report.py` under the freeze. **Kylian's call; the risk is live.**
+
+### Rebuilding
+
+```
+python scripts/validate_slides.py           # 0 hard failures expected
+python scripts/build_slides.py --strict     # 15/15; Chrome is a prerequisite (DR-016)
+python scripts/build_report.py --strict     # rebuild the report too - shared facts.yaml
+python scripts/report_facts.py --check      # 31 locks
+```
+
+**Rebuilding changes every PDF's SHA-256** — hash *after* the final build, before `git add`, and
+update the digests in `docs/evidence/M10/timing-restructure.md` and this file.
+
+---
+
+## Prior state — M10 first build (26 slides), superseded above
+
+**The 26-slide deck did not fit the slot.** Its build record is
+`docs/evidence/M10/build-record.md`, marked superseded in part. The two findings it records — the
+stale PDF and the short report build — still stand and are carried above.
 
 | item | state |
 |---|---|

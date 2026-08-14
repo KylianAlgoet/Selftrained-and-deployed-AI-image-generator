@@ -17,6 +17,45 @@ Honest record of how Claude Code (Anthropic) is used in this project, per sessio
 > from commits would be exactly the kind of plausible-but-unwitnessed account it exists to prevent.
 > **Kylian should write the M9 entry, or it stays absent and is reported as absent.**
 
+### 2026-08-14 (second) — M10: restructuring the deck for a 20-minute slot
+
+**AI assistance:** cutting the deck from 26 slides to 15 against the slot Kylian supplied; rewriting
+every speaker note to a per-slide time target; writing DR-017, the restructuring evidence record,
+`docs/presentation/jury-questions.md`, and the process, planning and traceability entries; adding
+two hard checks to `validate_slides.py` with tests; tightening the layout budgets; correcting the
+report's requirement-13 rows for the second time.
+
+**Student decisions.** One, and it was the one that governed everything: **the 20:00 slot, demo
+included, and the 14:30–15:00 narration target with a buffer.** That number existed nowhere in the
+repository and no amount of analysis could have produced it — the previous session had searched for
+it twice and correctly stopped rather than guessing.
+
+**What the AI did NOT decide.** It did not judge the deck's content, design or legibility — **no
+human visual gate has been held**, and every check remains structural. It did not rehearse, and did
+not convert an estimate into a delivery time: 14:56 is a word count at a chosen 130 wpm, labelled as
+an estimate everywhere it appears. It did not drop a bounded claim to save time — the concessions on
+the limits, reproducibility, base-model and LoRA slides are enforced by a test. It did not delete
+anything from the project; what left the visible slides moved to notes and the jury-questions file.
+
+**Where the AI's own work was wrong, and how it was caught.** Two defects, both in this session's own
+output. The `limits` slide was authored with two-column markup while declaring a `bullets` layout —
+valid HTML, every budget passed, one PDF page, and it would have rendered with the evidence figure
+stacked under the text. Found by reading the per-slide build table against the sources, not by any
+check; a guard and a test now exist for it. Separately, a stray `{{ device }}` template placeholder
+was written into `jury-questions.md`, which is not processed by the slide pipeline and would have
+rendered literally.
+
+**A correction the AI made to its own earlier claim.** The report and traceability text written
+hours earlier stated that no authoritative duration was recorded anywhere in the repository. True
+when written, false once Kylian supplied it, and corrected rather than left standing.
+
+**Verification status:** every figure quoted is from a command that ran in this session —
+`validate_slides.py` (0 hard failures, 0 advisories), `build_slides.py --strict` (15 pages for 15
+slides, 960 × 540 pt, narration 14:56 / demo 4:00 / combined 18:56 / buffer 1:04),
+`build_report.py --strict` (91 pages), `report_facts.py --check` (31 locks), and **523 pytest**.
+**Both new hard checks were observed rejecting a real failing draft before they passed.** No GPU
+inference was run; the generation total is unchanged at 27.
+
 ### 2026-08-14 — M10: the defence deck, DR-016 and a stale deliverable
 
 **AI assistance:** verifying the deck authored on 2026-08-11 against its sources rather than trusting

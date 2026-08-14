@@ -1,5 +1,73 @@
 # Process log
 
+## 2026-08-14 (second) — M10: the slot is 20 minutes, and the deck did not fit
+
+**Objective.** Restructure the defence deck to the authoritative slot — **20:00 including the live
+demo** — and make the timing a check rather than an assumption.
+
+**Plan.** Cut the stage deck to the size the slot allows, move everything cut into speaker notes and
+a jury-questions file, rewrite every note against a per-slide time target, and stop before any
+judgement about the deck's content.
+
+**Completed.** 26 slides → **15**. DR-017. Every speaker note rewritten. A `jury-questions.md`
+holding what came off the visible slides. Two new hard checks in `validate_slides.py` — a timing
+budget and a layout/markup agreement check — with tests that watch both reject the real failing
+case. Layout budgets **tightened** (bullets 900 → 580 visible characters, split 700 → 470, figure
+600 → 360). The report's requirement-13 rows corrected again, because they claimed no duration was
+recorded.
+
+**Unfinished, and deliberately.** **No human timing or visual gate has been held**, and **no
+rehearsal has been run** — so the deck is a draft, not an approved presentation. Nothing pushed.
+M10 criterion C stays **OPEN**.
+
+**Blockers.** None. The blocker recorded in the previous entry — no authoritative duration anywhere
+in this repository — was resolved by Kylian supplying it.
+
+**Decisions.** DR-017 (deck length and structure). Four alternatives rejected, and the reasons are
+worth keeping: speaking faster would need ~220 wpm; cutting the demo removes the assignment's
+demonstrable artefact; cutting only the 4 `supporting` slides saves ~4 minutes against an ~11-minute
+overrun; leaving the notes long hides the overrun rather than fixing it.
+
+**Commands and tests.** `python scripts/validate_slides.py` · `python scripts/build_slides.py
+--strict` · `python scripts/build_report.py --strict` · `python scripts/validate_report.py` ·
+`python scripts/report_facts.py --check` · `.venv/Scripts/python.exe -m pytest`.
+
+**Real results.** 15 of 15 slides · **15 PDF pages for 15 slides** · **960 × 540 pt = 16:9** · 0 hard
+failures, 0 advisories · **31 fact locks** · **523 pytest** (489 pre-existing + 34 slide tests) ·
+narration **14:56**, demo **4:00**, combined **18:56**, buffer **1:04** against 20:00 — **all
+estimates from note word counts at 130 wpm, not a rehearsal.**
+
+**The finding: every structural check passed on a deck that did not fit.** 26 pages for 26 slides, 0
+hard failures, 0 advisories, all fact locks resolving — and it overran its slot by about 11 minutes.
+The checks were not wrong. **The binding constraint was absent from the repository, so nothing could
+fail on it.** This is the fourth instance of one pattern here, and the first where the missing check
+was a *requirement* rather than a *method*: M8's hash that only ran on its author's machine, M9's
+presentation-level bibliography defect, M10's stale PDF that looked like success in `git status`,
+and now a deck that passed everything except the thing that mattered.
+
+The corollary is that DR-016's `core`/`supporting` tiering was **inadequate on its own**. It was
+designed for not knowing the duration, and only 4 of 26 slides were cuttable. **Tiering absorbs
+variation; it does not absorb being wrong about the budget.**
+
+**A rendering defect the budgets could not see.** The `limits` slide was authored with two-column
+markup and declared as `bullets`. That grid is scoped to `.slide--split`, so the slide was valid
+HTML, passed every character and bullet budget, produced exactly one PDF page — and would have
+rendered with its evidence figure stacked under the text. Found by reading the per-slide table
+against the sources. A `check_layout_markup` guard now fails a build whose markup and declared
+layout disagree.
+
+**Both new guards were watched failing before they passed.** The first restructured draft came in at
+17.7 minutes of narration with a **negative** buffer and the validator refused it. Two rounds of
+trimming brought it inside the band.
+
+**Evidence.** `docs/evidence/M10/timing-restructure.md`, `DR-017`,
+`docs/presentation/jury-questions.md`.
+
+**Next step.** Kylian reviews the 15 slides and **rehearses against a clock**. The 1:04 buffer is
+5 % of the slot, and no measured delivery time exists.
+
+---
+
 ## 2026-08-14 — M10: the defence deck builds, and the artifact on disk was not the one in the sources
 
 **Objective.** Produce the presentation as PDF — mandatory requirement 13, the last one outstanding
