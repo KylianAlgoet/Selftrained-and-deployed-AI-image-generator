@@ -56,20 +56,26 @@ python -m pytest
 | validator advisories | **0** |
 | PDF pages / slide count | **15 / 15** — the overflow test passes |
 | page geometry | **960 × 540 pt = 16:9** |
-| fact locks | **31 resolve** |
-| pytest | **523** (489 pre-existing + 34 slide-source tests) |
+| fact locks | **32 resolve** |
+| pytest | **525** (489 pre-existing + 36 slide-source tests) |
 | report | **91 pages**, unchanged in length |
 
 ## Timing — ESTIMATE, not a rehearsal
 
 | | | |
 |---|---:|---|
-| slide narration | **14:56** | 14 non-demo slides at 130 wpm, **plus the 0:15 spoken demo handoff** |
+| slide narration | **14:11** | 14 non-demo slides at 130 wpm, **plus the 0:15 spoken demo handoff** |
 | live demo | **4:00** | declared target, timed separately by `docs/presentation/demo-script.md` |
-| **combined** | **18:56** | |
-| **buffer** | **1:04** | against the 20:00 slot |
+| **combined** | **18:11** | |
+| **buffer** | **1:49** | against the 20:00 slot |
 
-Target band was 14:30–15:00 of narration with at least 1:00 of buffer. Both are met.
+Target band **13:45–14:15** of narration with at least **1:45** of buffer. Both are met.
+
+**The band was tightened once, at the content review.** The first accepted draft was 14:56 with a
+**1:04** buffer — 5 % of the slot, judged too thin for an estimate whose only input is a word count
+at an assumed rate. The extra minute came out of **speaker notes whose reasoning
+`jury-questions.md` already carries**, not out of a slide, and **not out of a faster assumed
+delivery**: `words_per_minute` is unchanged at 130.
 
 **The demo is not counted as zero.** Its slide note is a set of directions rather than a script, so
 the demo slide is excluded from the word-count total and its two real costs — the handoff and the
@@ -80,22 +86,22 @@ demo itself — are declared in `deck.yaml`.
 | # | id | tier | layout | chars | bullets | note words | est. |
 |---:|---|---|---|---:|---:|---:|---:|
 | 1 | title | core | title | 117 | 0 | 33 | 0:15 |
-| 2 | assignment | core | statement | 299 | 0 | 152 | 1:10 |
-| 3 | method | core | figure | 232 | 0 | 154 | 1:11 |
-| 4 | dataset | core | split | 364 | 4 | 125 | 0:58 |
-| 5 | base-model | core | split | 326 | 4 | 178 | 1:22 |
-| 6 | conditioning | core | split | 306 | 4 | 150 | 1:09 |
-| 7 | lora | core | two-figures | 186 | 0 | 189 | 1:27 |
-| 8 | limits | core | split | 434 | 4 | 183 | 1:24 |
-| 9 | system | core | figure | 213 | 0 | 125 | 0:58 |
-| 10 | testing | supporting | bullets | 380 | 4 | 122 | 0:56 |
+| 2 | assignment | core | statement | 299 | 0 | 132 | 1:01 |
+| 3 | method | core | figure | 299 | 0 | 160 | 1:14 |
+| 4 | dataset | core | split | 364 | 4 | 130 | 1:00 |
+| 5 | base-model | core | split | 326 | 4 | 139 | 1:04 |
+| 6 | conditioning | core | split | 306 | 4 | 148 | 1:08 |
+| 7 | lora | core | two-figures | 186 | 0 | 187 | 1:26 |
+| 8 | limits | core | split | 434 | 4 | 182 | 1:24 |
+| 9 | system | core | figure | 213 | 0 | 105 | 0:48 |
+| 10 | testing | supporting | bullets | 380 | 4 | 115 | 0:53 |
 | 11 | reproducibility | core | split | 436 | 4 | 142 | 1:06 |
 | 12 | deployment | supporting | bullets | 489 | 5 | 137 | 1:03 |
-| 13 | conclusions | core | statement | 420 | 0 | 122 | 0:56 |
-| 14 | demo | core | demo | 262 | 0 | 250 | *excluded — directions* |
+| 13 | conclusions | core | statement | 420 | 0 | 104 | 0:48 |
+| 14 | demo | core | demo | 278 | 0 | 250 | *excluded — directions* |
 | 15 | close | core | bullets | 449 | 4 | 99 | 0:46 |
 
-**13 core, 2 supporting. 881 s of slide narration + 15 s handoff = 896 s.**
+**13 core, 2 supporting. 836 s of slide narration + 15 s handoff = 851 s.**
 
 Slides 3 and 9 carry inline SVG diagrams, which the character budget exempts because SVG cannot
 reflow — it scales inside its `viewBox` rather than growing taller. Whether either diagram is
@@ -117,6 +123,60 @@ note trimming brought it inside the band. The band is enforced **in both directi
 minimum fails too, because it means the estimate has drifted from the design and in practice means a
 note was gutted rather than deliberately cut.
 
+## Two content defects only a human review could catch
+
+Both were caught at the **M10 human content review**, after every automated check had passed. Both
+were in what a slide *claimed*, and a validator that checks structure cannot check whether a
+sentence is true.
+
+### 1. The deck subtracted two different memory concepts
+
+Slide 3 stated the card total, the stack's **peak allocated** and the **spare** as if the first two
+produced the third. They do not — the subtraction is off by a factor of about fifteen:
+
+| figure | what it counts | value |
+|---|---|---:|
+| device total | the physical card | 8187.5 MiB |
+| **peak allocated** | live tensor bytes in the PyTorch allocator | 5143.73 MiB |
+| reserved | the allocator's cached pool | 6872.0 MiB |
+| **device used** | context + reserved pool + display, i.e. total occupancy | **7987.5 MiB** |
+
+```
+8187.5 - 5143.73 = 3043.77   <- what the slide implied. NOT the margin.
+8187.5 - 7987.5  =  200.0    <- the actual margin, exactly.
+```
+
+`worst_device_used_mib` (**7987.5**, EXP-034 reference-conditioned) is now a fact lock in its own
+right, so the slide's arithmetic is checkable instead of plausible. The prompt-only path is lighter
+at 7969.5 MiB used, but the reference-conditioned figure is the worst case and therefore the ceiling.
+
+**Every number on that slide was individually true and correctly fact-locked. The relationship
+implied between them was false** — which is precisely the class of error a fact-lock system cannot
+see, because it verifies values against evidence and never the sentence joining them.
+
+### 2. The deck claimed both human gates were blinded
+
+Slide 3 said *"two human gates, scored blind against a rubric written before the images existed"*.
+The gate evidence contradicts it in its own words. `GATE-2-approval.md`:
+
+> Unlike Gate 1, these sheets were **labelled**. Gate 1 blinded arms that each differed in one
+> hidden variable; Gate 2 asks which checkpoint ships, which cannot be answered without knowing
+> which checkpoint a sheet is. **Labelled sheets carry an expectation effect that blinded ones do
+> not** — stated here rather than left implicit.
+
+Gate 1 *was* blinded, rigorously: 12 blinded sheets, scores fixed and their SHA-256 supplied
+**before** the blinding map was opened, hash-locked by a pytest so a score cannot be altered
+afterwards.
+
+Corrected to **"two human approval gates against a rubric defined before the images were reviewed —
+the first blinded, the second labelled by necessity"**.
+
+**The origin matters.** The 26-slide deck said *"blinding at the first gate"* and was **correct**.
+The error was introduced by the merge that produced the 15-slide deck. **Compression is where a
+qualified claim loses its qualifier** — the exact risk `validate_slides.py` exists to police — and
+it still took a human reader to catch it. The automated concession list checks the claims it was
+told to check; it had never been told to check this one.
+
 ## A rendering defect the budgets could not see
 
 The `limits` slide was authored with two-column markup (`col-text` / `col-figure`) and **declared as
@@ -132,9 +192,9 @@ reject the exact case. **A layout name is a promise about the markup, and it is 
 
 | file | bytes | sha256 |
 |---|---:|---|
-| `deliverables/DeckForge-AI-presentation.pdf` | 1 054 584 | `abaf12334813d73cd30459f8c9a16a64616794c643037d209ae5f77ca4d3a84a` |
-| `deliverables/DeckForge-AI-presentation-notes.pdf` | 255 936 | `38d0c72475e5de2bd96cef02c31dd26894a5b28df311a9850c8db7d469d12bfb` |
-| `deliverables/DeckForge-AI-research-report.pdf` | 2 772 732 | `4305d0bec9801d8e97ea3b469a1be935f4605342dc6e329b072512e5ddcb9710` |
+| `deliverables/DeckForge-AI-presentation.pdf` | 1 055 459 | `527200454d778d5852311ea1e8d18ac2d553fa359fe43ba1415df842df1e779a` |
+| `deliverables/DeckForge-AI-presentation-notes.pdf` | 256 216 | `3795baeb25f27d2f2b985cda7cdf0fad3a7d90db52de317c6ec2137878a5215f` |
+| `deliverables/DeckForge-AI-research-report.pdf` | 2 772 732 | `6bb832951edf98f8ff3c16914c86d9047f7df88f191ef6eb1dbc3c0377dbd854` |
 
 Taken after the final build, with no rebuild between hashing and `git add`. **A rebuild changes every
 digest** — Chrome embeds a creation timestamp (DR-015), which was tested in this milestone: three

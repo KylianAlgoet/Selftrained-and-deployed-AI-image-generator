@@ -35,6 +35,36 @@ plausible numbers.
 
 **Evidence:** EXP-005 · `docs/technical/environment-audit.md` · report §19.3
 
+### "Your slide says 200 MiB spare. What is actually using the other 8 GB?"
+
+**Three different memory figures, and only one of them subtracts from the card's total.**
+
+| figure | what it counts | at 512×1536 |
+|---|---|---:|
+| **allocated** | live tensor bytes in the PyTorch allocator | **5143.73 MiB** |
+| **reserved** | the allocator's cached pool, including freed blocks it keeps | **6872.0 MiB** |
+| **device used** | total occupancy: CUDA context + reserved pool + the Windows display | **7987.5 MiB** |
+
+Only the last is comparable with the card:
+
+```
+8187.5 total - 7987.5 device used = 200.0 MiB spare  (2.4 %)
+```
+
+**`8187.5 − 5143.73 = 3043.77` is not the margin and never was.** Peak *allocated* counts live
+tensors only; it says nothing about the context, the cached pool or the display. Subtracting one
+concept from another produces a number roughly fifteen times too generous.
+
+I mention this because **my own slide made exactly that subtraction**, and it was caught at a
+content review rather than by any check. The device figure is now fact-locked in its own right, so
+the arithmetic on the slide is checkable instead of merely plausible.
+
+The prompt-only path is slightly lighter — **7969.5 MiB used** — but the reference-conditioned
+figure is the worst case, and the worst case is the production ceiling.
+
+**Evidence:** EXP-019b, EXP-032 (one-shot, 202.0 MiB spare) · EXP-034 (real serving, **200.0 MiB**
+worst spare, the tighter and operative figure)
+
 ### "What exactly ships, and how do you know it has not been swapped?"
 
 *Was slide 14 of 26 (the adapter table). Now one line on the LoRA slide.*

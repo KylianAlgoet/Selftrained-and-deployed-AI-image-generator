@@ -97,24 +97,68 @@ python scripts/build_slides.py --strict
 -> slides authored   : 15 of 15
 -> pages             : 15   (one page per slide: the overflow test)
 -> page geometry     : 960 x 540 pt = 16:9
--> slide narration   : 14:56   (incl. demo handoff)
+-> slide narration   : 14:11   (incl. demo handoff)
 -> live demo         : 4:00
--> combined          : 18:56
--> buffer            : 1:04
+-> combined          : 18:11
+-> buffer            : 1:49
 ```
 
 Both new hard checks were **observed failing before they passed**: the first restructured draft came
 in at 17.7 minutes of narration with a **negative** buffer, and the validator refused it. A guard
 nobody has watched fail is not a guard.
 
+### The band was widened once, at the content review
+
+The first accepted draft landed at **14:56 / 1:04 buffer**, inside its then-band of 870–900 s. The
+content review rejected that buffer as too thin — **1:04 is 5 % of the slot** for an estimate whose
+only input is a word count at an assumed rate.
+
+The band moved to **825–855 s with a 1:45 minimum buffer**, and the extra minute came out of
+**speaker notes whose reasoning `jury-questions.md` already carries** — not out of a slide, and
+**not out of a faster assumed delivery**: `words_per_minute` is unchanged at 130.
+
+**This is the one case where moving a bound was right**, and it is worth being explicit about why,
+because this project's standing rule is the opposite. The bound was not widened to admit a deck that
+failed it — the deck was *passing*. It was tightened as a **safety** requirement, and the deck was
+then cut to meet the stricter target. Loosening a check to admit failing work and tightening one to
+demand better work are opposite moves that look similar in a diff.
+
+## Two content defects the review caught, which no check could
+
+Recorded here because both were in slide *claims*, and a validator that checks structure cannot
+check whether a sentence is true.
+
+**1. The deck subtracted two different memory concepts.** Slide 3 stated the card's total
+(8187.5 MiB), the stack's **peak allocated** (5143.73 MiB) and the **spare** (200.0 MiB) as if the
+first two produced the third. They do not: `8187.5 − 5143.73 = 3043.77`. Peak *allocated* counts
+live tensors in the PyTorch allocator; the spare figure is measured against **total device
+occupancy**, which also includes the CUDA context, the allocator's cached pool and the display. The
+figure that actually pairs with the margin is **device used, 7987.5 MiB** — and
+`8187.5 − 7987.5 = 200.0` exactly. That figure is now fact-locked as `worst_device_used_mib`, so the
+slide's arithmetic is checkable rather than plausible. **Every number on that slide was individually
+true and correctly fact-locked; the relationship implied between them was false.**
+
+**2. The deck claimed both human gates were blinded.** Slide 3 said *"two human gates, scored blind
+against a rubric written before the images existed"*. The evidence says otherwise, and says so
+itself: `GATE-2-approval.md` records *"Unlike Gate 1, these sheets were **labelled**"*, and adds that
+**"labelled sheets carry an expectation effect that blinded ones do not"**. Gate 2 asks which
+checkpoint ships, which cannot be answered without knowing which checkpoint a sheet is.
+
+The corrected wording is **"two human approval gates against a rubric defined before the images were
+reviewed — the first blinded, the second labelled by necessity"**. Note the origin: the 26-slide
+deck said *"blinding at the first gate"* and was **correct**. The error was introduced by the merge
+that produced the 15-slide deck — **compression is where a qualified claim loses its qualifier**,
+which is the exact risk `validate_slides.py` was written for, and it still took a human to catch it.
+
+The M9 AI-assistance disclosure is untouched and remains on the `limits` slide.
+
 ## What this decision does NOT claim
 
 1. **It does not claim the deck has been rehearsed.** **No rehearsal has been run.** Every figure
    above is an estimate derived from speaker-note word counts at a deliberately slow 130 wpm.
    130 wpm is a choice, not a measurement of how Kylian speaks, and the true rate is unknown.
-2. **It does not claim 1:04 of buffer is comfortable.** It is 5 % of the slot. The estimate does not
-   have to be wrong by much to consume it, which is why the notes handout says to rehearse against a
-   clock.
+2. **It does not claim 1:49 of buffer is generous.** It is 9 % of the slot — better than the 5 % it
+   replaced, and still an estimate. The notes handout says to rehearse against a clock.
 3. **It does not claim the deck is legible or well designed.** Every check is structural. The human
    visual gate has still not been held.
 4. **It does not claim 15 is the right number of slides** — only that this 15 fits the budget while
