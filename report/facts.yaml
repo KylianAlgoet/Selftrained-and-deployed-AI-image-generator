@@ -60,6 +60,23 @@ pytest_report_tests:
   pattern: '\(473 pre-existing, unchanged, \+ (?P<value>\d+) new\)'
   description: report-validation tests added in M9, on top of the 473 product tests
 
+# `pytest_total` below is the M9 CLOSE (473 + 16) and is a historical figure. M10 added
+# deck-validation tests, so it is no longer the size of the suite. The two locks here are
+# the CURRENT ones; a slide or chapter stating "the suite" must use `pytest_suite_total`.
+pytest_deck_tests:
+  value: 38
+  source: docs/process/process-log.md
+  method: prose_regex
+  pattern: '473 system \+ 16 report-validation \+ (?P<value>\d+) deck-validation'
+  description: deck-validation tests added in M10 (tests/test_slides_sources.py)
+
+pytest_suite_total:
+  value: 527
+  source: docs/process/process-log.md
+  method: prose_regex
+  pattern: '\*\*(?P<value>\d+) pytest\*\* \(473 system'
+  description: total pytest tests in a full repository run, measured 2026-08-14
+
 pytest_total:
   value: 489
   source: docs/process/process-log.md

@@ -12,10 +12,15 @@ the entire research argument work without the model. If generation dies, you los
 
 Say this, and mean it:
 
-> "The GPU isn't cooperating. That's a live-demo problem, not a project problem — here's the same
-> thing from a recorded run."
+> "Live generation isn't cooperating — I'll switch to a validated recorded run. This is
+> `P5__minimal-geometric__seed42`, generated on this machine on the date in the metadata."
 
 Then move. Do not debug on stage.
+
+**Name the recorded run when you switch to it.** Stating which run the audience is looking at is the
+difference between a fallback and a substitution, and it costs three seconds. **Do not editorialise
+about whose fault the failure is** — an earlier draft of this line said the failure was "a live-demo
+problem, not a project problem", which is defensive and invites the question it is trying to close.
 
 ## The failure ladder
 

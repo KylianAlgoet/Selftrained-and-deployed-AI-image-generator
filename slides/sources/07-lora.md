@@ -27,7 +27,7 @@ saw that because I checkpointed four times along each run and had them scored bl
 step count would have got two styles out of three wrong.
 
 Full fine-tuning does not fit, and training from scratch was infeasible within this project's
-compute and data budget. LoRA freezes the base model and trains a small pair of matrices beside it.
+compute and data budget. LoRA trains a small pair of matrices beside a frozen base model.
 
 The honest bound: I did not prove LoRA beats the alternatives. Three of them were screened on
 criteria and never run, so that question is bounded, not answered.

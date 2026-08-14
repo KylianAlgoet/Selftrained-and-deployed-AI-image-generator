@@ -1,8 +1,7 @@
 Prompt → style → **{{ facts.generation_width }}×{{ facts.generation_height }} decal** → 3D deck.
 **Generation runs locally on this laptop's GPU; no cloud inference is used.**
 
-*If the GPU does not cooperate, that is a live-demo problem and not a project problem — there is a
-recorded run ready and I will say which one you are looking at.*
+*If live generation fails, I switch to a validated recorded run and state that explicitly.*
 
 ## Speaker notes
 
@@ -26,9 +25,11 @@ a full pass.
 Then: the reproducibility metadata, the 3D deck with its stretch disclosure, and
 `Upload your own decal` — which is also the fallback, so the room has already seen it work.
 
-**If it fails:** say the line on the slide, then go to `Upload your own decal` with a pre-generated
-PNG. Do not reload, do not retry, do not open a terminal, do not run a second generation. The
-fallback ladder has four rungs and every one of them is under thirty seconds.
+**If it fails:** say the line on the slide — *"I'll switch to a validated recorded run"* — then go
+to `Upload your own decal` with a pre-generated PNG and name which run it is. Do not reload, do not
+retry, do not open a terminal, do not run a second generation. The fallback ladder has four rungs
+and every one of them is under thirty seconds. **State the switch plainly and move on; do not
+apologise for it and do not editorialise about whose fault it is.**
 
 If the output ignores half the prompt — **that is not a failure, it is the limitations slide.** Say
 so and use it.
