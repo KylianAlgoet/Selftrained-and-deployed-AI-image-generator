@@ -17,6 +17,5 @@ But the bounds matter more than the yes, so I state all three every time. The ma
 four per cent — it fits, not comfortably. Reproducible describes inference, not training. And
 multiple distinct styles means three, one of which is partial.
 
-The second half is what I would most like to be judged on. Those are things I could easily have
-concluded and did not, because I did not measure them. Each of them is one easy sentence, and none
-is supported by what I measured. So none of them is in the report.
+The second half is what I would most like to be judged on: things I could easily have concluded and
+did not, because I did not measure them. None of them is in the report.

@@ -26,9 +26,8 @@ So two of three adapters ship from step three hundred, not the six hundred they 
 saw that because I checkpointed four times along each run and had them scored blind. One global
 step count would have got two styles out of three wrong.
 
-On LoRA itself: full fine-tuning does not fit, and from scratch needs a cluster. LoRA freezes the
-base model and trains a small pair of matrices beside it.
+Full fine-tuning does not fit, and training from scratch was infeasible within this project's
+compute and data budget. LoRA freezes the base model and trains a small pair of matrices beside it.
 
-The honest bound, before you ask: I did not prove LoRA beats the alternatives. Textual Inversion,
-DreamBooth and full fine-tuning were screened on criteria and never run, so that question is
-bounded, not answered.
+The honest bound: I did not prove LoRA beats the alternatives. Three of them were screened on
+criteria and never run, so that question is bounded, not answered.

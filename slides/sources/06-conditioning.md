@@ -20,9 +20,8 @@ The decision where the criteria mattered most.
 
 Two realistic ways to condition on a reference. img2img starts the diffusion from the reference
 itself and costs nothing extra. IP-Adapter encodes it and injects it through cross-attention, which
-costs VRAM I did not have.
-
-On a card with two hundred megabytes spare, costs extra VRAM should have ended the argument.
+costs VRAM I did not have. On a card with two hundred megabytes spare, that should have ended the
+argument.
 
 Look at the pairs. Left is the reference the user supplied, right is what img2img returned at the
 deck format. Several are perceptually the same image. Every near-copy flag in that milestone came

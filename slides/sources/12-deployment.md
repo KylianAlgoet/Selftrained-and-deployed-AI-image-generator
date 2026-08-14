@@ -16,8 +16,8 @@ Not cloud, because it adds a network dependency on the one day everything must w
 deciding part — answers nothing. The question is what fits in eight gigabytes of consumer hardware.
 A rented data-centre card replaces that question rather than answering it.
 
-Not Docker, because GPU passthrough was never verified here and its overhead is unmeasured. On this
-margin, that is disqualifying.
+Not Docker, because GPU passthrough was never verified here and its overhead is unmeasured, which
+on this margin is disqualifying.
 
 What I do claim is reproducibility, and it rests on the runbook and the clean-clone test — a
 stronger claim than a URL, which only proves it runs where I put it.

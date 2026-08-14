@@ -102,9 +102,14 @@ timing:
   total_budget_seconds: 1200        # the authoritative slot: 20:00, demo included
   demo_target_seconds: 240          # ~4:00, timed separately by docs/presentation/demo-script.md
   demo_handoff_seconds: 15          # spoken while moving to the browser
-  narration_min_seconds: 870        # 14:30
-  narration_max_seconds: 900        # 15:00
-  min_buffer_seconds: 60            # 1:00 for transitions, pauses and timing variation
+  # Widened at the M10 content review on 2026-08-14. The first band (870-900 s) left a
+  # 1:04 buffer, which is 5 % of the slot and too tight for an estimate whose only input
+  # is a word count at an assumed speaking rate. The extra minute came out of the speaker
+  # notes - mostly reasoning that jury-questions.md already carries - and NOT out of a
+  # slide, and NOT out of a faster assumed delivery: words_per_minute is unchanged at 130.
+  narration_min_seconds: 825        # 13:45
+  narration_max_seconds: 855        # 14:15
+  min_buffer_seconds: 105           # 1:45 for transitions, pauses and timing variation
   # Advisory per-slide ceiling. Raised from 75s to 90s when the 20-minute budget was
   # confirmed: a major comparison slide is allowed up to ~1:30 by design. The ceiling
   # is now the weaker of the two timing checks - the total above is what binds.

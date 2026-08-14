@@ -16,10 +16,11 @@
 
 ## Speaker notes
 
-The dataset is mine, and it is where a lot of the work went. A hundred and forty-eight items:
-ukiyo-e woodblock prints from the Metropolitan Museum, minimal-geometric that I generated and
-curated, and retro silkscreen posters from the Library of Congress. The seven-item holdout never
-entered a training run, so I had something honest to test memorisation against.
+I assembled and curated the dataset for this project, and it is where a lot of the work went. A
+hundred and forty-eight items: ukiyo-e woodblock prints from the Metropolitan Museum,
+minimal-geometric that I generated and curated, and retro silkscreen posters from the Library of
+Congress. The seven-item holdout never entered a training run, so I had something honest to test
+memorisation against.
 
 Licensing was decided before training rather than justified afterwards, and the ordering is the
 point. Everything is CC-zero, public domain, or made by me, so the fair-use argument never has to

@@ -52,11 +52,10 @@ fit: a concurrent request gets a clean refusal, never an out-of-memory crash.
 Two processes on one machine: a React frontend with the Three.js deck, and a FastAPI service that
 owns the model.
 
-The single worker is what I would point at. It is not a default I never changed — it is asserted at
-startup, because a second resident pipeline does not fit in what is left. Two simultaneous
-requests, and the second gets a clean refusal rather than an out-of-memory crash that takes the
-first down with it. Refusing correctly is a feature here.
+The single worker is what I would point at. It is asserted at startup, because a second resident
+pipeline does not fit in what is left. Two simultaneous requests, and the second gets a clean
+refusal rather than an out-of-memory crash that takes the first down with it. Refusing correctly
+is a feature here.
 
-Generation goes straight to the deck's tall ratio rather than generating a square and cropping. I
-expected that to hurt, because diffusion models are trained mostly on square images. I wrote it
-down as a hypothesis, tested it, and it was refuted.
+Generation goes straight to the deck's tall ratio rather than cropping a square. I expected that to
+hurt; I wrote it down as a hypothesis, tested it, and it was refuted.

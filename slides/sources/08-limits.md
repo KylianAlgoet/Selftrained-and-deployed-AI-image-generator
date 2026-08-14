@@ -26,7 +26,7 @@ style, or re-scored it until it passed. I shipped it labelled.
 Second, a question I set out to answer and did not. Same style on twelve, twenty-four and forty-four
 images, everything else fixed. I expected a plateau; what I got was non-monotonic, one run per
 condition, so I cannot separate a real effect from variance. It would have been easy to write that
-about forty images is enough, and nobody would have checked.
+forty images is enough, and nobody would have checked.
 
 Third, and I would rather raise it myself. Scoring was AI-assisted: ChatGPT proposed visual analysis
 and scores at the gates, and I reviewed and approved every recorded score. But there was no second

@@ -1,5 +1,5 @@
 Prompt → style → **{{ facts.generation_width }}×{{ facts.generation_height }} decal** → 3D deck.
-Running on this laptop's GPU. Nothing leaves the machine.
+**Generation runs locally on this laptop's GPU; no cloud inference is used.**
 
 *If the GPU does not cooperate, that is a live-demo problem and not a project problem — there is a
 recorded run ready and I will say which one you are looking at.*

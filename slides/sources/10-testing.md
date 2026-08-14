@@ -7,9 +7,8 @@
 
 ## Speaker notes
 
-The number is split on purpose: most of those tests cover the product and the research code, and
-sixteen more test the report itself — that every quantitative claim still matches the evidence file
-it came from.
+The number is split on purpose: most cover the product and the research code, and sixteen test the
+report itself — that every quantitative claim still matches its evidence file.
 
 The one that earned its place is the clean-clone test. Clone into an empty directory, install from
 scratch, reach a working system. It caught a real defect: a checkpoint integrity control that

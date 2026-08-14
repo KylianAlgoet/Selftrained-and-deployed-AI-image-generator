@@ -19,8 +19,7 @@
 The decision I expected to go the other way, and the one that set the method for everything after.
 
 I benchmarked SD 1.5 against SDXL on identical prompts and seeds. At its designed resolution —
-these images — SDXL is better. My own rubric scores say so, and I left that in the report rather
-than quietly dropping the comparison.
+these images — SDXL is better. My own rubric scores say so, and I left that in the report.
 
 I rejected it anyway: ten point seven gigabytes allocated at one thousand and twenty-four square,
 on an eight gigabyte card.
@@ -29,6 +28,4 @@ The important part is that it did not crash. Windows spills GPU memory into syst
 thirty runs completed and reported success. Judged by exit code, SDXL was fine — and I would have
 built the whole project on it and found out in the last month.
 
-That is where the habit came from that I would most want to keep. A successful run is not a run
-that fitted. Those are different claims, and modern systems blur them. So every memory figure after
-this one is read against the ceiling, never against whether anything crashed.
+That is where one habit came from: a successful run is not a run that fitted.

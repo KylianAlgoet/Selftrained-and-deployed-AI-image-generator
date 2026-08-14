@@ -12,14 +12,15 @@ every order.
 A skateboard manufacturer wants customers to design their own decks. Today that needs a designer
 for every order, which does not scale to one-offs.
 
-The assignment sets four things: the model must be self-trained, it must take both a prompt and a
-reference image, the result must land on an interactive three-D deck, and it must be reproducible
-by someone else. The hard part is none of those individually — it is that all of it runs on one
-consumer laptop GPU.
+The assignment sets four things: a self-trained model, both a prompt and a reference image, an
+interactive three-D deck, and reproducibility by someone else. The hard part is that all of it runs
+on one consumer laptop GPU.
 
 Every clause of the question was chosen to be falsifiable. Distinct styles is a claim needing
 evidence, not an adjective. Reproducible quality is where my answer splits in half. And eight
 gigabytes is a number, so a configuration either fits or it does not.
+
+
 
 This is assessed on the research process. So when I show you a failure later, I am not apologising
 — I am showing you the deliverable.
