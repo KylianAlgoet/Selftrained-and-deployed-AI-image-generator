@@ -57,7 +57,7 @@ python -m pytest
 | PDF pages / slide count | **15 / 15** — the overflow test passes |
 | page geometry | **960 × 540 pt = 16:9** |
 | fact locks | **32 resolve** |
-| pytest | **525** (489 pre-existing + 36 slide-source tests) |
+| pytest | **525** (489 pre-existing + 36 slide-source tests) — later **527/38** when the inline-SVG guard was added |
 | report | **91 pages**, unchanged in length |
 
 ## Timing — ESTIMATE, not a rehearsal

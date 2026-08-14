@@ -1,5 +1,56 @@
 # Process log
 
+## 2026-08-14 (fourth) — M10: the visual deck moves to Claude; handoff package built
+
+**Objective.** Stop iterating on the HTML/CSS slide renderer. Make this repository the **content and
+evidence authority** and hand the **visual design** to a separate Claude session, with a package
+complete enough that it needs no repository access.
+
+**Plan.** Audit the report, the deck, the notes, `jury-questions.md`, `demo-script.md` and the
+experiment evidence; fix the factual and rendering defects the human review found; select the best
+existing visual asset per slide; write the handoff and asset manifest.
+
+**Completed.** `docs/presentation/claude-presentation-handoff.md` and
+`docs/presentation/claude-asset-manifest.md`. Three defects fixed in the deck sources. A new
+validator guard with tests. Two new fact locks for the current suite.
+
+**Unfinished, and deliberately.** No visual redesign was done here — that is the next session's job.
+**M10 remains OPEN**: visual approval, a timed rehearsal, backup-demo rehearsal and criterion C are
+all outstanding. Nothing pushed.
+
+**The rendering defect, root-caused.** Slide 9's architecture diagram printed as **literal source
+code** in the PDF — 16 `<text>`, 3 `<rect>` and 3 `<line>` elements shown as escaped markup. Cause:
+**CommonMark ends an HTML block at the first blank line.** `svg` is not a known block tag, so it is
+matched by HTML block rule 7, which runs until a blank line; the architecture SVG contained **5
+blank lines**, so everything after the first was parsed as Markdown and escaped. The
+prototype-ladder SVG on slide 3 has **0** blank lines and rendered perfectly — which is exactly why
+this looked like a one-slide mystery rather than a rule.
+
+Nothing else could have caught it: the file is valid Markdown, the SVG is valid XML, the slide stayed
+inside its budget (SVG is budget-exempt), and it produced exactly one PDF page. **Only a human
+looking at the rendered page saw it** — the same lesson M9's bibliography defect taught, in a
+different costume. Fixed by removing the blank lines, and `check_inline_html_blocks` now fails any
+build whose inline SVG contains one, with a test that watches it reject the real case.
+
+**Test-count audit.** The deck was showing **489** as the suite total. That figure is the M9 close
+(473 + 16) and predates the deck-validation tests. Measured now, in this environment:
+**527 pytest** (473 system + 16 report-validation + 38 deck-validation) · **183 vitest** (12 files) ·
+**38 Playwright** (6 files). `pytest_suite_total` and `pytest_deck_tests` are now locked, and the
+slide states the split rather than one ambiguous number.
+
+**Fallback wording.** The demo slide's *"that is a live-demo problem and not a project problem"*
+became **"If live generation fails, I switch to a validated recorded run and state that
+explicitly."** — neutral, professional, and it commits to naming the recorded run rather than
+deflecting.
+
+**Evidence.** `docs/presentation/claude-presentation-handoff.md`,
+`docs/presentation/claude-asset-manifest.md`.
+
+**Next step.** Kylian copies the final prompt into a new Claude session with the listed attachments.
+**M10 stays open** until visual approval and a real rehearsal.
+
+---
+
 ## 2026-08-14 (third) — M10 content review: two false claims on one slide, and a thicker buffer
 
 **Objective.** Act on Kylian's content review of the 15-slide deck. **M10 is NOT complete** and is

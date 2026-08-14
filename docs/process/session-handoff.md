@@ -26,9 +26,9 @@ Opus 5)
 | pages / geometry | **15 pages for 15 slides** · **960 × 540 pt = 16:9** |
 | validator | **0 hard failures, 0 advisories** |
 | fact locks | **32** |
-| pytest | **525** |
-| deck PDF | 1 055 459 B · `52720045…` |
-| report PDF | **91 pages** · `6bb83295…` |
+| pytest | **527** |
+| deck PDF | 1 052 201 B · `a11646b4…` |
+| report PDF | **91 pages** · `3d439a5e…` |
 | **issue** | **still open** — `gh` still absent |
 
 ### What Kylian has to do, in order
