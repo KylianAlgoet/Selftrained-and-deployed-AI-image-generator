@@ -1,5 +1,11 @@
 # M10 — presentation build record
 
+> **⚠️ SUPERSEDED IN PART on 2026-08-14 by the 20-minute restructuring.** The authoritative slot
+> became known after this record was written: **20:00 including the live demo**. The 26-slide deck
+> described below **did not fit**, and the deck was cut to **15 slides** (DR-017). The current build
+> figures are in `timing-restructure.md` beside this file; the two findings recorded here — the
+> stale PDF and the short report build — are unaffected and still stand.
+
 **Date:** 2026-08-14 · **Milestone:** M10 · **Decision record:** DR-016
 **Built from commit:** `685664b` · **Environment:** Windows 11 Home, PowerShell 5.1, `.venv` Python
 3.11, Google Chrome (headless)
