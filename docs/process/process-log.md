@@ -1,5 +1,71 @@
 # Process log
 
+## 2026-08-14 (third) — M10 content review: two false claims on one slide, and a thicker buffer
+
+**Objective.** Act on Kylian's content review of the 15-slide deck. **M10 is NOT complete** and is
+not claimed to be.
+
+**Plan.** Trace the challenged numbers to their fact locks before changing anything; check the
+blinding claim against the gate evidence rather than against memory; widen the timing buffer out of
+notes rather than out of slides.
+
+**Completed.** Both blocking claims corrected, a new fact lock, four wording corrections, the
+narration cut by 45 s, and DR-017, the M10 evidence, `jury-questions.md` and the report updated.
+
+**Unfinished, and deliberately.** **The visual gate has not been held. No rehearsal has been run.**
+M10 criterion C is **OPEN**. Nothing pushed.
+
+**Blockers.** None outstanding.
+
+**Real results.** 15 of 15 slides · **15 pages for 15 slides** · **960 × 540 pt = 16:9** · 0 hard
+failures, 0 advisories · **32 fact locks** · **525 pytest** · narration **14:11**, demo **4:00**,
+combined **18:11**, buffer **1:49** — estimates at 130 wpm, unchanged rate.
+
+**Defect 1 — the deck subtracted two different memory concepts.** Slide 3 gave the card total
+(8187.5 MiB), the stack's **peak allocated** (5143.73) and the **spare** (200.0) as though the first
+two produced the third. `8187.5 − 5143.73 = 3043.77`, not 200. Peak *allocated* counts live tensors
+in the PyTorch allocator; the margin is measured against **total device occupancy**, which also
+holds the CUDA context, the allocator's cached pool and the display. The figure that pairs with the
+margin is **device used, 7987.5 MiB**, and `8187.5 − 7987.5 = 200.0` exactly. Now fact-locked as
+`worst_device_used_mib` from EXP-034's reference-conditioned worst case.
+
+**Every number on that slide was individually true and correctly fact-locked. The relationship
+implied between them was false.** That is a class of error the fact-lock system structurally cannot
+see: it verifies values against evidence, never the sentence joining them.
+
+**Defect 2 — the deck claimed both human gates were blinded.** It said *"two human gates, scored
+blind"*. `GATE-2-approval.md` says the opposite in its own words — *"Unlike Gate 1, these sheets were
+labelled"*, adding that **"labelled sheets carry an expectation effect that blinded ones do not"**,
+because Gate 2 asks which checkpoint ships and that cannot be answered blind. Gate 1 *was* blinded
+rigorously, with scores hashed before the blinding map was opened. Corrected to **"the first
+blinded, the second labelled by necessity"**.
+
+**The origin is the part worth keeping.** The 26-slide deck said *"blinding at the first gate"* and
+was **correct**. The error was introduced by the merge that produced the 15-slide deck.
+**Compression is where a qualified claim loses its qualifier** — the exact risk `validate_slides.py`
+was built to police — and it still took a human reader to catch it, because the concession list
+checks the claims it was told to check and had never been told to check this one.
+
+**The buffer.** 1:04 was 5 % of the slot for an estimate whose only input is a word count at an
+assumed rate. The band moved to 825–855 s with a 1:45 minimum, and the extra minute came out of
+**notes whose reasoning `jury-questions.md` already carries** — not a slide, and not a faster
+assumed rate. **This is the one case where moving a bound was right**, and the direction is why: the
+bound was *tightened* as a safety requirement and the deck cut to meet it, not loosened to admit
+work that had failed.
+
+**Wording.** "The dataset is mine" → "I assembled and curated the dataset for this project";
+"from scratch needs a cluster" → "training from scratch was infeasible within this project's compute
+and data budget"; "Nothing leaves the machine" → "Generation runs locally; no cloud inference is
+used" — which states the local-deployment finding more precisely rather than weakening it.
+
+**Evidence.** `docs/evidence/M10/timing-restructure.md`, `DR-017`,
+`docs/presentation/jury-questions.md`.
+
+**Next step.** The visual gate, then a rehearsal against a clock. **M10 may only be called complete
+after both.**
+
+---
+
 ## 2026-08-14 (second) — M10: the slot is 20 minutes, and the deck did not fit
 
 **Objective.** Restructure the defence deck to the authoritative slot — **20:00 including the live

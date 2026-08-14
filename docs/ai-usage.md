@@ -17,6 +17,39 @@ Honest record of how Claude Code (Anthropic) is used in this project, per sessio
 > from commits would be exactly the kind of plausible-but-unwitnessed account it exists to prevent.
 > **Kylian should write the M9 entry, or it stays absent and is reported as absent.**
 
+### 2026-08-14 (third) — M10 content review: correcting two false claims
+
+**AI assistance:** tracing the challenged VRAM figures to their fact locks and experiment rows;
+reading the gate evidence to settle the blinding question; adding the `worst_device_used_mib` lock;
+trimming 45 s of narration; four wording corrections; updating DR-017, the M10 evidence,
+`jury-questions.md`, the report and the process records.
+
+**Student decisions.** Kylian rejected the deck's content at review and was right on both counts.
+He identified that **8187.5 − 5143.73 ≈ 3044, not 200**, from the slide alone, and he challenged
+"scored blind" as not established by a pre-written rubric. He also set the tighter timing target and
+the constraint that it must not come from a faster speaking rate or from cutting good slides.
+
+**What the AI had got wrong, and it was not a typo.** Both defects were in **AI-authored slide
+claims that every automated check had passed**. The memory error is the instructive one: each figure
+was individually true and correctly fact-locked, and only the *relationship implied between them*
+was false — which the fact-lock system structurally cannot detect, because it verifies values against
+evidence and never the sentence joining them. The blinding error was **introduced by the AI's own
+26→15 merge**; the earlier deck had said "blinding at the first gate" and was correct. That is
+exactly the compression risk `validate_slides.py` was written to police, and the validator did not
+catch it because it checks the claims it was told to check.
+
+**What the AI did NOT do.** It did not invent a corrected VRAM number — the device figure was traced
+to EXP-034's recorded row and locked. It did not retain "blind" and hedge it; it read
+`GATE-2-approval.md`, found the contradiction stated there in the evidence's own words, and
+corrected the slide against the evidence rather than reinterpreting the evidence to fit. It did not
+buy time by raising the speaking rate or dropping a slide. It did not judge the deck's appearance —
+**the visual gate remains unheld** — and did not declare M10 complete.
+
+**Verification status:** every figure is from a command that ran in this session — 32 fact locks,
+0 hard validator failures, 0 advisories, 15 pages for 15 slides at 960 × 540 pt, narration 14:11 /
+demo 4:00 / combined 18:11 / buffer 1:49, and **525 pytest**. No GPU inference; the generation total
+is unchanged at 27. No application, model, dataset or weight file was touched.
+
 ### 2026-08-14 (second) — M10: restructuring the deck for a 20-minute slot
 
 **AI assistance:** cutting the deck from 26 slides to 15 against the slot Kylian supplied; rewriting

@@ -1,36 +1,69 @@
 # Session handoff
 
-**Last updated:** 2026-08-14 (M10 — the deck is **cut to 15 slides for the 20-minute slot, committed
-locally, and NOT gated**; under Opus 5)
+**Last updated:** 2026-08-14 (M10 — **structure approved, content corrected, NOT complete**; under
+Opus 5)
 
-## M10: the slot is 20:00. The deck fits on paper. IT HAS NOT BEEN REHEARSED OR SEEN
+## M10 STATUS — NOT COMPLETE. Do not record it as complete.
+
+| | |
+|---|---|
+| deck content | **drafted and restructured; two claims corrected at the content review** |
+| 15-slide structure | **approved by Kylian** |
+| non-GPU validation | **passing** |
+| **visual human gate** | **OPEN** |
+| **rehearsal / criterion C** | **OPEN — no rehearsal has ever been run** |
+| push | **NOT DONE** |
+
+**M10 may only be called complete after the visual gate and a real rehearsal are actually passed.**
 
 | item | state |
 |---|---|
-| authoritative slot | **20:00 TOTAL, live demo included** — supplied by Kylian 2026-08-14 |
+| authoritative slot | **20:00 TOTAL, live demo included** |
 | deck | **15 slides** (was 26 — it overran by ~11 min and every check passed on it) |
-| slide narration | **14:56** — ESTIMATE at 130 wpm, includes the 0:15 demo handoff |
+| slide narration | **14:11** — ESTIMATE at 130 wpm, includes the 0:15 demo handoff |
 | live demo | **4:00** target |
-| combined / buffer | **18:56** / **1:04** |
+| combined / buffer | **18:11** / **1:49** |
 | pages / geometry | **15 pages for 15 slides** · **960 × 540 pt = 16:9** |
-| validator | **0 hard failures, 0 advisories** (now includes timing + layout-markup checks) |
-| pytest | **523** (489 pre-existing + 34 slide tests) |
-| deck PDF | 1 054 584 B · `abaf1233…` |
-| notes PDF | 255 936 B · `38d0c724…` |
-| report PDF | 2 772 732 B · `4305d0be…` · **91 pages** |
-| **human timing + visual gate** | **NOT HELD — this is the blocker** |
-| **rehearsal** | **NEVER RUN.** No measured delivery time exists |
-| push | **NOT DONE** |
+| validator | **0 hard failures, 0 advisories** |
+| fact locks | **32** |
+| pytest | **525** |
+| deck PDF | 1 055 459 B · `52720045…` |
+| report PDF | **91 pages** · `6bb83295…` |
 | **issue** | **still open** — `gh` still absent |
 
 ### What Kylian has to do, in order
 
 1. **Open `deliverables/DeckForge-AI-presentation.pdf` and review all 15 slides.** Every check is
    *structural*. Nothing here says the deck is legible or that the argument survives compression.
-2. **Rehearse against a clock.** The buffer is **1:04 — 5 % of the slot**, and 14:56 is a word count
-   at a *chosen* 130 wpm, not a measurement of how you speak. If it runs long, **re-cut from the
-   notes**; the validator will tell you when you are back inside the band.
+2. **Rehearse against a clock.** 14:11 is a word count at a *chosen* 130 wpm, not a measurement of
+   how you speak. If it runs long, **re-cut from the notes**; the validator says when you are back
+   inside the band.
 3. Push, comment on and close the issue, move the board.
+
+### ⚠️ The two corrections from the content review — do not undo either
+
+**1. The VRAM figures on slide 3 must refer to ONE memory concept.** There are three, and only one
+subtracts from the card:
+
+| figure | counts | value |
+|---|---|---:|
+| **allocated** | live tensors in the PyTorch allocator | 5143.73 MiB |
+| reserved | the allocator's cached pool | 6872.0 MiB |
+| **device used** | context + reserved pool + display | **7987.5 MiB** |
+
+`8187.5 − 7987.5 = 200.0` exactly. **`8187.5 − 5143.73 = 3043.77` is NOT the margin** — the deck
+made that subtraction and it was caught by a human, not a check. `worst_device_used_mib` is now
+fact-locked. **Do not put `peak_allocated_mib` next to `worst_spare_mib` as if they subtract.**
+
+**2. Only Gate 1 was blinded.** `GATE-2-approval.md` records *"Unlike Gate 1, these sheets were
+labelled"* and states the expectation effect. Approved wording: **"two human approval gates against
+a rubric defined before the images were reviewed — the first blinded, the second labelled by
+necessity."** **Do not restore "both gates scored blind"**, and do not swing the other way — Gate 1's
+blinding was rigorous, with scores hashed before the map was opened.
+
+**Note how the second one happened:** the 26-slide deck said *"blinding at the first gate"* and was
+**correct**. The merge lost the qualifier. **Compression is where a qualified claim loses its
+qualifier**, and the validator did not catch it because it checks the claims it was told to check.
 
 ### ⚠️ Do not undo these
 
@@ -42,9 +75,10 @@ locally, and NOT gated**; under Opus 5)
 **all three** bounds its three predecessor slides carried — retro-poster **partial pass**, image
 count **inconclusive**, **no second independent human rater**.
 
-**3. The narration band is hard in BOTH directions** (870–900 s). Under the minimum means a note was
-gutted rather than cut, and the buffer is no longer the one that was reasoned about. **Do not widen
-the band to fit the notes** — that is the check doing its job.
+**3. The narration band is hard in BOTH directions** (**825–855 s**, minimum buffer **1:45**). Under
+the minimum means a note was gutted rather than cut. **Do not widen the band to fit the notes** —
+that is the check doing its job. It was tightened once, at the content review, and the minute came
+out of notes whose reasoning `jury-questions.md` already carries; `words_per_minute` stayed at 130.
 
 **4. The demo is never counted as zero.** Its note is directions, so the slide is excluded from the
 word count and the handoff (0:15) and demo (4:00) are declared costs in `deck.yaml`.
