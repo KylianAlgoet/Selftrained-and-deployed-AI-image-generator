@@ -111,7 +111,25 @@ peak_allocated_mib:
   source: experiments/registry.csv
   method: structural
   extractor: exp019b_peak_allocated_mib
-  description: peak allocated VRAM of the combined stack at 512x1536
+  description: peak ALLOCATED VRAM (live tensors only) of the combined stack at 512x1536
+
+# THREE DIFFERENT MEMORY CONCEPTS. Do not subtract one from another.
+#
+#   allocated     live tensor bytes in the PyTorch allocator        peak 5143.73 MiB
+#   reserved      the allocator's cached pool                            6872.0 MiB
+#   device used   total occupancy: context + reserved pool + display     7987.5 MiB
+#
+# Only the last one is comparable with device_total_mib:
+#   8187.5 - 7987.5 = 200.0 MiB spare.
+# device_total_mib - peak_allocated_mib is 3043.77, which is NOT the margin and has
+# never been the margin. The deck made exactly that subtraction and it was caught at the
+# M10 content review, which is why the device figure is now locked in its own right.
+worst_device_used_mib:
+  value: 7987.5
+  source: experiments/registry.csv
+  method: structural
+  extractor: exp034_worst_device_used_mib
+  description: worst DEVICE-USED VRAM under real serving (EXP-034, reference-conditioned)
 
 # --------------------------------------------------------------- deterministic ---
 

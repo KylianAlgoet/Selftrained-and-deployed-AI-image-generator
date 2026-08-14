@@ -1,5 +1,6 @@
-**{{ facts.device_total_mib }} MiB.** The shipped stack peaks at **{{ facts.peak_allocated_mib }} MiB**
-and leaves **{{ facts.worst_spare_mib }} MiB** spare while serving — **2.4 % of the card.**
+**{{ facts.device_total_mib }} MiB on the card.** Under real serving the device holds
+**{{ facts.worst_device_used_mib }} MiB** at worst, leaving **{{ facts.worst_spare_mib }} MiB**
+spare — **2.4 % of the card.**
 
 <svg class="diagram" viewBox="0 0 1440 300" role="img" aria-label="Six prototypes in sequence, each answering the question the next one depends on">
   <defs>
@@ -62,20 +63,23 @@ and leaves **{{ facts.worst_spare_mib }} MiB** spare while serving — **2.4 % o
 </svg>
 
 **{{ facts.experiment_count }} experiments · {{ facts.decision_record_count }} decision records ·
-two human gates**, scored blind against a rubric written before the images existed.
+two human approval gates** against a rubric defined before the images were reviewed — **the first
+blinded, the second labelled by necessity.**
 
 ## Speaker notes
 
-The number the whole project is built around. Eight gigabytes — the figure the driver reports, not
-the marketing one. The production stack peaks just over five gigabytes and leaves about two hundred
-megabytes spare while actually serving. Two point four per cent. It fits, and it does not fit
-easily. I never call it headroom.
+The number the whole project is built around. Under real serving the device is essentially full:
+two hundred megabytes spare, two point four per cent. It fits, and not easily. I never call it
+headroom.
 
-Six prototypes, each answering the question the next depends on. P0 is the one worth defending.
-Building the three-D deck before I had any artwork looks like the wrong order. It was not: it made
-the deck's aspect ratio a hard input to the image problem, and it caught an orientation fault that
-conveniently square test images would have hidden until the end.
+One distinction I would defend if you push on it. Peak *allocated* tensors are about five
+gigabytes — that is not the margin. The rest of the device is the CUDA context, the allocator's
+cached pool and the display. Only device occupancy is comparable with the card's total.
 
-Every choice ran the same loop — alternatives, criteria fixed before the experiment, then the
-measured result. Several decision records reject the option I expected to pick, and the next two
-are both like that.
+Six prototypes, each answering the question the next depends on. Building the three-D deck first
+made the deck's aspect ratio a hard input to the image problem, and caught an orientation fault
+that square test images would have hidden.
+
+Every choice ran the same loop, with the criteria fixed before the experiment. Gate one was
+blinded; gate two had to be labelled, because you cannot choose which checkpoint ships without
+knowing which one you are looking at.

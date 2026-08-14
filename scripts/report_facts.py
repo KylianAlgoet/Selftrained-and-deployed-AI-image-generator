@@ -164,6 +164,28 @@ def _exp019b_peak_allocated(path: Path) -> float:
     return float(match.group(1))
 
 
+@_extractor("exp034_worst_device_used_mib")
+def _exp034_worst_device_used(path: Path) -> float:
+    """EXP-034's worst DEVICE-USED figure under real serving.
+
+    This is the number that pairs with ``worst_spare_mib``: device used + spare = device
+    total (7987.5 + 200.0 = 8187.5). It exists because the deck previously subtracted
+    ``peak_allocated_mib`` from ``device_total_mib`` and got 3044 MiB, which is not the
+    margin - peak *allocated* counts live tensors only, while the spare figure is measured
+    against total device occupancy. Two different memory concepts, and the arithmetic
+    between them is meaningless. Locking the device figure makes the slide's subtraction
+    checkable instead of plausible.
+
+    The reference-conditioned run is the worst case and therefore the production ceiling;
+    the prompt-only figure (7969.5) is lower and must not be quoted as the ceiling.
+    """
+    cell = _registry_row(path, "EXP-034")["peak_vram"]
+    match = re.search(r"to ([\d.]+) \(reference\)", cell)
+    if match is None:
+        raise FactError("EXP-034 peak_vram does not state a reference-conditioned device figure")
+    return float(match.group(1))
+
+
 @_extractor("device_total_mib")
 def _device_total(path: Path) -> float:
     cell = _registry_row(path, "EXP-019b")["gpu"]
