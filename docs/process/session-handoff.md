@@ -1,7 +1,98 @@
 # Session handoff
 
-**Last updated:** 2026-08-14 (M10 — **structure approved, content corrected, NOT complete**; under
+**Last updated:** 2026-08-15 (M11 — **submission audit done; 2 requirements need Kylian**; under
 Opus 5)
+
+## M11 STATUS — audit complete. 11 of 13 requirements PASS; the other 2 are Kylian's
+
+| | |
+|---|---|
+| assignment audit | **done** — `docs/evidence/M11/assignment-audit.md` |
+| clean clone → running system | **done** — `docs/evidence/M11/clean-clone.md` |
+| findings F1–F7 | **done** — `docs/evidence/M11/findings.md` |
+| submission checklist | **done** — `docs/submission-checklist.md` |
+| **requirement 12 — the push** | **OPEN — 19 commits unpushed** |
+| **requirement 13 — visual gate + rehearsal** | **OPEN — still never run** |
+| the 800 KB report build | **EXPLAINED — see below. No longer an unknown risk.** |
+
+### What Kylian has to do, in order
+
+1. **`git push`.** 19 commits ahead, 0 behind. Until then an evaluator sees the M9 state — no deck,
+   no presentation PDFs, no DR-016/017, no M10 or M11 evidence. **Highest-impact open item.**
+2. **Open the 15-slide deck and review every slide.** Still structural checks only.
+3. **Rehearse against a clock.** 14:13 is a word count at an assumed 130 wpm.
+4. Comment on and close issue #10, move the board (`gh` still absent).
+
+Full list with reasons: `docs/submission-checklist.md` §2.
+
+### ⚠️ The 800 KB short report build is SOLVED — do not re-open it as a content risk
+
+It reproduced on the first M11 rebuild, and this time **the short file was copied aside before
+rebuilding**. That is the step M10 could not take. Direct comparison:
+
+| | short | full |
+|---|---:|---:|
+| bytes / pages | 1 971 967 / **91** | 2 773 114 / **91** |
+| text-drawing operations | 19 434 | 19 434 |
+| **ordered sha256 of every text op** | `02b77dcf…` | **`02b77dcf…` — identical** |
+| images / fonts / objects | 6 / 9 / 7 032 | 6 / 9 / 7 032 |
+| 1×1 px filled rectangles | 34 729 | **1 500 559** |
+
+**Not one glyph, figure, font or page differs.** All 801 147 bytes are 1×1 rectangles filled
+`#c9cfd4` — Chrome rasterising the dotted border of `.toc__dots` (`report/templates/report.css:170`)
+into individual fills, replicated into all 91 page streams because Chrome's paged output puts the
+whole document in every page and clips a window into it.
+
+**M10 stated the risk as "a report with missing figures would ship looking correct". That is now
+disproved.** The defect is **cosmetic**: some or all of the table-of-contents dot leaders fail to
+render. **Do not describe it as content loss again.**
+
+**After any report rebuild, run:**
+
+```powershell
+.venv\Scripts\python.exe docs\evidence\M11\check_report_leaders.py
+```
+
+PASS ≈ 1 500 559 fills · FAIL ≈ 34 729. Verified against **both** real artifacts. Byte size is the
+easy proxy: **≥ 2.7 MB healthy, ~1.97 MB short.**
+
+**No gate was added to `build_report.py`** — the detector reports, it does not gate. M10 declined a
+guard because a threshold from one unreproduced observation is guesswork; that objection is gone,
+and the only remaining one is that gating edits the build under a freeze for a cosmetic defect.
+**Kylian's call, now an informed one.**
+
+### ⚠️ Do not undo these
+
+**1. The report was rebuilt and its hash changed.** Current artifacts, measured 2026-08-15:
+
+| artifact | pages | bytes | sha256 |
+|---|---:|---:|---|
+| research report | **91** | 2 773 114 | `5f2fe9c494d4978e…` |
+| presentation | 15 | 1 052 201 | `a11646b4ce7a9f13…` |
+| speaker notes | 16 | 251 823 | `d9c3275e07293970…` |
+
+The deck was **not** rebuilt — `facts.yaml` did not change, so it did not need to be.
+
+**2. The clean-clone test count is now 522 passed / 5 skipped = 527.** Corrected in `README.md` and
+in `report/sources/15-testing.md` (and the report rebuilt, so it is in the shipped PDF).
+**`docs/07-testing-strategy.md` was deliberately NOT changed** — its 468/473 sits under a heading
+marked *historical* and is correct for its date. **Do not "fix" it.**
+
+**3. Chapter 15 is scoped to the 473 SYSTEM tests**, and `facts.pytest_tests` resolves to 473, not
+527. Use `facts.pytest_suite_total` for the whole-repository figure. A chapter or slide must say
+which it means.
+
+**4. Everything M10 told you not to undo still stands** — the VRAM arithmetic, the two gates, the
+narration band, the demo never counted as zero, no `slides/facts.yaml`. See the M10 section below.
+
+### The pattern this milestone continues
+
+M9's bibliography defect · M10's lost qualifier · M11's stale clean-clone sentence: **a statement
+that was true when written, describing something that later moved, in a document no check reads as
+a claim about live output.** Fifth instance of the wider class. The M11 variant is the mildest and
+the easiest to miss, because the arithmetic on the page stayed internally consistent the whole time.
+
+---
 
 ## M10 STATUS — NOT COMPLETE. Do not record it as complete.
 

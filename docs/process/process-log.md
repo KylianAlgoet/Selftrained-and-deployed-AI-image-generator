@@ -1,5 +1,90 @@
 # Process log
 
+## 2026-08-15 — M11: submission audit, and the 800 KB report build explained
+
+**Objective.** Audit the repository against the thirteen mandatory requirements in
+`docs/00-project-brief.md`, prove a clean clone reaches a running system, and resolve or honestly
+carry every finding before the 2026-08-17 submission.
+
+**Plan.** B1–B9 checks (repository integrity, secrets, large files, dataset licensing, the three
+suites, the PDFs, links and paths, cross-document consistency) → B13 clean-clone run → fix what the
+audit finds → record what cannot be fixed here.
+
+**Completed.**
+- `docs/evidence/M11/assignment-audit.md` — all 13 requirements checked against evidence that was
+  opened, run or measured, not inferred from a feature existing. **11 PASS, 2 PARTIAL.**
+- `docs/evidence/M11/clean-clone.md` — clone → documented restore → running backend and frontend, in
+  a directory outside the working repository.
+- `docs/evidence/M11/findings.md` — F1–F7, written this session.
+- `docs/submission-checklist.md` — the requirement table, the human-only actions in priority order,
+  the artifact hashes, and the list of things that must not be "fixed" before submission.
+- `docs/evidence/M11/check_report_leaders.py` — a detector for the short report build.
+- Three documents corrected for a stale clean-clone test count; the report rebuilt.
+
+**Unfinished.** Requirements 12 and 13. Both need a human: the push, and looking at and rehearsing
+the deck. Neither is a defect in the work and neither can be closed from here.
+
+**Blockers.** `gh` is still absent, so issue #10 and the project board are untouched. Port 8000 is
+held by Docker Desktop, so `preflight.ps1` reaches 9 of 10 rather than 10 of 10.
+
+**Decisions.**
+- **The shipped report is the full build, verified rather than assumed.**
+- **No gate was added to `build_report.py`.** A detector was written instead, outside the build.
+  Gating it edits the build under a freeze for a cosmetic defect; that is Kylian's call.
+- **`docs/07-testing-strategy.md`'s M8 clean-clone figure was left as written**, because it sits
+  under a heading now marked historical and is correct for its date. The same sentence in
+  `README.md` and `report/sources/15-testing.md` was **not** historical and was corrected.
+
+**Commands and tests.** `scripts/report_facts.py --check` → 34 locks resolve ·
+`scripts/validate_report.py` → 27 source files pass every hard check, 8 pre-existing advisories ·
+`scripts/build_report.py --strict` → 91 pages · `docs/evidence/M11/audit_pdfs.py` → all checks pass ·
+`pytest` → **527 passed** · clean clone → **522 passed, 5 skipped** · vitest **183** · Playwright
+**38** · eslint clean · build succeeds.
+
+**Real results — the finding that mattered.** The first rebuild reproduced M10's unexplained
+**800 KB short report build**, and this time the artifact was **copied aside before rebuilding** —
+the step M10 could not take, because the file had been overwritten. Direct comparison of the two
+PDFs:
+
+| | short | full |
+|---|---:|---:|
+| bytes | 1 971 967 | 2 773 114 |
+| pages | 91 | 91 |
+| text-drawing operations | 19 434 | 19 434 |
+| ordered sha256 of all text operations | `02b77dcf…` | **`02b77dcf…`** |
+| embedded images / fonts / objects | 6 / 9 / 7 032 | 6 / 9 / 7 032 |
+| 1×1 px filled rectangles | 34 729 | **1 500 559** |
+
+**Not one glyph, figure, font or page differs.** The entire 801 147-byte delta is 1×1 pixel
+rectangles filled `#c9cfd4`, at a two-unit pitch — Chrome rasterising the dotted border of
+`.toc__dots` (`report/templates/report.css:170`) into individual fills. Chrome's paged output puts
+the whole document in **every** page's content stream and clips a window into it, so the
+table-of-contents leaders are replicated across all 91 pages; that is why 91 objects differ by ~9 KB
+each, and why 1.47 M near-identical rectangles compress to 801 KB.
+
+**So the risk as carried was wrong in its consequence.** M10 stated it at its worst plausible
+reading — *"a report with missing figures would ship looking correct"*. That cannot be what was
+observed: the figures and text are provably identical. The real defect is **cosmetic** — some or all
+of the TOC dot leaders fail to render. The short build retained 34 729 fills, a **partial**
+rasterisation, which is consistent with printing while paint is still in progress and matches the
+shorter build time (2.76 s vs 3.48 s). **The race is not proven and is not claimed.**
+
+**The second finding.** The clean clone printed **522 passed / 5 skipped**, while `README.md` and
+`report/sources/15-testing.md` still said **468 / 5** in the present tense. The arithmetic had never
+been inconsistent — chapter 15 is scoped to the 473 system tests and `facts.pytest_tests` resolves to
+473 — but the sentence describes *what a command prints*, and that changed when M9 and M10 added 54
+document-validation tests. **Same class as M9's bibliography defect and M10's lost qualifier: a
+sentence that was true when written, about an output that later moved, in a document no check reads
+as a claim about live output.**
+
+**Evidence.** `docs/evidence/M11/` — three records, nine transcripts, four audit scripts and the
+leader detector.
+
+**Next step.** Kylian: push, then review and rehearse the deck. Nothing else in the submission is
+waiting on this repository.
+
+---
+
 ## 2026-08-14 (fourth) — M10: the visual deck moves to Claude; handoff package built
 
 **Objective.** Stop iterating on the HTML/CSS slide renderer. Make this repository the **content and
