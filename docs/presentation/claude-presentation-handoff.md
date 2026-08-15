@@ -668,7 +668,8 @@ performed when it was only screened.
 14. Multiple users can generate concurrently.
 15. The test suite proves the generated images are good.
 16. Any timing figure is a measured rehearsal.
-17. A generation total other than 27.
+17. A generation total other than 28. (It was 27 until 2026-08-15, when the M11 final-audit
+    validation made it 28. No slide states the total, so no slide changed.)
 18. "Production-ready", "state-of-the-art", "seamless", "fully tested/automated".
 
 ---

@@ -55,7 +55,8 @@ the review gates, while Kylian Algoet reviewed and approved the recorded scores 
 authority over every production selection and research conclusion. Claude Code was the engineering
 and documentation assistant throughout. **Every GPU generation was explicitly authorised by Kylian
 Algoet; no AI assistant had authority to initiate GPU inference without that approval.** The total
-is 27.
+is 28 — the last of them the M11 final-audit validation, authorised explicitly with its expected
+result declared before it ran (`docs/evidence/M11/gpu-validation.md`).
 The offline indicators populated no rubric cell and selected no checkpoint, weight, style or verdict.
 
 The assistant's own work produced defects — a runner defect, a fixture reader that could not parse

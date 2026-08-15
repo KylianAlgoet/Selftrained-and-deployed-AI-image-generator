@@ -19,7 +19,7 @@ Full audit: `docs/evidence/M11/assignment-audit.md` · findings: `docs/evidence/
 | 3 | ≥ 3 visually distinct styles | **PASS** — three adapters served live; `retro-poster` carries its PARTIAL PASS into the API payload | — |
 | 4 | trained or fine-tuned locally | **PASS** — 10 runs on the audited RTX 4060 | — |
 | 5 | text + reference-image conditioning | **PASS** — IP-Adapter at 0.55 (DR-008) | — |
-| 6 | generates new decal artwork | **PASS** — 27 real GPU generations | — |
+| 6 | generates new decal artwork | **PASS** — **28** real GPU generations; re-validated live on 2026-08-15, byte-identical to a hash declared before the run | — |
 | 7 | mapped onto a 3D skateboard | **PASS** — 38 Playwright scenarios against a live WebGL context | — |
 | 8 | reproducible deployment/demo setup | **PASS** — M11 clean clone: clone → restore → running system | — |
 | 9 | public planning link | **PASS** — HTTP 200 verified this session | — |
@@ -36,7 +36,7 @@ Full audit: `docs/evidence/M11/assignment-audit.md` · findings: `docs/evidence/
 | **2** | **Open the 15-slide deck and review every slide** | every check that has run is *structural*; nothing says the deck is legible or that the argument survives compression | **requirement 13** |
 | **3** | **Rehearse against a clock** | 14:13 is a word count at an assumed 130 wpm, not a measured delivery | **requirement 13** |
 | 4 | Comment on and close **GitHub issue #10**; move the project board | `gh` is absent from this machine, and closing a public issue is his action regardless | public planning state |
-| 5 | Free **port 8000** (Docker Desktop holds it) before demoing | stopping his running application to turn a check green is the wrong trade | a full `preflight.ps1` PASS |
+| ~~5~~ | ~~Free **port 8000** before demoing~~ | **DONE 2026-08-15** — the holder was an unrelated project's container (`aegislab-api-1`), not Docker Desktop; stopped, preflight passed **10 of 10**, container restarted. **It will hold 8000 again after a reboot**, so free it before the demo | — |
 | 6 | Decide whether to **gate** the report build on the TOC-leader check | it edits the build under a freeze for a cosmetic defect | nothing — informational |
 | 7 | Write the **M9 entry in `docs/ai-usage.md`**, or leave it absent | reconstructing it from commits days later is the plausible-but-unwitnessed account that log exists to guard against | completeness of the AI-usage record |
 
@@ -91,4 +91,5 @@ DeckForge AI generates anything, and this project does not present it as such.
 6. **Do not solve a presentation overrun by speaking faster**, and do not widen the narration band.
 7. **Do not retrain, and do not delete `outputs/lora/`.** R14 means the three production adapters
    cannot be regenerated; they are authoritative as files, by sha256.
-8. **Do not run GPU inference.** The total is 27 and no further generation is authorised.
+8. **Do not run GPU inference.** The total is **28** and no further generation is authorised. The
+   M11 final-audit validation on 2026-08-15 was the last one Kylian approved.

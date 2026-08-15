@@ -1,7 +1,71 @@
 # Session handoff
 
-**Last updated:** 2026-08-15 (M11 — **submission audit done; 2 requirements need Kylian**; under
-Opus 5)
+**Last updated:** 2026-08-15 (M11 — **audit + GPU validation done; push and deck gate remain**;
+under Opus 5)
+
+## M11 GPU VALIDATION — PASS, byte-identical. Generation total is now 28
+
+| | |
+|---|---|
+| preflight | **10 of 10 PASS** — first full pass on this machine |
+| generations run | **exactly 1**, asserted by the driver |
+| expected (declared first) | 1 089 939 B · `46bbf160e427…fb6d7f` |
+| **actual** | **1 089 939 B · `46bbf160e427…fb6d7f` — MATCH** |
+| full browser path incl. 3D deck | **PASS** |
+| **generation total** | **28** (was 27) |
+| record | `docs/evidence/M11/gpu-validation.md` |
+
+**No further GPU generation is authorised.** The total is **28** and 28 is what gets reported.
+
+### ⚠️ `generations_total` was RE-POINTED, not rewritten — do not "fix" this
+
+The lock used to resolve from a line inside `docs/evidence/M8/README.md`. Editing that file to say
+28 would falsify a dated M8 record, so instead:
+
+- the lock now resolves from **`docs/evidence/M11/gpu-validation.md`**;
+- **`docs/evidence/M8/README.md` still says 27, and that is correct** — it is the state at the end
+  of M8;
+- `docs/ai-usage.md`'s two "27" statements sit inside **dated** M8 and M10 entries and were
+  deliberately left alone.
+
+**The presentation was NOT rebuilt.** Checked rather than assumed: **no slide states a generation
+total**, so nothing on a slide went stale.
+
+### ⚠️ Port 8000 — the earlier diagnosis in this repository was wrong
+
+M11's clean-clone record says port 8000 was held by *"Docker Desktop"*. **It was not.**
+`com.docker.backend` is only the proxy; the port was published by **`aegislab-api-1`**, a container
+from an unrelated project running alongside a web container and a **Postgres database**.
+
+**Stopping "Docker Desktop" would have stopped all three.** Only `aegislab-api-1` was stopped, and
+it was **restarted immediately afterwards**. It will hold 8000 again after a reboot, so free it
+before the demo — and **resolve the PID first rather than trusting the old note.**
+
+### ⚠️ The short report build is NOT rare — run the detector after every rebuild
+
+**2 of 4 builds on 2026-08-15 came out short**, and `check_report_leaders.py` caught one on its
+first real use. **Build time does not predict it** — a short build took 4.00 s while a full one took
+3.48 s. Only the fill count discriminates.
+
+```powershell
+.venv\Scripts\python.exe docs\evidence\M11\check_report_leaders.py   # PASS ≈ 1 500 559 fills
+```
+
+### Current artifacts, measured 2026-08-15 after the final rebuild
+
+| artifact | pages | bytes | sha256 |
+|---|---:|---:|---|
+| research report | **91** | **2 773 108** | **`5fcecedf500db10e…`** |
+| presentation | 15 | 1 052 201 | `a11646b4ce7a9f13…` |
+| speaker notes | 16 | 251 823 | `d9c3275e07293970…` |
+
+### What Kylian has to do
+
+1. **`git push`** — the two GPU-validation commits are local only.
+2. **Close issue #12** and move M11 to Done.
+3. **Open the 15-slide deck, review it, and rehearse against a clock.**
+
+---
 
 ## M11 STATUS — audit complete. 11 of 13 requirements PASS; the other 2 are Kylian's
 

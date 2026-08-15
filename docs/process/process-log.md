@@ -1,5 +1,75 @@
 # Process log
 
+## 2026-08-15 (second) — M11: the final GPU validation, byte-identical
+
+**Objective.** Run the one real GPU generation issue #12 requires of the final audit, against an
+expected result declared **before** the run, and fold it into the M11 records.
+
+**Plan.** Free port 8000 → preflight → `start-demo.ps1` → exactly one generation through the real
+browser path → compare against the pre-declared hash → `stop-demo.ps1` → update facts, evidence and
+the report.
+
+**Completed.** `docs/evidence/M11/gpu-validation.md` and its four artifacts (run record, metadata
+sidecar, five screenshots, the driver script). `generations_total` 27 → 28. Report rebuilt.
+
+**Real results — PASS, byte-identical.**
+
+| | expected (declared first) | actual |
+|---|---|---|
+| bytes | 1 089 939 | **1 089 939** |
+| sha256 | `46bbf160e427…fb6d7f` | **`46bbf160e427…fb6d7f`** |
+
+Verified three independent ways — Node `crypto`, PowerShell `Get-FileHash`, and the service's own
+`image_sha256`. **Exactly one `POST /api/generate`**, asserted by the driver. `generate_seconds`
+**16.419**, browser wall clock **60.37 s** including the cold load, 30 of 30 steps, `peak_allocated_mb`
+**5143.73**, `spare_device_mb` **218.0** (the prompt-only figure — it does **not** supersede the
+200.0 MiB reference-conditioned ceiling), 0 console errors, no warnings.
+
+The full browser path passed end to end: app load, live WebGL context **before** generating, form
+read-back, honest cold-load progress (*"Loading the local generation model… No step percentage at
+this stage"* — DR-013 in a real cold start), result panel, metadata, **the decal on the 3D deck**,
+orbit, and both downloads through the application's own buttons.
+
+**Two findings.**
+
+**1. The port-8000 diagnosis was wrong, and the wrong action followed from it.** M11's clean clone
+recorded the holder as *"Docker Desktop, already running"*. Re-resolving the PID first showed
+`com.docker.backend` was only the **proxy**; the port was published by `aegislab-api-1`, a container
+from an unrelated project running alongside a web container and a **Postgres database**. Stopping
+"Docker Desktop" would have taken down all three. **Only the one container was stopped**, and it was
+restarted immediately afterwards. `preflight.ps1` then returned **10 of 10** — the first full pass
+recorded on this machine. A diagnosis accurate at the level of *which process name appears* still
+pointed at a heavier action than the situation needed.
+
+**2. The short report build is not rare, and build time does not predict it.** The first rebuild
+came out short and `check_report_leaders.py` — written earlier the same day — **caught it on its
+first real use**. Two of four builds were short. An earlier note here proposed build time as a
+signal on two observations; four disprove it (short 2.76 s and **4.00 s**, full 3.48 s and 4.94 s).
+The fill count is the only discriminator, which is why the detector counts fills.
+
+**Decisions.**
+- **`generations_total` was re-pointed, not rewritten.** The lock read from a line inside
+  `docs/evidence/M8/README.md`; editing that to 28 would have falsified a dated M8 record. The lock
+  now resolves from `docs/evidence/M11/gpu-validation.md`, and **M8's file still says 27**.
+- **The presentation was not rebuilt.** Checked rather than assumed: no slide states a generation
+  total, so no slide went stale.
+- **`docs/ai-usage.md` was not touched.** Its two "27" statements sit inside dated M8 and M10
+  entries and are correct for their dates.
+- **No subjective quality scoring**, deliberately — this validates deployment and reproducibility.
+
+**Commands and tests.** `preflight.ps1` **10/10** · one generation · `stop-demo.ps1` (all three ports
+released, no orphan) · `report_facts.py --check` **34 locks** · `validate_report.py` **27 source
+files pass every hard check**, 8 advisories — **identical to before these changes**, so no regression
+(`--strict` exits 1 by design because advisories fail under it) · `audit_pdfs.py` **ALL CHECKS PASS**
+· `check_report_leaders.py` **PASS**, 1 500 559 fills · **pytest 527 passed**.
+
+**Evidence.** `docs/evidence/M11/gpu-validation.md` and `gpu-validation/`.
+
+**Next step.** Kylian: review the final state, then push and close issue #12. **No further GPU
+generation is authorised.**
+
+---
+
 ## 2026-08-15 — M11: submission audit, and the 800 KB report build explained
 
 **Objective.** Audit the repository against the thirteen mandatory requirements in

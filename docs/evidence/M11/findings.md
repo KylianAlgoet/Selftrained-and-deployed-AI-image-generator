@@ -8,7 +8,8 @@ measured, what it means, and whether it was fixed or is being carried.
 |---:|---|---|---|
 | **F1** | the 800 KB short report build — **cause identified** | build | **DIAGNOSED, not a content defect** |
 | **F2** | the clean-clone test count was stale in three documents | documentation | **FIXED** |
-| F3 | `preflight.ps1` cannot reach a full PASS while Docker Desktop holds port 8000 | environment | carried — human-only |
+| F3 | `preflight.ps1` cannot reach a full PASS while port 8000 is held | environment | **RESOLVED — 10 of 10, and the cause was misattributed** |
+| **F8** | the final GPU validation reproduced its expected PNG **byte-identically** | reproducibility | **PASS** |
 | F4 | `origin/main` is 19 commits behind local `main` | submission | carried — Kylian's |
 | F5 | the deck has had no human visual gate and no rehearsal | submission | carried — Kylian's |
 | F6 | the report does not print `worst_device_used_mib` (7987.5) | omission | carried, deliberate |
@@ -105,9 +106,24 @@ the TOC dot leaders do not render**.
 
 It is not nothing: the short build still had 36 199 fills, so it is a **partial** rasterisation, not
 a clean absence. That signature — some leaders drawn, most not — is consistent with the print being
-taken while paint is still in progress, which also matches the shorter build time (2.76 s vs 3.48 s).
-**The race itself is not proven, and is not claimed here.** What is proven is the content identity
-and the identity of the missing marks.
+taken while paint is still in progress. **The race itself is not proven, and is not claimed here.**
+What is proven is the content identity and the identity of the missing marks.
+
+**Build time does not predict it.** An earlier note here suggested it might, on two observations
+(short 2.76 s, full 3.48 s). Four observations do not support that:
+
+| build | time | result |
+|---|---:|---|
+| 1 | 2.76 s | short |
+| 2 | 3.48 s | full |
+| 3 | 4.00 s | **short** — slower than a full build |
+| 4 | 4.94 s | full |
+
+The fill count is the only reliable discriminator, which is why the detector counts fills rather
+than timing the build.
+
+**Frequency, measured rather than guessed:** 2 short in 4 builds on 2026-08-15. M10 saw 1 in 15.
+The defect is **not rare**, so the detector is worth running after every rebuild.
 
 ### What was done about it
 
@@ -172,17 +188,53 @@ claim about live output.
 
 ---
 
-## F3 — port 8000, and why it was not "fixed"
+## F3 — port 8000. RESOLVED, and the original diagnosis was wrong
 
-`preflight.ps1` reports 9 of 10 PASS in the clean clone. The failure is **API port 8000 IN USE by
-pid 17668 (com.docker.backend)** — Docker Desktop, already running, unrelated to this project.
+The clean clone reported 9 of 10 PASS, failing on **API port 8000 IN USE by pid 17668
+(com.docker.backend)**, and recorded the holder as **"Docker Desktop, already running"**.
 
-The check is doing its job: it exists so two API processes never compete for one 8 GB device. It was
-**not** resolved by stopping Docker, because that is the user's running application and killing it to
-turn a check green is the wrong trade. The clean-clone backend was started on **8001** instead, which
-is why step 10 could still pass.
+**That attribution was incomplete, and it mattered.** Re-resolving the PID before the GPU validation
+showed `com.docker.backend` was only the **port proxy**. The port was published by a container
+belonging to an entirely different project:
 
-**A full `preflight.ps1` PASS on this machine requires port 8000 to be free.** Human-only item.
+```
+aegislab-web-1   127.0.0.1:3000->3000/tcp
+aegislab-api-1   127.0.0.1:8000->8000/tcp   <- the actual holder
+aegislab-db-1    127.0.0.1:5432->5432/tcp   (postgres:17-alpine)
+```
+
+Acting on the original wording — "stop Docker Desktop" — would have stopped **three** containers
+including a Postgres database. Acting on the corrected picture meant stopping **one** container,
+which released the port; it was **restarted immediately after the validation** and all three are
+running again.
+
+`preflight.ps1` then returned **PASSED — 10 of 10**, the first full pass recorded on this machine.
+
+**The lesson is the one this project keeps relearning in a new costume:** a diagnosis recorded at the
+level of *"which process name appears"* was accurate and still pointed at the wrong action. The
+check was never wrong — it correctly refused to let two processes contend for one 8 GB device.
+
+---
+
+## F8 — the final GPU validation. Byte-identical to a hash declared before the run
+
+One authorised generation, `minimal-geometric` / seed 42 / prompt-only, deliberately repeating the
+M8 configuration so the result was **falsifiable rather than merely plausible**.
+
+| | expected (declared first) | actual |
+|---|---|---|
+| bytes | 1 089 939 | **1 089 939** |
+| sha256 | `46bbf160e427…fb6d7f` | **`46bbf160e427…fb6d7f`** |
+
+**MATCH**, verified three independent ways: Node's `crypto`, PowerShell `Get-FileHash`, and the
+service's own `image_sha256`. Exactly **one** `POST /api/generate`, asserted by the driver.
+
+The same PNG has now come out of runs on **2026-08-06**, **2026-08-09** and **2026-08-15**, across
+two environments and a full dependency reinstall. `peak_allocated_mb` **5143.73** is byte-identical
+across four milestones. **Inference is deterministic and portable; this says nothing about training,
+which R14 governs and which is not reproducible from its seed.**
+
+Full record, including the whole browser path and the 3D deck: `gpu-validation.md`.
 
 ---
 
