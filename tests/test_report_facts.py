@@ -203,14 +203,18 @@ def test_facts_file_is_valid_yaml_with_required_keys() -> None:
         assert body["method"] in {"structural", "exact_hash", "prose_regex"}
 
 
-def test_the_generation_total_is_twenty_seven(facts: list[Fact]) -> None:
+def test_the_generation_total_is_twenty_eight(facts: list[Fact]) -> None:
     """Guarded explicitly because reporting 25 has been a live risk all project.
 
-    25 is the research cap; 27 is the truth (25 research + 1 M7 human review
-    + 1 M8 deployment validation).
+    25 is the research cap; 28 is the truth (25 research + 1 M7 human review
+    + 1 M8 deployment validation + 1 M11 final-audit validation).
+
+    It was 27 until 2026-08-15. The M8 evidence still reads 27 and is correct
+    for its date, so the lock was re-pointed at the M11 record rather than that
+    file being rewritten.
     """
     resolved = resolve(facts)
-    assert resolved["generations_total"] == 27
+    assert resolved["generations_total"] == 28
     assert resolved["generations_research"] == 25
 
 

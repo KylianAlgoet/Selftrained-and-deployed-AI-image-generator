@@ -87,11 +87,15 @@ pytest_total:
 # ------------------------------------------------------------------ generation ---
 
 generations_total:
-  value: 27
-  source: docs/evidence/M8/README.md
+  value: 28
+  source: docs/evidence/M11/gpu-validation.md
   method: prose_regex
   pattern: '\*\*Generation count:\s*(?P<value>\d+)\*\*'
   description: total real GPU generations across the project
+  # Re-pointed at M11 on 2026-08-15, when the final-audit validation made it 28.
+  # docs/evidence/M8/README.md still reads 27 and is NOT edited: that is the
+  # state at the end of M8 and is correct for its date. The current global total
+  # lives with the run that produced it.
 
 generations_research:
   value: 25

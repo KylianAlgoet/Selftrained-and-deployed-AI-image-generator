@@ -1,0 +1,85 @@
+{
+  "milestone": "M11",
+  "purpose": "final submission audit - deployment/reproducibility validation",
+  "classification": "NOT a research experiment; no EXP-### id; not in experiments/registry.csv",
+  "started_utc": "2026-08-15T21:41:52.447Z",
+  "started_local": "Sat Aug 15 2026 23:41:52 GMT+0200 (Central European Summer Time)",
+  "driver": "playwright chromium (headed), no API mocking",
+  "config": {
+    "prompt": "a mountain and a rising sun",
+    "style": "minimal-geometric",
+    "seed": "42",
+    "reference_image": "none"
+  },
+  "expected": {
+    "sha256": "46bbf160e4270429e6692467dc6c59577e99bf3178dedd8d38193d0335fb6d7f",
+    "bytes": 1089939
+  },
+  "webgl_context_before": true,
+  "form_readback": {
+    "prompt": "a mountain and a rising sun",
+    "style": "minimal-geometric",
+    "seed": "42",
+    "style_strength": "0.7"
+  },
+  "progress_text_at_6s": "DeckForge AI\n\nDesign a decal. Generate it locally. Preview it on the deck.\n\nLOCAL GENERATION\nRESEARCH PROTOTYPE\n\n1\nDESCRIBE THE ARTWORK\n\n27/400\nThe style wording is added for you.\n\n2\nSTYLE\nMinimal geometric\nUkiyo-e woodblock\nRetro silkscreen poster (partial)\n3\nREFERENCE IMAGE (OPTIONAL)\nCHOOSE IMAGE\nNo image attached\nADVANCED SETTINGS\nSEED\n\nThe same seed and settings reproduce the same image.\n\nSTYLE STRENGTH 0.70\n\n0.70 is the reviewed default, not a universal optimum.\n\nREFERENCE INFLUENCE 0.55\n\nApplies only when a reference image is attached.\n\nGENERATING…\n\nGENERATING DECAL\n\nLoading the local generation model…\n\nLoading the local generation model…\n\nNo step percentage at this stage\n\nElapsed: 9 seconds\nSTYLE\nMinimal geometric\nREFERENCE IMAGE\nNo\nSEED\n42\nOUTPUT\n512×1536\nGENERATION\nLocal\nDECK PREVIEW\nUpload your own decal\nReset view\n\nAlready have artwork? Upload it and preview it directly on the deck.\n\nDrag to orbit, scroll to zoom. The deck geometry is a self-created project asset. The decal fills the whole surface (DR-012), which stretches it 1.3008× along the board.",
+  "api_status": 200,
+  "browser_wall_clock_seconds": 60.37,
+  "result_panel_text": "GENERATED DECAL\n\nMinimal geometric\n·\n16.419s\n\n512×1536\n\nApplied to the deck preview →\n\nStretched 1.301× along the deck to cover the whole surface.\n\nDownload PNG\nDownload metadata\nREPRODUCIBILITY METADATA",
+  "applied_to_deck": true,
+  "webgl_context_after": true,
+  "generate_post_count": 1,
+  "console_errors": [],
+  "actual": {
+    "sha256": "46bbf160e4270429e6692467dc6c59577e99bf3178dedd8d38193d0335fb6d7f",
+    "bytes": 1089939
+  },
+  "byte_identical": true,
+  "verdict": "MATCH",
+  "api_response": {
+    "generation_id": "AHJ4-7Z-WT5W-uHrE1g1_g",
+    "status": "completed",
+    "image_url": "/api/generated/AHJ4-7Z-WT5W-uHrE1g1_g",
+    "metadata": {
+      "generation_id": "AHJ4-7Z-WT5W-uHrE1g1_g",
+      "created_utc": "2026-08-15T21:42:54Z",
+      "style": "minimal-geometric",
+      "style_label": "Minimal geometric",
+      "style_outcome": "PASS",
+      "style_limitation": "",
+      "prompt": "xgeo minimal geometric abstract style skateboard decal artwork, a mountain and a rising sun",
+      "prompt_sha256": "092e27e3c3ae9936ef57b332137bc6d03c92c7d9cf9cf1025f16f1b1c372c494",
+      "negative_prompt_sha256": "322eba37a8cc00f3465f0420c556f351054c86b0fe77297c0e50f65cb6b7b494",
+      "seed": 42,
+      "steps": 30,
+      "steps_run": 30,
+      "guidance_scale": 7.5,
+      "scheduler": "DPMSolverMultistepScheduler",
+      "width": 512,
+      "height": 1536,
+      "base_model_repo_id": "stable-diffusion-v1-5/stable-diffusion-v1-5",
+      "base_model_revision": "451f4fe16113bff5a5d2269ed5ad43b0592e9a14",
+      "lora_run_id": "EXP-027",
+      "lora_checkpoint_step": 300,
+      "lora_sha256": "2d425838cce59adc5c12b894e29439b695b98b9e40ef5d7ae667bd5216cb96a8",
+      "lora_weight": 0.7,
+      "active_adapters": [
+        "minimal-geometric"
+      ],
+      "live_lora_modules": 128,
+      "ip_adapter_repo_id": "h94/IP-Adapter",
+      "ip_adapter_revision": "018e402774aeeddd60609b4ecdb7e298259dc729",
+      "ip_adapter_scale": 0,
+      "reference_present": false,
+      "generate_seconds": 16.419,
+      "peak_allocated_mb": 5143.73,
+      "peak_device_used_mb": 7969.5,
+      "device_total_mb": 8187.5,
+      "spare_device_mb": 218,
+      "image_sha256": "46bbf160e4270429e6692467dc6c59577e99bf3178dedd8d38193d0335fb6d7f"
+    },
+    "warnings": []
+  },
+  "png_path": "outputs/m11-gpu-validation/m11-gpu-validation.png (git-ignored)",
+  "finished_utc": "2026-08-15T21:42:58.138Z"
+}
