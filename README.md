@@ -20,10 +20,15 @@ The public project planning (milestones M0–M11 with objectives, acceptance cri
 
 ## Project status
 
-**M8 — testing, deployment and demo preparation: COMPLETE** (2026-08-09; reopened 2026-08-10 for a
-remote CI failure, fixed, and all three GitHub Actions jobs now pass — with the qualifications
-recorded in `docs/evidence/M8/README.md`). **A feature freeze is in force**
-(`docs/process/feature-freeze.md`). **M9 — the research report and its PDF: in progress.**
+**A feature freeze is in force** (`docs/process/feature-freeze.md`), and the application is
+feature-complete.
+
+| milestone | state |
+|---|---|
+| M8 — testing, deployment, demo preparation | **complete** (2026-08-09; reopened 2026-08-10 for a remote CI failure, fixed, all three GitHub Actions jobs pass — qualifications in `docs/evidence/M8/README.md`) |
+| M9 — research report and its PDF | **complete** (2026-08-11; 91 pages, `deliverables/DeckForge-AI-research-report.pdf`) |
+| M10 — defence presentation | **authored, not closed** — 15 slides built and validated, but the **human visual gate and the rehearsal have not been run**, so its timing figures are estimates at 130 wpm and not measured times |
+| M11 — final submission audit | **in progress** — results under `docs/evidence/M11/`, checklist in `docs/submission-checklist.md` |
 
 Prototypes 0–5 are complete: the 3D viewer, the 148-item dataset, the base-model benchmark
 (SD 1.5, DR-007), reference conditioning (IP-Adapter at 0.55, DR-008), the LoRA method (DR-009),
@@ -69,7 +74,7 @@ There is no CPU fallback and no container. Both are deliberate; DR-014 records w
 ## Tests
 
 ```powershell
-.venv\Scripts\python.exe -m pytest    # 473 — API + ML tooling, pipeline stubbed, no GPU
+.venv\Scripts\python.exe -m pytest    # 527 — API + ML tooling + report and deck validation
 cd apps\web
 npm run test                          # 183 — vitest
 npm run lint
@@ -77,8 +82,15 @@ npm run build
 npx playwright test                   # 38 — browser E2E against the built frontend, no GPU
 ```
 
-A clean clone reports **468 passed / 5 skipped** for pytest: five tests skip conditionally on
-git-ignored assets that a fresh clone does not have. 468 + 5 = 473.
+The 527 splits into **473 system tests** (API and ML tooling, pipeline stubbed, no GPU),
+**16 report-validation** tests added in M9 and **38 deck-validation** tests added in M10. The last
+two test the *documents*, not the system, which is why the halves are locked separately in
+`report/facts.yaml` — a chapter or a slide has to say which it means. Counts measured 2026-08-15.
+
+A clean clone reports **522 passed / 5 skipped** for pytest: five tests skip conditionally on
+git-ignored assets that a fresh clone does not have. 522 + 5 = 527, matching this machine exactly.
+Measured 2026-08-15 in the M11 clean clone (`docs/evidence/M11/clean-clone.md`); the M8 figure of
+468 + 5 = 473 was correct before M9 and M10 added the 54 document-validation tests.
 
 No test in any of these suites loads the model or runs a generation. Real-model behaviour is
 evidenced separately by `scripts/validate_p5_api.py` against an actual uvicorn process, and by the
@@ -112,8 +124,11 @@ scripts/        Utility and validation scripts, plus preflight/start/stop toolin
 docs/           Research, process, decisions, evidence, deployment, presentation
 ```
 
-`outputs/` and `deliverables/` are git-ignored: generated images, model adapters and derived
-upload packages are regenerable or restorable, and model weights are never committed.
+`outputs/` is git-ignored: generated images and model adapters are restorable or regenerable, and
+model weights are never committed. `deliverables/` has its **contents** ignored with three named
+exceptions — the research report PDF and the two presentation PDFs — because the assignment
+requires them to be present in the GitHub result. Everything else there (intermediate build HTML,
+derived review packages) stays out.
 
 ## Setup
 

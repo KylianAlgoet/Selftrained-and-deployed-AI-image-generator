@@ -124,13 +124,17 @@ Then open the printed URL. The deck renders with a starter decal immediately; no
 ## Tests
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest        # 461, no GPU, pipeline stubbed
+.\.venv\Scripts\python.exe -m pytest        # 527, no GPU, pipeline stubbed
 cd apps\web
-npm run test                                # 169 vitest
+npm run test                                # 183 vitest
 npm run lint
 npm run build
-npx playwright test                         # 37 E2E, no GPU, no model
+npx playwright test                         # 38 E2E, no GPU, no model
 ```
+
+The pytest total is **473 system + 16 report-validation + 38 deck-validation**. Only the first
+473 test the application; the other 54 test the report and the deck. Counts measured 2026-08-15
+(M11), and they supersede the 461/169/37 figures this section carried from M8.
 
 Playwright needs its browser once: `npx playwright install chromium`.
 

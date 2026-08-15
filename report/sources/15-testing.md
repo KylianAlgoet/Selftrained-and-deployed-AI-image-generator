@@ -13,9 +13,14 @@
 **No Python linter is installed**, so pytest is the Python gate, and this report says so rather than
 implying a linting step that does not exist.
 
-**A clean clone runs 468 passed and 5 skipped.** The five are pre-existing conditional skips for
-git-ignored assets, each declaring its reason; 468 + 5 = {{ facts.pytest_tests }}, matching the
-development machine exactly.
+**A clean clone runs 522 passed and 5 skipped**, re-measured in the M11 audit on 2026-08-15. The
+five are pre-existing conditional skips for git-ignored assets, each declaring its reason;
+522 + 5 = {{ facts.pytest_suite_total }}, matching the development machine exactly. That figure is
+a whole-repository run, so it is larger than the {{ facts.pytest_tests }} system tests this chapter
+is scoped to: it also contains the {{ facts.pytest_report_tests }} report-validation and
+{{ facts.pytest_deck_tests }} deck-validation tests, which test the documents rather than the
+application. The M8 measurement of 468 + 5 = {{ facts.pytest_tests }} was correct for its date and
+is superseded here, not contradicted.
 
 ## 15.2 What the suites deliberately do not prove
 

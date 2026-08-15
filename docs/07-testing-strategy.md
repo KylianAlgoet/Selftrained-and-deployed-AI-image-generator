@@ -1,6 +1,8 @@
 # Testing strategy
 
-**Created:** 2026-07-27 · **Updated:** 2026-08-07 (M7 closure) · **Status:** **406 pytest tests and 165 vitest tests exist and pass.** The API and frontend-unit layers arrived with M7; the E2E (Playwright) layer is still outstanding and belongs to M8.
+**Created:** 2026-07-27 · **Updated:** 2026-08-15 (M11 audit) · **Status:** **527 pytest, 183 vitest and 38 Playwright E2E tests exist and pass**, measured 2026-08-15. All four layers now exist: the API and frontend-unit layers arrived with M7, the E2E layer with M8, and M9/M10 added validation suites for the report and the deck.
+
+The 527 is not one homogeneous number: **473 system + 16 report-validation + 38 deck-validation**. Only the first 473 test the application. The suite sizes recorded further down are the figures measured at each milestone's closure and are deliberately left as history.
 
 ## Layers
 
@@ -13,7 +15,19 @@
 | Frontend units | Vitest | API client (multipart fields, busy/timeout/unavailable classification, non-JSON error bodies); form validation and the DR-008/DR-010 bounded controls; reference preflight; **decal provenance** — that `Upload your own decal` is a production control distinct from the AI reference input, that it calls no generation API, that uploaded artwork gets no reproducibility metadata, and that a failed decode preserves the previous texture; **texture-fit geometry** — both modes' stretch factor, uncovered fraction, canvas size and that the decal is drawn once, upright and unmirrored, plus the **DR-012 production default** (`full-surface`, still one of the two offered modes, with its stretch disclosed); **texture swapping** — the replaced texture is disposed, an object URL is revoked only *after* the replacement resolves, and a failed load keeps the previous decal; **colour space and flipY** on every deck texture |
 | End-to-end (M8) | Playwright + Chromium | **37 scenarios** against the **built** frontend (`npm run build && npm run preview`), with every `/api/**` call answered from frozen JSON fixtures — no model, no GPU, no weights. Covers: the shell and a live WebGL context; the **production/review separation**; the styles list and the PARTIAL PASS notice; bounded DR-008/DR-010 controls; reference attach and remove; the **multipart request body itself**; the waiting state; polling cadence; **real denoising step counts**; that a stage with no denominator shows **no percentage**; finalising; the result, both downloads and the decal on the deck; **decal upload issuing no `POST /api/generate`**; a failed decode preserving the previous texture; 409/504/503/422 and a network abort; **camera state surviving a texture swap**; and two viewports. The fixtures are validated against the real Pydantic models by `apps/api/tests/test_e2e_fixture_contract.py`, so a backend field rename breaks a Python test instead of leaving the browser suite passing against a stale shape |
 
-## Suite sizes at M8 closure (2026-08-09)
+## Suite sizes now (measured 2026-08-15, M11 audit)
+
+| suite | count | gate |
+|---|---:|---|
+| pytest, whole repository | **527** | all pass — 473 system + 16 report-validation + 38 deck-validation |
+| vitest (`apps/web`) | **183** | all pass, 12 files |
+| **Playwright E2E** (`apps/web/e2e`) | **38** | all pass, `retries: 0` |
+| eslint | — | clean |
+| `npm run build` | — | succeeds, 608 modules |
+
+Transcript: `docs/evidence/M11/transcripts/b5-suites.txt`.
+
+## Suite sizes at M8 closure (2026-08-09) — historical
 
 | suite | count | gate |
 |---|---:|---|

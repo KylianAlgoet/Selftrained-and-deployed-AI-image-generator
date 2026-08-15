@@ -1,54 +1,55 @@
-# React + TypeScript + Vite
+# DeckForge AI — frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + TypeScript + Vite, with React Three Fiber for the interactive 3D deck preview.
+Stack rationale and the alternatives weighed against it: [`DR-003`](../../docs/decisions/DR-003-frontend-3d-stack.md).
 
-Currently, two official plugins are available:
+This is one half of a two-process application. It talks to the FastAPI service on
+port 8000 and does no model work of its own. **Start both together with
+[`scripts/start-demo.ps1`](../../scripts/start-demo.ps1)** rather than running this
+package alone — the full procedure is in the
+[deployment runbook](../../docs/deployment/runbook.md).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Commands
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```bash
+npm ci                  # install from the lockfile
+npm run dev             # dev server on http://localhost:5173
+npm run build           # tsc -b && vite build
+npm run preview         # serve the built bundle on 4173
+npm run lint            # eslint
+npm run test            # vitest
+npm run test:e2e        # Playwright, against the BUILT frontend with /api/** mocked
+npm run typecheck:e2e   # type-check the e2e project separately
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+`npx playwright install chromium` is needed once before the first E2E run.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Layout
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
 ```
+src/viewer      the 3D deck: geometry, UV convention, texture swap, camera probe
+src/deck        deck geometry and the two texture-fit strategies
+src/generate    the generation form, progress display and result panel
+src/api         the typed client for the FastAPI service
+src/ui          the shared status-message component
+e2e             Playwright specs and the frozen API fixtures they answer from
+```
+
+The E2E suite mocks the API at the network boundary and never loads the model, so it
+runs without a GPU. A pytest validates those fixtures against the real Pydantic
+models, so the mock cannot drift away from the contract it stands in for.
+
+## Notes worth knowing before changing anything
+
+- **Review-only controls** (the texture-fit selector and the inverted-UV
+  demonstration) are hidden in production and restored with `?review=1`. A test
+  asserts the production interface exposes neither.
+- **The decal is 1:3 and the deck UV domain is 1:3.902.** `full-surface` is the
+  production default and stretches by 1.3008×; the interface states this to the user.
+  [`DR-012`](../../docs/decisions/DR-012-deck-texture-fit.md) records the decision and
+  the rejected alternative, which is still selectable in review mode.
+- **Progress reporting never invents a number.** Only denoising has a real
+  denominator; every other stage publishes a name and no percentage
+  ([`DR-013`](../../docs/decisions/DR-013-generation-progress-telemetry.md)).
+
+Project overview and research documentation: [repository README](../../README.md).
