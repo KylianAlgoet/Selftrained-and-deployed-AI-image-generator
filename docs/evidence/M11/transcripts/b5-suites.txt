@@ -1,0 +1,180 @@
+﻿=== B5/B6 SUITES AND BUILDS - 2026-08-15 02:42:00 ===
+repository: C:\Expert Lab\Selftrained-and-deployed-AI-image-generator
+HEAD: 6bde9dc10b0929edfbea261973de03f636ccab6a
+
+==================== pytest (whole suite) ====================
+........................................................................ [ 13%]
+........................................................................ [ 27%]
+........................................................................ [ 40%]
+........................................................................ [ 54%]
+........................................................................ [ 68%]
+........................................................................ [ 81%]
+........................................................................ [ 95%]
+.......................                                                  [100%]
+============================== warnings summary ===============================
+ml/training/tests/test_style_kit.py::test_no_trigger_piece_appears_anywhere_in_the_caption_corpus
+ml/training/tests/test_style_kit.py::test_recorded_token_ids_match_the_live_tokenizer
+ml/training/tests/test_style_kit.py::test_tokenizer_vocabulary_is_unchanged
+ml/training/tests/test_style_kit.py::test_training_captions_fit_well_inside_the_prompt_limit
+  C:\Expert Lab\Selftrained-and-deployed-AI-image-generator\.venv\Lib\site-packages\transformers\models\clip\tokenization_clip.py:79: DeprecationWarning: Deprecated in 0.9.0: BPE.__init__ will not create from files anymore, try `BPE.from_file` instead
+    BPE(
+
+apps/api/tests/test_contract.py::test_health_reports_pid_and_pipeline_state
+  C:\Expert Lab\Selftrained-and-deployed-AI-image-generator\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+527 passed, 5 warnings in 51.10s
+---- pytest (whole suite) finished in 54.5 s, LASTEXITCODE=0 ----
+
+==================== report_facts.py --check ====================
+OK: 34 fact locks resolve against their evidence.
+---- report_facts.py --check finished in 0.2 s, LASTEXITCODE=0 ----
+
+==================== validate_report.py --strict ====================
+ADVISORY (8):
+  ~ 01-executive-summary.md:57: training is NOT bit-reproducible -> 'bit-reproducible'
+  ~ 09-model-and-fine-tuning.md:69: 'comfortable headroom' - the margin is 2.4% -> 'comfortable headroom'
+  ~ 12-failed-experiments.md:69: training is NOT bit-reproducible -> 'bit-reproducible'
+  ~ 18-limitations.md:61: 'comfortable headroom' - the margin is 2.4% -> 'comfortable headroom'
+  ~ 18-limitations.md:35: DR-009 claims feasibility, not superiority -> 'LoRA is the best'
+  ~ 18-limitations.md:40: training is NOT bit-reproducible -> 'bit-reproducible'
+  ~ 19-conclusions.md:89: DR-009 claims feasibility, not superiority -> 'LoRA is the best'
+  ~ 23-future-work.md:8: training is NOT bit-reproducible -> 'bit-reproducible'
+
+OK: 27 source files pass every hard check.
+---- validate_report.py --strict finished in 0.4 s, LASTEXITCODE=1 ----
+
+==================== validate_slides.py ====================
+
+slides authored : 15 of 15
+hard failures   : 0
+advisories      : 0
+---- validate_slides.py finished in 0.3 s, LASTEXITCODE=0 ----
+
+==================== backend import sanity ====================
+apps.api.main imported OK
+app: FastAPI
+---- backend import sanity finished in 0.6 s, LASTEXITCODE=0 ----
+
+==================== npm run lint ====================
+
+> web@0.0.0 lint
+> eslint .
+
+---- npm run lint finished in 27.5 s, LASTEXITCODE=0 ----
+
+==================== npm run test (vitest) ====================
+
+> web@0.0.0 test
+> vitest run
+
+
+ RUN  v4.1.10 C:/Expert Lab/Selftrained-and-deployed-AI-image-generator/apps/web
+
+
+ Test Files  12 passed (12)
+      Tests  183 passed (183)
+   Start at  02:43:27
+   Duration  22.67s (transform 2.24s, setup 0ms, import 21.30s, tests 5.21s, environment 54.47s)
+
+---- npm run test (vitest) finished in 26.3 s, LASTEXITCODE=0 ----
+
+==================== npm run typecheck:e2e ====================
+
+> web@0.0.0 typecheck:e2e
+> tsc -p tsconfig.e2e.json
+
+---- npm run typecheck:e2e finished in 2.7 s, LASTEXITCODE=0 ----
+
+==================== npm run build (tsc -b && vite build) ====================
+
+> web@0.0.0 build
+> tsc -b && vite build
+
+vite v6.4.3 building for production...
+transforming...
+✓ 608 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                     1.26 kB │ gzip:   0.65 kB
+dist/assets/index-DGRcUfrj.css     15.70 kB │ gzip:   3.55 kB
+dist/assets/index-D8IE2X7h.js   1,135.68 kB │ gzip: 316.40 kB
+node.exe : 
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 12.17s
+---- npm run build (tsc -b && vite build) finished in 18.3 s, LASTEXITCODE=0 ----
+
+==================== npx playwright test ====================
+node.exe : [WebServer] (node:27488) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([WebServer] (no... env being set.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] 
+[WebServer] (!) Some chunks are larger than 500 kB after minification. Consider:
+[WebServer] - Using dynamic import() to code-split the application
+[WebServer] - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+[WebServer] - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+[WebServer] (node:24224) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 38 tests using 1 worker
+
+(node:31668) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › e2e\app.spec.ts:16:3 › application shell › opens, renders the workspace, and logs no console errors (1.5s)
+  ✓   2 [chromium] › e2e\app.spec.ts:34:3 › application shell › renders the 3D deck on a live WebGL context (1.3s)
+  ✓   3 [chromium] › e2e\app.spec.ts:53:3 › application shell › the production interface exposes no review-only controls (1.1s)
+  ✓   4 [chromium] › e2e\app.spec.ts:65:3 › application shell › ?review=1 restores both review tools and labels the mode (958ms)
+  ✓   5 [chromium] › e2e\app.spec.ts:74:3 › application shell › the deck disclosure states the DR-012 stretch openly (847ms)
+  ✓   6 [chromium] › e2e\app.spec.ts:83:3 › application shell › an unreachable service is reported with the command to start it (915ms)
+  ✓   7 [chromium] › e2e\decal-upload.spec.ts:116:3 › user decal upload › applies uploaded artwork without ever calling POST /api/generate (1.1s)
+  ✓   8 [chromium] › e2e\decal-upload.spec.ts:135:3 › user decal upload › uploaded artwork carries no reproducibility metadata (1.3s)
+  ✓   9 [chromium] › e2e\decal-upload.spec.ts:147:3 › user decal upload › an undecodable file preserves the previous decal (1.2s)
+  ✓  10 [chromium] › e2e\decal-upload.spec.ts:164:3 › user decal upload › the client preflight rejects a wrong type before any decode (773ms)
+  ✓  11 [chromium] › e2e\decal-upload.spec.ts:173:3 › user decal upload › a generated decal can be restored after an upload, with no new generation (2.4s)
+  ✓  12 [chromium] › e2e\decal-upload.spec.ts:195:3 › user decal upload › replacing the decal does not reset the camera (5.0s)
+  ✓  13 [chromium] › e2e\errors.spec.ts:33:3 › error handling › 409 is presented as busy, not as a failure (1.4s)
+  ✓  14 [chromium] › e2e\errors.spec.ts:46:3 › error handling › 504 reports how far the generation actually got (963ms)
+  ✓  15 [chromium] › e2e\errors.spec.ts:60:3 › error handling › 503 says the model is unavailable and leaks no path (950ms)
+  ✓  16 [chromium] › e2e\errors.spec.ts:77:3 › error handling › 422 attaches the message to the field that caused it (1.2s)
+  ✓  17 [chromium] › e2e\errors.spec.ts:89:3 › error handling › a network failure is reported without blaming the user (1.2s)
+  ✓  18 [chromium] › e2e\errors.spec.ts:100:3 › error handling › a failed generation leaves the deck and the form usable (1.2s)
+  ✓  19 [chromium] › e2e\generate.spec.ts:14:3 › generation workflow › lists the three production styles and shows the partial-pass limitation (941ms)
+  ✓  20 [chromium] › e2e\generate.spec.ts:36:3 › generation workflow › advanced settings are bounded by the decision records (985ms)
+  ✓  21 [chromium] › e2e\generate.spec.ts:57:3 › generation workflow › a reference image can be attached and removed (1.9s)
+  ✓  22 [chromium] › e2e\generate.spec.ts:75:3 › generation workflow › submits the prompt, style and bounded settings as multipart form fields (1.8s)
+  ✓  23 [chromium] › e2e\generate.spec.ts:105:3 › generation workflow › sends the reference image as a file part when one is attached (1.6s)
+  ✓  24 [chromium] › e2e\generate.spec.ts:121:3 › generation workflow › a completed generation shows the image, the duration and the metadata (2.7s)
+  ✓  25 [chromium] › e2e\generate.spec.ts:145:3 › generation workflow › offers a PNG download and a metadata download (2.1s)
+  ✓  26 [chromium] › e2e\generate.spec.ts:162:3 › generation workflow › applies the generated artwork to the deck (2.1s)
+  ✓  27 [chromium] › e2e\generate.spec.ts:180:3 › generation workflow › a partial-pass style returns its limitation as a result warning (1.9s)
+  ✓  28 [chromium] › e2e\progress.spec.ts:48:3 › generation progress › shows the waiting state and disables a second submit (1.7s)
+  ✓  29 [chromium] › e2e\progress.spec.ts:75:3 › generation progress › polls the read-only progress endpoint repeatedly, without overlapping (3.2s)
+  ✓  30 [chromium] › e2e\progress.spec.ts:105:3 › generation progress › the gated mock does not advance a state before the test allows it (5.7s)
+  ✓  31 [chromium] › e2e\progress.spec.ts:135:3 › generation progress › renders real denoising step counts from telemetry (2.8s)
+  ✓  32 [chromium] › e2e\progress.spec.ts:155:3 › generation progress › publishes an estimate only once steps have been timed (2.6s)
+  ✓  33 [chromium] › e2e\progress.spec.ts:175:3 › generation progress › a stage with no denominator shows a stage name and NO percentage (1.0s)
+  ✓  34 [chromium] › e2e\progress.spec.ts:201:3 › generation progress › reaches the finalising stage and only then reports completion (3.0s)
+  ✓  35 [chromium] › e2e\progress.spec.ts:238:3 › generation progress › losing telemetry degrades the display without failing the generation (1.4s)
+  ✓  36 [chromium] › e2e\viewport.spec.ts:22:3 › layout › the demo viewport (1440x900) shows both columns without overflow (1.0s)
+  ✓  37 [chromium] › e2e\viewport.spec.ts:34:3 › layout › a narrow viewport (390x844) stays usable and does not scroll sideways (935ms)
+  ✓  38 [chromium] › e2e\viewport.spec.ts:50:3 › layout › the result panel does not overflow at the narrow viewport (1.6s)
+
+  38 passed (1.5m)
+---- npx playwright test finished in 92 s, LASTEXITCODE=0 ----
+
+=== B5/B6 finished 2026-08-15 02:45:43 ===

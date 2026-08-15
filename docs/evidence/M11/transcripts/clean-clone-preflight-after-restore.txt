@@ -1,0 +1,17 @@
+﻿
+DeckForge AI - preflight
+repository: C:\Expert Lab\DeckForge-M11-clean-clone
+
+PASS  Python virtual env           3.11 at .venv (3.11.0)
+PASS  Python dependencies          torch 2.13.0+cu126, diffusers 0.39.0, fastapi 0.141.1
+PASS  CUDA                         available - NVIDIA GeForce RTX 4060 Laptop GPU
+PASS  nvidia-smi                   NVIDIA GeForce RTX 4060 Laptop GPU, 610.88, 8188 MiB
+PASS  Node.js                      v24.18.0
+PASS  Frontend dependencies        apps/web/node_modules present
+FAIL  API port 8000                IN USE by pid 17668 (com.docker.backend) - a second API process would compete for the GPU
+PASS  Frontend port 5173           free
+PASS  Preview port 4173            free
+PASS  Production weights           all 3 adapters match their recorded sha256
+
+PREFLIGHT FAILED - 1 blocking issue(s), 0 warning(s).
+

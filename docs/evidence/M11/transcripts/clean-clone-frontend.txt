@@ -1,0 +1,14 @@
+﻿=== M11 clean-clone: the built frontend served from the clone - 2026-08-15 04:01:25 ===
+Note: 'vite preview' binds to ::1 (IPv6 localhost) only, so it must be reached as
+http://localhost:4173 - a 127.0.0.1 probe fails, and that is the probe's fault, not the app's.
+Ports 4173/4174 were confirmed free before starting, so the response below can only
+have come from this process serving this clone's dist/.
+dist/index.html present in the clone: True
+
+  âžœ  Local:   http://localhost:4173/
+  âžœ  Network: use --host to expose
+GET http://localhost:4173/ -> HTTP 200, 1288 bytes
+page title: DeckForge AI â skateboard decal studio
+  asset /assets/index-DCQMOnWs.js -> HTTP 200, 1136141 bytes
+  asset /assets/index-DGRcUfrj.css -> HTTP 200, 15695 bytes
+PASS - the built frontend serves from the clean clone, with its bundled assets

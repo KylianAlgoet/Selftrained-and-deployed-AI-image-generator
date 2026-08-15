@@ -1,0 +1,82 @@
+=== B4 DATASET / LICENCE AUDIT ===
+manifest: data\manifests\dataset-v1.csv
+sha256, working copy as-is : b38996ae44d85ceefcf6541b8a94d4d6603c246af1348442b4d9d89cbd10bf50
+sha256, LF-normalised      : b38996ae44d85ceefcf6541b8a94d4d6603c246af1348442b4d9d89cbd10bf50
+(M8 found these DIFFERING on this machine - core.autocrlf had normalised the working copy
+ to CRLF while Git stored LF, so a frozen hash passed locally and failed on every clean
+ clone. They are equal above, which is the .gitattributes fix holding.)
+
+--- accepted items ---
+  [PASS] 148 accepted items - actual 148
+
+--- style counts ---
+      minimal-geometric    52
+      retro-poster         41
+      ukiyo-e              55
+  [PASS] exactly 3 styles - actual 3
+  [PASS] every style >= 40 items - {'minimal-geometric': 52, 'retro-poster': 41, 'ukiyo-e': 55}
+  [PASS] style counts sum to the total
+
+--- train / validation / holdout split ---
+      holdout              7
+      train                124
+      val                  17
+  [PASS] splits are exactly train/val/holdout - ['holdout', 'train', 'val']
+  [PASS] splits sum to the total
+
+--- holdout isolation ---
+  [PASS] holdout disjoint from train
+  [PASS] holdout disjoint from val
+  [PASS] holdout covers every style - ['minimal-geometric', 'retro-poster', 'ukiyo-e']
+
+--- licences ---
+      CC0                  55
+      project-original     52
+      public domain        41
+  [PASS] every row carries a licence
+  [PASS] no restrictive/unknown licence present - ['CC0', 'project-original', 'public domain']
+
+--- provenance ---
+  [PASS] every required provenance field is populated on all rows
+      author is blank on 42 of 148 items - EXPECTED, not a gap:
+         41  Library of Congress WPA posters collection
+          1  The Metropolitan Museum of Art Open Access
+  [PASS] every unattributed item is institutionally anonymous, not merely unrecorded - an unattributed item cites a source outside the two institutional collections
+  [PASS] no unattributed item claims an author-dependent licence - Counter({'public domain': 41, 'CC0': 1})
+
+--- source domains (copyright claim support) ---
+      www.metmuseum.org                             55
+      project-created: ml/dataset/generate_geometric.py 52
+      www.loc.gov                                   41
+  [PASS] project-created material is attributed to a repository generator
+  [PASS] every non-project item cites an http source
+
+--- integrity mechanism ---
+  [PASS] every row carries a sha256 - bad 0
+  [PASS] no duplicate sha256 (no duplicate image) - 0 duplicate(s)
+  [PASS] no duplicate id
+  [PASS] no duplicate filename
+
+--- dimensions ---
+      distinct sizes: 81; most common: [(('512', '1536'), 52), (('693', '1024'), 5), (('690', '1024'), 3)]
+  [PASS] all dimensions are positive integers
+
+--- agreement with report/facts.yaml ---
+      dataset_total                manifest=148   facts.yaml=148
+  [PASS] dataset_total matches the manifest - facts.yaml says 148, manifest says 148
+      dataset_ukiyo_e              manifest=55    facts.yaml=55
+  [PASS] dataset_ukiyo_e matches the manifest - facts.yaml says 55, manifest says 55
+      dataset_minimal_geometric    manifest=52    facts.yaml=52
+  [PASS] dataset_minimal_geometric matches the manifest - facts.yaml says 52, manifest says 52
+      dataset_retro_poster         manifest=41    facts.yaml=41
+  [PASS] dataset_retro_poster matches the manifest - facts.yaml says 41, manifest says 41
+      dataset_train                manifest=124   facts.yaml=124
+  [PASS] dataset_train matches the manifest - facts.yaml says 124, manifest says 124
+      dataset_val                  manifest=17    facts.yaml=17
+  [PASS] dataset_val matches the manifest - facts.yaml says 17, manifest says 17
+      dataset_holdout              manifest=7     facts.yaml=7
+  [PASS] dataset_holdout matches the manifest - facts.yaml says 7, manifest says 7
+--- notes (not failures) ---
+      * 42 items carry no `author`: 41 Library of Congress WPA posters and 1 Met open-access item. Both collections publish these as anonymous. `docs/04-dataset-methodology.md` already documents the field as "author (where known)", so this is the documented behaviour rather than missing provenance.
+
+=== B4 RESULT: ALL CHECKS PASS ===

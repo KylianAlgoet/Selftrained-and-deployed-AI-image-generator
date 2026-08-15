@@ -1,0 +1,132 @@
+=== B8 LINK AND PATH AUDIT ===
+tracked markdown files scanned  : 180
+markdown links resolved         : 64
+backticked paths resolved       : 575
+bare filenames named in prose   : 258  (each matches a tracked file)
+in-page anchors skipped         : 0
+distinct external URLs          : 34
+
+--- broken markdown links ---
+  none - every markdown link resolves
+
+--- written paths that intentionally do not resolve ---
+  slides/facts.yaml
+      DELIBERATELY ABSENT - the deck holds no facts of its own; DR-016 and the handoff both instruct that this file must never be created
+      cited in docs/decisions/DR-016-presentation-build-pipeline.md
+  loaders/ip_adapter.py
+      LIBRARY-INTERNAL - a path inside diffusers, cited to show where CLIPVisionModelWithProjection is loaded, not a file in this repository
+      cited in docs/evidence/EXP-007/adapter-environment-gate.md
+  slides/sources/13-step-300.md
+      HISTORICAL - a slide of the 26-slide deck, removed by DR-017's restructuring; the build record and process log describe what was there
+      cited in docs/evidence/M10/build-record.md
+  error-context.md
+      TOOL ARTEFACT - a file Playwright writes into its own trace output
+      cited in docs/evidence/M8/ci/runner-stall-trace.md
+  docs/evidence/EXP-0xx/training-runs.jsonl
+      TEMPLATE - 'EXP-0xx' is a pattern, not an identifier
+      cited in docs/evidence/prototype-4/GATE-1-handover.md
+      cited in docs/process/process-log.md
+  ViewerControls.tsx
+      HISTORICAL - see apps/web/src/viewer/ViewerControls.tsx
+      cited in docs/process/process-log.md
+      cited in docs/process/session-handoff.md
+      cited in docs/process/session-handoff.md
+  apps/web/src/viewer/ViewerControls.tsx
+      HISTORICAL - a Prototype 0 component, superseded by the M7 interface redesign; prototype-0.md records what Prototype 0 built and is not rewritten
+      cited in docs/prototypes/prototype-0.md
+
+--- stale paths (unexplained) ---
+  none
+
+--- external URLs by host ---
+  github.com                                    11
+  arxiv.org                                     9
+  huggingface.co                                3
+  www.loc.gov                                   2
+  babeljs.io                                    1
+  swc.rs                                        1
+  download.pytorch.org                          1
+  www.metmuseum.org                             1
+  creativecommons.org                           1
+  pytorch.org                                   1
+  fastapi.tiangolo.com                          1
+  threejs.org                                   1
+  playwright.dev                                1
+
+--- external reachability (one request per URL, 15 s timeout) ---
+    Dataset provenance URLs are sampled, not swept: 96 of them point at two
+    institutional hosts that have rate-limited this project before, and
+    hammering them would produce 429s that say nothing about the citations.
+  200 OK                       https://arxiv.org/abs/2103.00020
+      cited in report/sources/24-references.md
+  200 OK                       https://arxiv.org/abs/2106.09685
+      cited in report/sources/24-references.md
+  200 OK                       https://arxiv.org/abs/2112.10752
+      cited in report/sources/24-references.md
+  200 OK                       https://arxiv.org/abs/2208.01618
+      cited in report/sources/24-references.md
+  200 OK                       https://arxiv.org/abs/2208.12242
+      cited in report/sources/24-references.md
+  200 OK                       https://arxiv.org/abs/2211.01095
+      cited in report/sources/24-references.md
+  200 OK                       https://arxiv.org/abs/2302.05543
+      cited in report/sources/24-references.md
+  200 OK                       https://arxiv.org/abs/2307.01952
+      cited in report/sources/24-references.md
+  200 OK                       https://arxiv.org/abs/2308.06721
+      cited in report/sources/24-references.md
+  200 OK                       https://babeljs.io/
+      cited in apps/web/README.md
+  200 OK                       https://creativecommons.org/publicdomain/zero/1.0/
+      cited in report/sources/24-references.md
+  200 OK                       https://download.pytorch.org/whl/cu126
+      cited in docs/deployment/runbook.md
+      cited in docs/process/session-handoff.md
+  200 OK                       https://fastapi.tiangolo.com
+      cited in report/sources/24-references.md
+  200 OK                       https://github.com/KylianAlgoet/Selftrained-and-deployed-AI-image-generator
+  200 OK                       https://github.com/KylianAlgoet/Selftrained-and-deployed-AI-image-generator/issues
+      cited in docs/process/process-log.md
+  200 OK                       https://github.com/KylianAlgoet/Selftrained-and-deployed-AI-image-generator/issues?q=is%3Aissue
+      cited in README.md
+  404 EXTERNAL-FAIL            https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom
+      cited in apps/web/README.md
+  404 EXTERNAL-FAIL            https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x
+      cited in apps/web/README.md
+  200 OK                       https://github.com/huggingface/diffusers
+      cited in report/sources/24-references.md
+  200 OK                       https://github.com/huggingface/peft
+      cited in report/sources/24-references.md
+  200 OK                       https://github.com/users/KylianAlgoet/projects/1
+      cited in docs/02-planning.md
+      cited in docs/process/process-log.md
+  200 OK                       https://github.com/users/KylianAlgoet/projects/1**
+      cited in README.md
+  200 OK                       https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react
+      cited in apps/web/README.md
+  200 OK                       https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc
+      cited in apps/web/README.md
+  401 EXTERNAL-BLOCKED         https://huggingface.co/api/models/stabilityai/stable-diffusion-2-1-base
+      cited in docs/evidence/EXP-003/blocked-gated-repository.md
+  200 OK                       https://huggingface.co/h94/IP-Adapter
+      cited in report/sources/24-references.md
+  200 OK                       https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5
+      cited in report/sources/24-references.md
+  200 OK                       https://playwright.dev
+      cited in report/sources/24-references.md
+  200 OK                       https://pytorch.org
+      cited in report/sources/24-references.md
+  200 OK                       https://swc.rs/
+      cited in apps/web/README.md
+  200 OK                       https://threejs.org
+      cited in report/sources/24-references.md
+  403 EXTERNAL-BLOCKED         https://www.loc.gov/collections/federal-theatre-project-1935-to-1939/about-this-collection/rights-and-access/
+      cited in report/sources/24-references.md
+  403 EXTERNAL-BLOCKED         https://www.loc.gov/collections/works-progress-administration-posters/about-this-collection/rights-and-access/
+      cited in report/sources/24-references.md
+  429 EXTERNAL-BLOCKED         https://www.metmuseum.org/policies/image-resources
+      cited in report/sources/24-references.md
+
+  checked 34 URL(s); 6 did not return success
+
+=== B8 RESULT: every markdown link and every written path resolves ===

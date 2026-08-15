@@ -1,0 +1,109 @@
+=== B7 PDF AUDIT ===
+
+--- research report: DeckForge-AI-research-report.pdf ---
+    bytes  : 2,772,732
+    sha256 : 3d439a5eadb919165969f60fe73fe549336b4b5246e844b20c8eb45bc22e776b
+    [PASS] starts with a PDF header - %PDF-1.4
+    [PASS] ends with EOF marker
+    pages  : 91  (/Type /Page objects: 91)
+    [PASS] page tree and page objects agree - 91 vs 91
+    media boxes: [(0.0, 0.0, 595.0, 841.9)]
+    [PASS] one uniform page geometry - 1 distinct MediaBox values
+    fonts  : 9 face(s), 9 embedded font programme(s)
+    images : 6 image XObject(s)
+    [PASS] at least one font is embedded - no /FontFile - text may not render portably
+    [PASS] document contains images - no image XObjects found
+    pages with recovered text: 91
+    glyphs per page: min=261 median=1655 max=2526
+    [PASS] text decoded from every page - 91 of 91
+    [PASS] no blank or near-blank page - 0 page(s) under 50 glyphs: []
+    [PASS] no unresolved {{fact}} placeholder - 0 hit(s), e.g. []
+    [PASS] no raw HTML tag - 0 hit(s), e.g. []
+    [PASS] no unescaped HTML entity - 0 hit(s), e.g. []
+
+--- presentation: DeckForge-AI-presentation.pdf ---
+    bytes  : 1,052,201
+    sha256 : a11646b4ce7a9f13955ba378a69b03828063cbf9d444377d889d8a1600846471
+    [PASS] starts with a PDF header - %PDF-1.4
+    [PASS] ends with EOF marker
+    pages  : 15  (/Type /Page objects: 15)
+    [PASS] page tree and page objects agree - 15 vs 15
+    media boxes: [(0.0, 0.0, 960.0, 540.0)]
+    [PASS] one uniform page geometry - 1 distinct MediaBox values
+    fonts  : 6 face(s), 6 embedded font programme(s)
+    images : 7 image XObject(s)
+    [PASS] at least one font is embedded - no /FontFile - text may not render portably
+    [PASS] document contains images - no image XObjects found
+    pages with recovered text: 15
+    glyphs per page: min=188 median=409 max=602
+    [PASS] text decoded from every page - 15 of 15
+    [PASS] no blank or near-blank page - 0 page(s) under 50 glyphs: []
+    [PASS] no unresolved {{fact}} placeholder - 0 hit(s), e.g. []
+    [PASS] no raw HTML tag - 0 hit(s), e.g. []
+    [PASS] no unescaped HTML entity - 0 hit(s), e.g. []
+
+--- speaker notes: DeckForge-AI-presentation-notes.pdf ---
+    bytes  : 251,823
+    sha256 : d9c3275e07293970ed1f6fcf82503bff767b469a275e5c8166bbf32d4094ce54
+    [PASS] starts with a PDF header - %PDF-1.4
+    [PASS] ends with EOF marker
+    pages  : 16  (/Type /Page objects: 16)
+    [PASS] page tree and page objects agree - 16 vs 16
+    media boxes: [(0.0, 0.0, 595.0, 841.9)]
+    [PASS] one uniform page geometry - 1 distinct MediaBox values
+    fonts  : 6 face(s), 6 embedded font programme(s)
+    images : 0 image XObject(s)
+    [PASS] at least one font is embedded - no /FontFile - text may not render portably
+    [note] text-only by design - the notes handout carries no figures
+    pages with recovered text: 16
+    glyphs per page: min=337 median=1117 max=1500
+    [PASS] text decoded from every page - 16 of 16
+    [PASS] no blank or near-blank page - 0 page(s) under 50 glyphs: []
+    [PASS] no unresolved {{fact}} placeholder - 0 hit(s), e.g. []
+    [PASS] no raw HTML tag - 0 hit(s), e.g. []
+    [PASS] no unescaped HTML entity - 0 hit(s), e.g. []
+
+--- cross-file ---
+    [PASS] notes cover the deck (one page per slide, plus a cover) - deck 15 pages vs notes 16 pages
+
+--- research report: factual locks and status language ---
+    [PASS] device total 8187.5 MiB is stated - expected string not found in the rendered text
+    [PASS] worst spare 200 MiB is stated - expected string not found in the rendered text
+    [PASS] the false 8187.5-5143.73 margin does NOT appear - 0 occurrence(s): []
+    [PASS] retro-poster's PARTIAL PASS is stated - expected string not found in the rendered text
+    [PASS] the inconclusive RQ4 image-count result is stated - expected string not found in the rendered text
+    [PASS] the withdrawn 'both gates blind' claim does NOT appear - 0 occurrence(s): []
+    [PASS] 'comfortable headroom' appears only under a negation - 0 occurrence(s): []
+    [PASS] 'LoRA is the best' appears only under a negation - 0 occurrence(s): []
+    [PASS] SD 1.5 is never claimed to be better in quality - 0 occurrence(s): []
+    [PASS] no 'in progress' status language - 0 occurrence(s)
+    [PASS] no 'not started' status language - 0 occurrence(s)
+    [PASS] no unfinished-content language - 0 occurrence(s)
+
+--- presentation: factual locks and status language ---
+    [PASS] device total 8187.5 MiB is stated - expected string not found in the rendered text
+    [PASS] worst spare 200 MiB is stated - expected string not found in the rendered text
+    [PASS] the false 8187.5-5143.73 margin does NOT appear - 0 occurrence(s): []
+    [PASS] retro-poster's PARTIAL PASS is stated - expected string not found in the rendered text
+    [PASS] the inconclusive RQ4 image-count result is stated - expected string not found in the rendered text
+    [PASS] the withdrawn 'both gates blind' claim does NOT appear - 0 occurrence(s): []
+    [PASS] 'comfortable headroom' appears only under a negation - 0 occurrence(s): []
+    [PASS] 'LoRA is the best' appears only under a negation - 0 occurrence(s): []
+    [PASS] SD 1.5 is never claimed to be better in quality - 0 occurrence(s): []
+    [PASS] no 'in progress' status language - 0 occurrence(s)
+    [PASS] no 'not started' status language - 0 occurrence(s)
+    [PASS] no unfinished-content language - 0 occurrence(s)
+
+--- the memory relationship, per document ---
+    [PASS] the deck states worst device used (7987.5) - the deck's margin arithmetic is not checkable without it
+    [PASS] the report states the one-shot device peak (7985.5)
+    [PASS] the report states peak allocated (5143.73)
+    [note] the report does not print 7987.5; its serving row shows '-' for peak device.
+           Not a false claim - an omission where a fact-locked measurement now exists.
+
+=== recorded state (measured now, not carried forward) ===
+  research report   91 pages · 2,772,732 B · 3d439a5eadb91916…
+  presentation      15 pages · 1,052,201 B · a11646b4ce7a9f13…
+  speaker notes     16 pages ·   251,823 B · d9c3275e07293970…
+
+=== B7 RESULT: ALL CHECKS PASS ===

@@ -1,0 +1,84 @@
+﻿=== M11 clean-clone: backend + frontend from the clone - 2026-08-15 03:57:01 ===
+port 8000 is occupied by com.docker.backend (Docker Desktop); using 8001 instead.
+No GPU work is done here: the pipeline loads on the FIRST generation request, and none is sent.
+
+uvicorn supervisor PID 18248
+
+--- GET /api/health ---
+{
+    "status":  "ok",
+    "pid":  31040,
+    "pipeline_loaded":  false,
+    "active_style":  null,
+    "generation_in_progress":  false,
+    "cuda_available":  true,
+    "device_name":  "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "device_total_mb":  8187.5,
+    "device_used_mb":  1081.5,
+    "allocated_mb":  0.0,
+    "single_worker_guard":  "enforced"
+}
+PASS - the backend serves from the clean clone
+
+--- the two processes 'uvicorn --workers 1' actually starts ---
+  worker PID 4036
+  worker PID 31040
+  supervisor PID 18248 - loads NO model
+
+--- GET /api/styles ---
+{
+    "styles":  [
+                   {
+                       "key":  "minimal-geometric",
+                       "label":  "Minimal geometric",
+                       "outcome":  "PASS",
+                       "limitation":  "",
+                       "trigger":  "xgeo",
+                       "run_id":  "EXP-027",
+                       "checkpoint_step":  300,
+                       "default_lora_weight":  0.7,
+                       "lora_weight_min":  0.4,
+                       "lora_weight_max":  1.0
+                   },
+                   {
+                       "key":  "ukiyo-e",
+                       "label":  "Ukiyo-e woodblock",
+                       "outcome":  "PASS",
+                       "limitation":  "",
+                       "trigger":  "xkyo",
+                       "run_id":  "EXP-028",
+                       "checkpoint_step":  600,
+                       "default_lora_weight":  0.7,
+                       "lora_weight_min":  0.4,
+                       "lora_weight_max":  1.0
+                   },
+                   {
+                       "key":  "retro-poster",
+                       "label":  "Retro silkscreen poster",
+                       "outcome":  "PARTIAL PASS",
+                       "limitation":  "Partial pass: this style also learned poster conventions from its sources - pseudo-text, borders and framed composition can appear in results.",
+                       "trigger":  "xpst",
+                       "run_id":  "EXP-029",
+                       "checkpoint_step":  300,
+                       "default_lora_weight":  0.7,
+                       "lora_weight_min":  0.4,
+                       "lora_weight_max":  1.0
+                   }
+               ],
+    "default_lora_weight":  0.7,
+    "default_ip_adapter_scale":  0.55,
+    "ip_adapter_scale_min":  0.4,
+    "ip_adapter_scale_max":  0.6,
+    "width":  512,
+    "height":  1536
+}
+
+--- stopping the API ---
+  stopping worker PID 4036
+  stopping worker PID 31040
+port 8001 released, no orphaned worker
+
+--- frontend: npm run preview against the built bundle (the documented -Preview path) ---
+FAIL - the preview server never answered on 4173
+
+=== finished 2026-08-15 03:58:31 ===

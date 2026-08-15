@@ -1,0 +1,56 @@
+=== B8 LINK AND PATH AUDIT ===
+tracked markdown files scanned  : 180
+markdown links resolved         : 70
+backticked paths resolved       : 576
+bare filenames named in prose   : 258  (each matches a tracked file)
+in-page anchors skipped         : 0
+distinct external URLs          : 27
+
+--- broken markdown links ---
+  none - every markdown link resolves
+
+--- written paths that intentionally do not resolve ---
+  slides/facts.yaml
+      DELIBERATELY ABSENT - the deck holds no facts of its own; DR-016 and the handoff both instruct that this file must never be created
+      cited in docs/decisions/DR-016-presentation-build-pipeline.md
+  loaders/ip_adapter.py
+      LIBRARY-INTERNAL - a path inside diffusers, cited to show where CLIPVisionModelWithProjection is loaded, not a file in this repository
+      cited in docs/evidence/EXP-007/adapter-environment-gate.md
+  slides/sources/13-step-300.md
+      HISTORICAL - a slide of the 26-slide deck, removed by DR-017's restructuring; the build record and process log describe what was there
+      cited in docs/evidence/M10/build-record.md
+  error-context.md
+      TOOL ARTEFACT - a file Playwright writes into its own trace output
+      cited in docs/evidence/M8/ci/runner-stall-trace.md
+  docs/evidence/EXP-0xx/training-runs.jsonl
+      TEMPLATE - 'EXP-0xx' is a pattern, not an identifier
+      cited in docs/evidence/prototype-4/GATE-1-handover.md
+      cited in docs/process/process-log.md
+  ViewerControls.tsx
+      HISTORICAL - see apps/web/src/viewer/ViewerControls.tsx
+      cited in docs/process/process-log.md
+      cited in docs/process/session-handoff.md
+      cited in docs/process/session-handoff.md
+  apps/web/src/viewer/ViewerControls.tsx
+      HISTORICAL - a Prototype 0 component, superseded by the M7 interface redesign; prototype-0.md records what Prototype 0 built and is not rewritten
+      cited in docs/prototypes/prototype-0.md
+
+--- stale paths (unexplained) ---
+  none
+
+--- external URLs by host ---
+  arxiv.org                                     9
+  github.com                                    6
+  huggingface.co                                3
+  www.loc.gov                                   2
+  download.pytorch.org                          1
+  www.metmuseum.org                             1
+  creativecommons.org                           1
+  pytorch.org                                   1
+  fastapi.tiangolo.com                          1
+  threejs.org                                   1
+  playwright.dev                                1
+
+(external reachability not checked - pass --check-external)
+
+=== B8 RESULT: every markdown link and every written path resolves ===

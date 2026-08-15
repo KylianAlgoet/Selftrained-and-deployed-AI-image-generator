@@ -1,0 +1,124 @@
+﻿M11 clean-clone phase 1 - started 2026-08-15 02:25:13
+source : C:\Expert Lab\Selftrained-and-deployed-AI-image-generator
+clone  : C:\Expert Lab\DeckForge-M11-clean-clone
+
+=== STEP 1: git clone (local repository as the remote) ===
+git : Cloning into 'C:\Expert Lab\DeckForge-M11-clean-clone'...
+At C:\Users\kylia\AppData\Local\Temp\claude\C--Expert-Lab-Selftrained-and-deployed-AI-image-generator\02cb667c-4d0b-4650-8ede-948485b98d75\scratc
+hpad\m11-clean-clone-phase1.ps1:24 char:24
++ $t = Measure-Command { git clone $src $clone 2>&1 | Tee-Object -FileP ...
++                        ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Cloning into 'C...clean-clone'...:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+done.
+clone took 1.8 s
+
+=== HEAD in the clone ===
+6bde9dc10b0929edfbea261973de03f636ccab6a
+6bde9dc docs(m10): add the Claude presentation handoff and asset manifest
+=== git status in the clone ===
+(empty above means a clean tree)
+
+=== STEP 2: ignored trees must be ABSENT in the clone ===
+  outputs                                       present=False
+  .venv                                         present=False
+  apps\web\node_modules                         present=False
+  data\raw                                      present=False
+  deliverables\M4-human-review-package          present=False
+=== tracked deliverables present in the clone ===
+  .gitkeep  0 bytes
+  DeckForge-AI-presentation-notes.pdf  251823 bytes
+  DeckForge-AI-presentation.pdf  1052201 bytes
+  DeckForge-AI-research-report.pdf  2772732 bytes
+
+=== STEP 3: python 3.11 venv ===
+Python 3.11.0
+--- upgrade pip (mandatory: venv ships pip 22.3, which cannot resolve torch) ---
+  Attempting uninstall: pip
+    Found existing installation: pip 22.3
+    Uninstalling pip-22.3:
+      Successfully uninstalled pip-22.3
+Successfully installed pip-26.2.1
+
+=== STEP 4: dependencies, in the runbook's order ===
+--- 4a. torch + torchvision from the PyTorch CUDA index ---
+Downloading filelock-3.32.3-py3-none-any.whl (98 kB)
+Using cached jinja2-3.1.6-py3-none-any.whl (134 kB)
+Using cached markupsafe-3.0.3-cp311-cp311-win_amd64.whl (15 kB)
+Downloading numpy-2.4.6-cp311-cp311-win_amd64.whl (12.6 MB)
+   ---------------------------------------- 12.6/12.6 MB 24.7 MB/s  0:00:00
+Installing collected packages: mpmath, typing-extensions, sympy, setuptools, pillow, numpy, networkx, MarkupSafe, fsspec, filelock, jinja2, torch, torchvision
+  Attempting uninstall: setuptools
+    Found existing installation: setuptools 65.5.0
+    Uninstalling setuptools-65.5.0:
+      Successfully uninstalled setuptools-65.5.0
+
+Successfully installed MarkupSafe-3.0.3 filelock-3.32.3 fsspec-2026.7.0 jinja2-3.1.6 mpmath-1.3.0 networkx-3.6.1 numpy-2.4.6 pillow-12.3.0 setuptools-78.1.0 sympy-1.14.0 torch-2.13.0+cu126 torchvision-0.28.0+cu126 typing-extensions-4.16.0
+torch install took 184.5 s
+--- 4b. pip install -r ml\requirements.txt ---
+Using cached scipy-1.17.1-cp311-cp311-win_amd64.whl (36.6 MB)
+Installing collected packages: scipy, PyWavelets, pygments, pluggy, Pillow, packaging, iniconfig, colorama, pytest, imagehash
+  Attempting uninstall: Pillow
+    Found existing installation: pillow 12.3.0
+    Uninstalling pillow-12.3.0:
+      Successfully uninstalled pillow-12.3.0
+
+Successfully installed Pillow-11.3.0 PyWavelets-1.9.0 colorama-0.4.6 imagehash-4.3.2 iniconfig-2.3.0 packaging-26.3 pluggy-1.6.0 pygments-2.20.0 pytest-8.4.2 scipy-1.17.1
+  took 54 s
+--- 4b. pip install -r ml\requirements-inference.txt ---
+Using cached annotated_doc-0.0.5-py3-none-any.whl (5.3 kB)
+Using cached rich-15.0.0-py3-none-any.whl (310 kB)
+Using cached markdown_it_py-4.2.0-py3-none-any.whl (91 kB)
+Using cached mdurl-0.1.2-py3-none-any.whl (10.0 kB)
+Using cached shellingham-1.5.4-py2.py3-none-any.whl (9.8 kB)
+Installing collected packages: zipp, urllib3, tqdm, shellingham, safetensors, regex, pyyaml, psutil, mdurl, idna, hf-xet, h11, click, charset_normalizer, certifi, annotated-doc, requests, markdown-it-py, importlib_metadata, httpcore, anyio, rich, httpx, typer, huggingface_hub, tokenizers, diffusers, accelerate, transformers
+
+Successfully installed accelerate-1.14.0 annotated-doc-0.0.5 anyio-4.14.2 certifi-2026.7.22 charset_normalizer-3.5.0 click-8.4.2 diffusers-0.39.0 h11-0.16.0 hf-xet-1.6.0 httpcore-1.0.9 httpx-0.28.1 huggingface_hub-1.25.1 idna-3.18 importlib_metadata-9.0.0 markdown-it-py-4.2.0 mdurl-0.1.2 psutil-7.2.2 pyyaml-6.0.3 regex-2026.7.19 requests-2.34.2 rich-15.0.0 safetensors-0.8.0 shellingham-1.5.4 tokenizers-0.22.2 tqdm-4.70.0 transformers-5.14.1 typer-0.27.1 urllib3-2.7.0 zipp-4.1.0
+  took 117.5 s
+--- 4b. pip install -r ml\requirements-training.txt ---
+Requirement already satisfied: rich>=13.8.0 in .\.venv\Lib\site-packages (from typer->transformers->peft==0.20.0->-r C:\Expert Lab\DeckForge-M11-clean-clone\ml\requirements-training.txt (line 57)) (15.0.0)
+Requirement already satisfied: annotated-doc>=0.0.2 in .\.venv\Lib\site-packages (from typer->transformers->peft==0.20.0->-r C:\Expert Lab\DeckForge-M11-clean-clone\ml\requirements-training.txt (line 57)) (0.0.5)
+Requirement already satisfied: markdown-it-py>=2.2.0 in .\.venv\Lib\site-packages (from rich>=13.8.0->typer->transformers->peft==0.20.0->-r C:\Expert Lab\DeckForge-M11-clean-clone\ml\requirements-training.txt (line 57)) (4.2.0)
+Requirement already satisfied: pygments<3.0.0,>=2.13.0 in .\.venv\Lib\site-packages (from rich>=13.8.0->typer->transformers->peft==0.20.0->-r C:\Expert Lab\DeckForge-M11-clean-clone\ml\requirements-training.txt (line 57)) (2.20.0)
+Requirement already satisfied: mdurl~=0.1 in .\.venv\Lib\site-packages (from markdown-it-py>=2.2.0->rich>=13.8.0->typer->transformers->peft==0.20.0->-r C:\Expert Lab\DeckForge-M11-clean-clone\ml\requirements-training.txt (line 57)) (0.1.2)
+Using cached peft-0.20.0-py3-none-any.whl (775 kB)
+Installing collected packages: peft
+Successfully installed peft-0.20.0
+  took 6.6 s
+--- 4b. pip install -r apps\api\requirements.txt ---
+Using cached pydantic-2.13.4-py3-none-any.whl (472 kB)
+Using cached pydantic_core-2.46.4-cp311-cp311-win_amd64.whl (2.1 MB)
+Using cached annotated_types-0.8.0-py3-none-any.whl (13 kB)
+Using cached starlette-1.6.0-py3-none-any.whl (75 kB)
+Downloading typing_inspection-0.4.4-py3-none-any.whl (14 kB)
+Installing collected packages: typing-inspection, python-multipart, pydantic-core, annotated-types, uvicorn, starlette, pydantic, fastapi
+
+Successfully installed annotated-types-0.8.0 fastapi-0.141.1 pydantic-2.13.4 pydantic-core-2.46.4 python-multipart-0.0.32 starlette-1.6.0 typing-inspection-0.4.4 uvicorn-0.52.1
+  took 8.3 s
+
+=== STEP 5: pip check, and the protected pins verified by real import ===
+No broken requirements found.
+torch         2.13.0+cu126
+torchvision   0.28.0+cu126
+diffusers     0.39.0
+transformers  5.14.1
+accelerate    1.14.0
+safetensors   0.8.0
+peft          0.20.0
+pillow        11.3.0
+cuda available True
+device        NVIDIA GeForce RTX 4060 Laptop GPU
+
+=== STEP 6: npm ci from the lockfile ===
+To address all issues, run:
+  npm audit fix
+
+Run `npm audit` for details.
+npm warn allow-scripts 1 package has install scripts not yet covered by allowScripts:
+npm warn allow-scripts   esbuild@0.25.12 (postinstall: node install.js)
+npm warn allow-scripts
+npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to review, or `npm approve-scripts <pkg>` to allow.
+npm ci took 12.6 s
+
+M11 clean-clone phase 1 - finished 2026-08-15 02:32:36

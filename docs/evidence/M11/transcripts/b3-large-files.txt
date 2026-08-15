@@ -1,0 +1,48 @@
+=== B3 LARGE-FILE AUDIT - 2026-08-15T00:32:28Z ===
+Method: every blob in the HEAD tree, ranked by real size from 'git cat-file'.
+
+--- top 25 tracked blobs at HEAD ---
+   2772732  deliverables/DeckForge-AI-research-report.pdf
+   1052201  deliverables/DeckForge-AI-presentation.pdf
+    316549  docs/evidence/EXP-031/final-matrix.jsonl
+    289893  docs/evidence/prototype-2/multiseed-diversity.jpg
+    252571  docs/evidence/prototype-2/all-generation-results.csv
+    251823  deliverables/DeckForge-AI-presentation-notes.pdf
+    227568  docs/evidence/prototype-1/cross-model-track-B-seed42.jpg
+    225025  docs/evidence/prototype-2/method-comparison-medium-seed42.jpg
+    209369  docs/evidence/prototype-1/cross-model-track-A-seed42.jpg
+    200015  docs/evidence/prototype-2/sweep-ipadapter-seed42.jpg
+    182094  docs/evidence/prototype-2/sweep-img2img-seed42.jpg
+    181828  docs/evidence/dataset-v1/contact-sheet-ukiyo-e.jpg
+    179824  docs/evidence/EXP-009/results-ip-adapter-512x512.jsonl
+    178886  docs/evidence/prototype-4/final-sheets/EXP-029__retro-poster__ck00600__512x512.jpg
+    174985  docs/evidence/prototype-4/final-sheets/EXP-029__retro-poster__ck00300__512x512.jpg
+    173741  apps/web/package-lock.json
+    168559  docs/evidence/EXP-008/results-img2img-512x512.jsonl
+    167956  docs/evidence/EXP-033/final-indicators.jsonl
+    163863  docs/process/process-log.md
+    155161  docs/evidence/dataset-v1/contact-sheet-retro-poster.jpg
+    138327  docs/evidence/prototype-4/final-sheets/EXP-028__ukiyo-e__ck00600__512x512.jpg
+    133571  docs/evidence/prototype-4/final-sheets/EXP-028__ukiyo-e__ck00300__512x512.jpg
+    131734  docs/evidence/prototype-4/final-sheets/EXP-027__minimal-geometric__ck00300__512x512.jpg
+    118441  docs/evidence/EXP-030/loss-history-EXP-030__multi-style__512x512__r8a8__lr0p0001__bs1x1__st1800__seed42__tier0.jsonl
+    117342  docs/evidence/EXP-025/pilot-matrix.jsonl
+
+--- total tracked size ---
+15659349 bytes across 584 files (14.9 MB)
+
+--- files over 1 MB ---
+   2772732  deliverables/DeckForge-AI-research-report.pdf
+   1052201  deliverables/DeckForge-AI-presentation.pdf
+
+--- largest blob EVER committed (any ref) ---
+   2772732  deliverables/DeckForge-AI-research-report.pdf
+   2772732  deliverables/DeckForge-AI-research-report.pdf
+   2772732  deliverables/DeckForge-AI-research-report.pdf
+   2769385  deliverables/DeckForge-AI-research-report.pdf
+   2756980  deliverables/DeckForge-AI-research-report.pdf
+   1313731  deliverables/DeckForge-AI-presentation.pdf
+   1055459  deliverables/DeckForge-AI-presentation.pdf
+   1054584  deliverables/DeckForge-AI-presentation.pdf
+   1052201  deliverables/DeckForge-AI-presentation.pdf
+    380486  deliverables/DeckForge-AI-presentation-notes.pdf

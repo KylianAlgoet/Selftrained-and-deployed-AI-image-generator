@@ -1,0 +1,48 @@
+=== B1 REPOSITORY INTEGRITY - 2026-08-15T00:26:56Z ===
+
+--- git status --short ---
+?? docs/evidence/M11/
+(empty = clean tree)
+
+--- git rev-parse HEAD ---
+6bde9dc10b0929edfbea261973de03f636ccab6a
+--- branch / upstream ---
+* main 6bde9dc [origin/main: ahead 19] docs(m10): add the Claude presentation handoff and asset manifest
+--- ahead/behind vs origin/main (left=origin, right=local) ---
+0	19
+
+--- tracked file count ---
+584
+--- untracked, not ignored ---
+docs/evidence/M11/transcripts/b1-repo-integrity.txt
+docs/evidence/M11/transcripts/clean-clone-phase1.txt
+(empty = none)
+
+--- ignored top-level trees present in the working tree ---
+!! .claude/settings.local.json
+!! .pytest_cache/
+!! .venv/
+!! apps/api/__pycache__/
+!! apps/api/tests/__pycache__/
+!! apps/web/dist/
+!! apps/web/node_modules/
+!! apps/web/test-results/
+!! data/raw/
+!! deliverables/DeckForge-AI-presentation-notes.html
+!! deliverables/DeckForge-AI-presentation.html
+!! deliverables/DeckForge-AI-research-report.html
+!! deliverables/DeckForge-Claude-Final.zip
+!! deliverables/M4-human-review-package.zip
+!! deliverables/M4-human-review-package/
+!! ml/__pycache__/
+!! ml/dataset/__pycache__/
+!! ml/dataset/tests/__pycache__/
+!! ml/evaluation/__pycache__/
+!! ml/evaluation/tests/__pycache__/
+!! ml/inference/__pycache__/
+!! ml/inference/tests/__pycache__/
+!! ml/training/__pycache__/
+!! ml/training/tests/__pycache__/
+!! outputs/
+!! scripts/__pycache__/
+!! tests/__pycache__/
