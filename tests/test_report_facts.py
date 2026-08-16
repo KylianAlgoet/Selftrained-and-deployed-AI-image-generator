@@ -203,19 +203,32 @@ def test_facts_file_is_valid_yaml_with_required_keys() -> None:
         assert body["method"] in {"structural", "exact_hash", "prose_regex"}
 
 
-def test_the_generation_total_is_twenty_eight(facts: list[Fact]) -> None:
+def test_the_generation_total_is_thirty_one(facts: list[Fact]) -> None:
     """Guarded explicitly because reporting 25 has been a live risk all project.
 
-    25 is the research cap; 28 is the truth (25 research + 1 M7 human review
-    + 1 M8 deployment validation + 1 M11 final-audit validation).
+    25 is the research cap; 31 is the current truth (25 research + 1 M7 human
+    review + 1 M8 deployment validation + 1 M11 final-audit validation + 3 M12
+    demo rehearsal).
 
-    It was 27 until 2026-08-15. The M8 evidence still reads 27 and is correct
-    for its date, so the lock was re-pointed at the M11 record rather than that
-    file being rewritten.
+    It was 27 until 2026-08-15 and 28 until 2026-08-16. The M8 evidence still
+    reads 27 and the M11 evidence still reads 28; both are correct for their
+    dates, so the lock is re-pointed at the newest record rather than those
+    files being rewritten.
     """
     resolved = resolve(facts)
-    assert resolved["generations_total"] == 28
+    assert resolved["generations_total"] == 31
     assert resolved["generations_research"] == 25
+
+
+def test_the_failed_gpu_attempt_is_counted_separately(facts: list[Fact]) -> None:
+    """The 2026-08-16 VIDEO_TDR_FAILURE produced no image and must not inflate the total.
+
+    A crashed attempt is not a generation. It is recorded because hiding it would
+    misrepresent what the hardware actually did, not because it produced a result.
+    """
+    resolved = resolve(facts)
+    assert resolved["generations_failed_attempts"] == 1
+    assert resolved["generations_total"] == 31
 
 
 def test_the_production_margin_is_the_serving_figure(facts: list[Fact]) -> None:

@@ -87,15 +87,28 @@ pytest_total:
 # ------------------------------------------------------------------ generation ---
 
 generations_total:
-  value: 28
-  source: docs/evidence/M11/gpu-validation.md
+  value: 31
+  source: docs/evidence/M12/demo-rehearsal.md
   method: prose_regex
   pattern: '\*\*Generation count:\s*(?P<value>\d+)\*\*'
-  description: total real GPU generations across the project
-  # Re-pointed at M11 on 2026-08-15, when the final-audit validation made it 28.
-  # docs/evidence/M8/README.md still reads 27 and is NOT edited: that is the
-  # state at the end of M8 and is correct for its date. The current global total
-  # lives with the run that produced it.
+  description: total completed real GPU generations across the project
+  # Re-pointed a second time at M12 on 2026-08-16, when three completed generations
+  # in the post-M11 demo rehearsal made it 31.
+  #
+  # The same rule as before: earlier records are NOT edited. M8 still reads 27 and
+  # M11 still reads 28, because both were true on their dates. The current global
+  # total always lives with the run that produced it.
+  #
+  # The failed VIDEO_TDR_FAILURE attempt of the same day is NOT in this number - it
+  # produced no image. It is recorded separately in the M12 record as one failed GPU
+  # inference attempt.
+
+generations_failed_attempts:
+  value: 1
+  source: docs/evidence/M12/demo-rehearsal.md
+  method: prose_regex
+  pattern: '\*\*(?P<value>\d+) failed GPU inference attempt\*\*'
+  description: GPU inference attempts that crashed the machine and produced no image
 
 generations_research:
   value: 25
