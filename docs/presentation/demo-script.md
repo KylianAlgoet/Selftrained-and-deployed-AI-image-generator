@@ -44,8 +44,13 @@ Point, don't click: prompt · style · optional reference image · advanced sett
 
 ### 0:45 · **Press Generate**
 
-Type the prompt beforehand so the click is instant. Suggested: **`a mountain and a rising sun`**,
-style **Ukiyo-e woodblock** — the unambiguous PASS, and its results read well at a distance.
+Type the prompt beforehand so the click is instant. Use **`Mount Fuji under a red sun`**, style
+**Ukiyo-e woodblock** — the unambiguous PASS, and its results read well at a distance.
+
+**Use this prompt because it is the one that was actually rehearsed** on 2026-08-16
+(`docs/evidence/M12/demo-rehearsal.md`), not because the earlier suggestion
+(`a mountain and a rising sun`) was found wanting — the two were never compared, and no evidence
+says one is better. On the day, the rehearsed path is the safer one.
 
 ### 0:45–1:30 · Talk over the generation
 
