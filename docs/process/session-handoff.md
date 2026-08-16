@@ -1,9 +1,30 @@
 # Session handoff
 
-**Last updated:** 2026-08-15 (M11 — **audit + GPU validation done; push and deck gate remain**;
+**Last updated:** 2026-08-16 (M12 — **submission package assembled; deck gate remains**;
 under Opus 5)
 
-## M11 GPU VALIDATION — PASS, byte-identical. Generation total is now 28
+## M12 (2026-08-16) — GPU crash, demo rehearsal, submission package
+
+**Current generation total is 31**, plus **1 failed GPU inference attempt** counted separately.
+Record: `docs/evidence/M12/demo-rehearsal.md`.
+
+| | |
+|---|---|
+| failed attempt | **VIDEO_TDR_FAILURE `0x116`**, driver `nvlddmkm.sys`, no PNG produced |
+| recovery | preflight **10 of 10**, all three adapters matched their sha256 — nothing corrupted |
+| completed generations | **3**, all 512 × 1536, sha256 recorded |
+| **metadata for those 3** | **NOT captured and not recoverable** — recorded as unknown, never reconstructed |
+| report | rebuilt for the 31 total — **new sha256 `b02c37bd724d8f8c…`**, 91 pages, 2 773 108 B |
+| new files | `README.md` (now the prototype documentation), `SUBMISSION.md`, `docs/evidence/M12/` |
+
+**The report build hit the F1 short build on the first attempt** (1 971 962 B, 34 729 fills) and
+needed a second run to land healthy (1 500 559 fills). **Always re-run
+`docs/evidence/M11/check_report_leaders.py` after any rebuild.**
+
+**`generations_total` was re-pointed a second time**, to `docs/evidence/M12/demo-rehearsal.md`.
+M8 still reads 27 and M11 still reads 28 — both correct for their dates. Do not "fix" either.
+
+## M11 GPU VALIDATION — PASS, byte-identical. Generation total was 28 at the M11 close
 
 | | |
 |---|---|
@@ -15,7 +36,8 @@ under Opus 5)
 | **generation total** | **28** (was 27) |
 | record | `docs/evidence/M11/gpu-validation.md` |
 
-**No further GPU generation is authorised.** The total is **28** and 28 is what gets reported.
+**No further GPU generation is authorised.** The total was **28** at the M11 close and that is what
+this section reports; **the current total is 31** — see the M12 section above.
 
 ### ⚠️ `generations_total` was RE-POINTED, not rewritten — do not "fix" this
 

@@ -10,7 +10,7 @@ Full audit: `docs/evidence/M11/assignment-audit.md` · findings: `docs/evidence/
 
 ## 1. The thirteen mandatory requirements
 
-**11 of 13 PASS. 2 PARTIAL, both waiting on a human action, neither a defect in the work.**
+**12 of 13 PASS. 1 PARTIAL, waiting on a human action, not a defect in the work.**
 
 | # | requirement | state | owner |
 |---:|---|---|---|
@@ -19,20 +19,20 @@ Full audit: `docs/evidence/M11/assignment-audit.md` · findings: `docs/evidence/
 | 3 | ≥ 3 visually distinct styles | **PASS** — three adapters served live; `retro-poster` carries its PARTIAL PASS into the API payload | — |
 | 4 | trained or fine-tuned locally | **PASS** — 10 runs on the audited RTX 4060 | — |
 | 5 | text + reference-image conditioning | **PASS** — IP-Adapter at 0.55 (DR-008) | — |
-| 6 | generates new decal artwork | **PASS** — **28** real GPU generations; re-validated live on 2026-08-15, byte-identical to a hash declared before the run | — |
+| 6 | generates new decal artwork | **PASS** — **31** completed real GPU generations (current total); re-validated live on 2026-08-15, byte-identical to a hash declared before the run. Plus **1 failed GPU inference attempt** on 2026-08-16, counted separately — `docs/evidence/M12/demo-rehearsal.md` | — |
 | 7 | mapped onto a 3D skateboard | **PASS** — 38 Playwright scenarios against a live WebGL context | — |
 | 8 | reproducible deployment/demo setup | **PASS** — M11 clean clone: clone → restore → running system | — |
 | 9 | public planning link | **PASS** — HTTP 200 verified this session | — |
 | 10 | research documentation as PDF | **PASS** — 91 pages, rebuilt and re-verified 2026-08-15 | — |
 | 11 | prototype evidence | **PASS** — prototypes 0–5, none skipped | — |
-| 12 | final GitHub result | **PARTIAL** — **19 commits unpushed** | **Kylian** |
+| 12 | final GitHub result | **PASS** — the M11 backlog was pushed 2026-08-15 23:55; the M12 submission commits are pushed on top. **Submission baseline: the tip of `origin/main`** — see §7 | — |
 | 13 | presentation as PDF | **PARTIAL** — **no visual gate, no rehearsal** | **Kylian** |
 
 ## 2. What only Kylian can do, in priority order
 
 | # | action | why it cannot be done here | blocks |
 |---:|---|---|---|
-| **1** | **`git push`** — 19 commits | remote operations need his explicit approval; `origin/main` is 19 behind | **requirement 12** |
+| ~~1~~ | ~~**`git push`** — 19 commits~~ | **DONE 2026-08-15 23:55** — reflog records `update by push` and `.git/FETCH_HEAD` confirms it. The M12 submission commits were pushed on 2026-08-16 | — |
 | **2** | **Open the 15-slide deck and review every slide** | every check that has run is *structural*; nothing says the deck is legible or that the argument survives compression | **requirement 13** |
 | **3** | **Rehearse against a clock** | 14:13 is a word count at an assumed 130 wpm, not a measured delivery | **requirement 13** |
 | 4 | Comment on and close **GitHub issue #10**; move the project board | `gh` is absent from this machine, and closing a public issue is his action regardless | public planning state |
@@ -40,11 +40,11 @@ Full audit: `docs/evidence/M11/assignment-audit.md` · findings: `docs/evidence/
 | 6 | Decide whether to **gate** the report build on the TOC-leader check | it edits the build under a freeze for a cosmetic defect | nothing — informational |
 | 7 | Write the **M9 entry in `docs/ai-usage.md`**, or leave it absent | reconstructing it from commits days later is the plausible-but-unwitnessed account that log exists to guard against | completeness of the AI-usage record |
 
-## 3. Artifacts, as measured on 2026-08-15
+## 3. Artifacts, as measured on 2026-08-16 (report rebuilt for the 31 total)
 
 | artifact | pages | bytes | sha256 |
 |---|---:|---:|---|
-| `deliverables/DeckForge-AI-research-report.pdf` | **91** | 2 773 114 | `5f2fe9c494d4978e…` |
+| `deliverables/DeckForge-AI-research-report.pdf` | **91** | 2 773 108 | `b02c37bd724d8f8c…` |
 | `deliverables/DeckForge-AI-presentation.pdf` | **15** | 1 052 201 | `a11646b4ce7a9f13…` |
 | `deliverables/DeckForge-AI-presentation-notes.pdf` | **16** | 251 823 | `d9c3275e07293970…` |
 
@@ -91,5 +91,35 @@ DeckForge AI generates anything, and this project does not present it as such.
 6. **Do not solve a presentation overrun by speaking faster**, and do not widen the narration band.
 7. **Do not retrain, and do not delete `outputs/lora/`.** R14 means the three production adapters
    cannot be regenerated; they are authoritative as files, by sha256.
-8. **Do not run GPU inference.** The total is **28** and no further generation is authorised. The
-   M11 final-audit validation on 2026-08-15 was the last one Kylian approved.
+8. **Do not run GPU inference.** The current total is **31** and no further generation is
+   authorised. The three M12 demo-rehearsal runs on 2026-08-16 were the last Kylian approved.
+   Historical records keep their historical numbers — M8 reads 27, M11 reads 28 — and must not be
+   "corrected" to 31. See `docs/evidence/M12/demo-rehearsal.md`.
+9. **Do not fill in the missing metadata for the three M12 outputs.** Seed, scheduler, guidance
+   and adapter checkpoint were never captured and cannot be recovered. They are recorded as
+   unknown on purpose; a plausible reconstruction would be indistinguishable from a measurement.
+
+## 7. The submission baseline
+
+**The submitted state is the tip of `origin/main` on branch `main`.**
+
+A commit cannot contain its own hash, so this file does not quote the final SHA — that would
+either be wrong or force an amend-and-repush cycle. The baseline is instead pinned by things that
+*are* stable inside the commit:
+
+| anchor | value |
+|---|---:|
+| research report | 91 pages · 2 773 108 B · `b02c37bd724d8f8c…` |
+| presentation | 15 pages · 1 052 201 B · `a11646b4ce7a9f13…` |
+| speaker notes | 16 pages · 251 823 B · `d9c3275e07293970…` |
+| current generation total | **31** completed, **1** failed attempt |
+
+To confirm what was submitted: `git log -1` on `main`, with `git status` clean and the branch
+level with `origin/main`. The three artifact hashes above are reproducible with `Get-FileHash`
+and must match; **if a hash differs, the PDF was rebuilt after this file was written** — re-run
+`docs/evidence/M11/audit_pdfs.py` and update the table rather than trusting it.
+
+**Rebuilding the report is not idempotent.** Chrome embeds a timestamp, and the build
+intermittently drops the TOC dot leaders (F1) — the 2026-08-16 rebuild hit the short build on the
+first attempt (1 971 962 B, 34 729 fills) and needed a second run to land healthy (2 773 108 B,
+1 500 559 fills). **Always re-run `check_report_leaders.py` after any rebuild.**

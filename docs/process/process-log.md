@@ -1,5 +1,50 @@
 # Process log
 
+## 2026-08-16 — M12: GPU crash, demo rehearsal, and the submission package
+
+**Objective.** Recover from a driver crash that killed a demo run, establish the honest generation
+count, and assemble the second-sit submission package.
+
+**Plan.** Read-only crash diagnosis → recover and verify the GPU → resolve the count → rebuild the
+report for it → make `README.md` the prototype documentation → add `SUBMISSION.md` → full non-GPU
+validation → commit and push.
+
+**Completed.**
+
+- `docs/evidence/M12/demo-rehearsal.md` — the crash, the recovery, and the three completed outputs.
+- `generations_total` 28 → **31**, re-pointed to the M12 record. New lock
+  `generations_failed_attempts` = **1**. New test `test_the_failed_gpu_attempt_is_counted_separately`.
+- Report rebuilt: **91 pages, 2 773 108 B, `b02c37bd724d8f8c…`**.
+- `README.md` rewritten as the official prototype documentation (10 tracked images, 74 links).
+- `SUBMISSION.md` added. `docs/submission-checklist.md` §7 added; stale report hash corrected.
+
+**Real results.**
+
+| check | result |
+|---|---|
+| crash | bugcheck `0x116` VIDEO_TDR_FAILURE, driver `nvlddmkm.sys`, **no PNG produced** |
+| WHEA hardware errors | **none** in 7 days |
+| recovery preflight | **10 of 10 PASS**, all three adapters matched sha256 |
+| pytest | **528 passed** (527 + 1 new) |
+| vitest · Playwright | **183 passed** (12 files) · **38 passed** |
+| eslint · build | clean · succeeds |
+| report facts · validation | **35 locks resolve** · 27/27 hard checks, 8 pre-existing advisories |
+| TOC leaders | **PASS**, 1 500 559 fills — *after* a first attempt produced the F1 short build |
+| PDF audit · link audit · dataset audit | **ALL PASS** · every link resolves · manifest matches facts.yaml |
+| secret scan · large files | clean · only the two required PDFs exceed 1 MB; **no weights tracked** |
+
+**Blockers and honest gaps.** The **crash cause was not established** — the minidump is unreadable
+without elevation, and `0xC000009A` is the status from the failed reset, *not* evidence of VRAM
+exhaustion. The **`GenerationMetadata` for all three rehearsal outputs was never captured** and
+cannot be recovered: it lives in process memory, the PNGs carry no embedded metadata, no endpoint
+reads it back, and the UI keeps only the latest result. Recorded as unknown; **not reconstructed.**
+
+**Decisions.** Count completed generations only (31); record the failed attempt separately (1).
+Re-point the lock rather than edit dated M8/M11 records. Do not rebuild the presentation — no slide
+states a generation total.
+
+**Next step.** Human visual gate and a timed rehearsal of the 15-slide deck (requirement 13).
+
 ## 2026-08-15 (second) — M11: the final GPU validation, byte-identical
 
 **Objective.** Run the one real GPU generation issue #12 requires of the final audit, against an
