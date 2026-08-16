@@ -80,6 +80,10 @@ EXPECTED_UNRESOLVED = {
         "TEMPLATE - 'EXP-0xx' is a pattern, not an identifier",
     "error-context.md":
         "TOOL ARTEFACT - a file Playwright writes into its own trace output",
+    ".run/demo.json":
+        "RUNTIME ARTEFACT - written by start-demo.ps1 and deleted by stop-demo.ps1, "
+        "inside the git-ignored .run/ directory. The M12 record cites its timestamp as "
+        "evidence of when the demo was alive; the file itself is not expected to survive",
     "apps/web/src/viewer/ViewerControls.tsx":
         "HISTORICAL - a Prototype 0 component, superseded by the M7 interface "
         "redesign; prototype-0.md records what Prototype 0 built and is not rewritten",
