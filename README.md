@@ -1,7 +1,7 @@
 # DeckForge AI
 
 **A self-trained, locally deployed AI skateboard-decal generator.**
-Final bachelor resit assignment, Multimedia & Creative Technologies (Erasmushogeschool Brussel) —
+Final bachelor resit assignment, Multimedia & Creative Technologies (Erasmushogeschool Brussel), by
 Kylian Algoet.
 
 > **This README is the prototype documentation for the submission.** It documents what was built,
@@ -20,7 +20,7 @@ A skateboard manufacturer's customer wants a custom deck graphic but cannot draw
 artwork is generic. DeckForge AI turns a written description into deck artwork in a chosen visual
 style, and shows it on the deck before anything is printed.
 
-It runs **entirely on local hardware** — one laptop GPU, no cloud inference, no third-party image
+It runs **entirely on local hardware**: one laptop GPU, no cloud inference, no third-party image
 API. That constraint drives most of the engineering in this project.
 
 ## 2. Research goal
@@ -32,7 +32,7 @@ API. That constraint drives most of the engineering in this project.
 The subquestions, the method, and the answers are in
 [`docs/01-research-plan.md`](docs/01-research-plan.md) and the
 [research PDF](deliverables/DeckForge-AI-research-report.pdf). Eight questions are answered within
-scope, four are bounded, and **RQ4's image-count component is explicitly inconclusive** — that is
+scope, four are bounded, and **RQ4's image-count component is explicitly inconclusive**. That is
 reported as a result, not hidden.
 
 ## 3. What the finished application does
@@ -48,16 +48,16 @@ reported as a result, not hidden.
 | Local GPU execution | one FastAPI worker, one resident pipeline, no cloud call |
 
 ![The production interface, idle](docs/evidence/prototype-5/screenshots/ui/01-idle-production.jpg)
-*The production interface before a run: prompt, style selector, reference upload, and the 3D deck.*
+The production interface before a run: prompt, style selector, reference upload, and the 3D deck.
 
 ![A completed generation mapped onto the deck](docs/evidence/M11/gpu-validation/screenshots/03-result-and-deck.png)
-*A completed generation, shown as flat artwork and mapped onto the 3D deck.*
+A completed generation, shown as flat artwork and mapped onto the 3D deck.
 
 ![The deck orbited](docs/evidence/M11/gpu-validation/screenshots/04-deck-orbited.png)
-*The same deck orbited — the preview is a live WebGL scene, not a static mockup.*
+The same deck orbited: the preview is a live WebGL scene, not a static mockup.
 
 ![Uploading your own decal](docs/evidence/prototype-5/screenshots/ui/10-upload-own-decal.jpg)
-*The upload path: a user's own artwork mapped onto the deck without generating anything.*
+The upload path: a user's own artwork mapped onto the deck without generating anything.
 
 ## 4. The prototype journey
 
@@ -66,64 +66,64 @@ decision that changed the next one. Full write-ups in [`docs/prototypes/`](docs/
 
 ### Prototype 0 — the 3D deck viewer
 
-*Can a deck be shown in the browser with correct orientation before any AI exists?*
+Can a deck be shown in the browser with correct orientation before any AI exists?
 Built first, deliberately: it made every later result visible on the actual product surface.
 
 ![Prototype 0, correct orientation](docs/evidence/prototype-0/p0-01-initial-correct-orientation.png)
-*Prototype 0: the first working deck with correct nose–tail orientation.*
+Prototype 0: the first working deck with correct nose–tail orientation.
 
 ![Prototype 0, inverted UV demonstration](docs/evidence/prototype-0/p0-02-inverted-uv-demonstration.png)
-*A controlled inverted-UV demonstration, showing what an incorrect UV orientation would look like.
+A controlled inverted-UV demonstration, showing what an incorrect UV orientation would look like.
 Prototype 0's decal orientation was correct on the first real render; this image was produced
-deliberately to make the wrong case visible — which is why orientation is asserted by a test.*
+deliberately to make the wrong case visible, which is why orientation is asserted by a test.
 
-**Learned:** texture orientation is a silent failure — it looks plausible upside-down. → tests
+**Learned:** texture orientation is a silent failure: it looks plausible upside-down. → tests
 assert orientation ([`DR-005`](docs/decisions/DR-005-deck-geometry-source.md),
 [`DR-012`](docs/decisions/DR-012-deck-texture-fit.md)).
 
 ### Prototype 1 — base-model benchmark
 
-*Which pretrained model fits 8 GB VRAM and still produces usable decal art?*
-**Three candidates were planned — SD 1.5, SD 2.1 and SDXL — but only two were ever measured.**
+Which pretrained model fits 8 GB VRAM and still produces usable decal art?
+**Three candidates were planned (SD 1.5, SD 2.1 and SDXL), but only two were ever measured.**
 SD 1.5 and SDXL were benchmarked on fixed prompts and seeds. **SD 2.1 was blocked by an
 authentication gate and was never successfully benchmarked**, so the measured decision rests on
 two candidates, not three.
 
 ![Cross-model comparison, seed 42](docs/evidence/prototype-1/cross-model-track-A-seed42.jpg)
-*Cross-model comparison at a fixed seed — the same prompt through the two base models that could
-actually be measured.*
+Cross-model comparison at a fixed seed: the same prompt through the two base models that could
+actually be measured.
 
 **Result: SD 1.5 selected for hardware feasibility, not for image quality.** Under the project's
-rubric, **SDXL scored better at its designed resolution** — but it does not leave room for
+rubric, **SDXL scored better at its designed resolution**, but it does not leave room for
 reference conditioning plus a LoRA adapter on this 8 GB GPU. SD 1.5 is pinned at revision
-`451f4fe1…`, with SDXL retained as the quality benchmark rather than the production model —
-[`DR-007`](docs/decisions/DR-007-base-model-selection.md).
+`451f4fe1…`, with SDXL retained as the quality benchmark rather than the production model (see
+[`DR-007`](docs/decisions/DR-007-base-model-selection.md)).
 
 ### Prototype 2 — text + reference conditioning
 
-*How should a reference image influence the result without copying it?*
+How should a reference image influence the result without copying it?
 img2img and IP-Adapter compared across a scale sweep.
 
-**Result:** **IP-Adapter at 0.55** — img2img either ignored the reference or reproduced it too
+**Result:** **IP-Adapter at 0.55**. img2img either ignored the reference or reproduced it too
 closely. Copy-risk was measured explicitly
-([`docs/evidence/prototype-2/copy-risk.md`](docs/evidence/prototype-2/copy-risk.md)) —
-[`DR-008`](docs/decisions/DR-008-reference-conditioning-method.md).
+([`docs/evidence/prototype-2/copy-risk.md`](docs/evidence/prototype-2/copy-risk.md); see
+[`DR-008`](docs/decisions/DR-008-reference-conditioning-method.md)).
 
 ### Prototype 3 — LoRA smoke test
 
-*Can this GPU fine-tune at all?* A deliberately minimal 300-step run before committing to training.
-It succeeded, so full training was attempted — [`DR-009`](docs/decisions/DR-009-fine-tuning-method.md).
+Can this GPU fine-tune at all? A deliberately minimal 300-step run before committing to training.
+It succeeded, so full training was attempted (see [`DR-009`](docs/decisions/DR-009-fine-tuning-method.md)).
 
 ### Prototype 4 — style learning and checkpoint selection
 
-*Does a LoRA adapter actually learn a style, and which checkpoint is best?*
+Does a LoRA adapter actually learn a style, and which checkpoint is best?
 Checkpoints compared side by side at fixed seeds.
 
 ![Checkpoint comparison, ukiyo-e](docs/evidence/prototype-4/final-sheets/EXP-028__ukiyo-e__ck00600__512x512.jpg)
-*Checkpoint 600 for the `ukiyo-e` adapter at 512 × 512, fixed seed — one sheet from the comparison.*
+Checkpoint 600 for the `ukiyo-e` adapter at 512 × 512, fixed seed: one sheet from the comparison.
 
 **Result:** rank 8, alpha 8, UNet attention, default inference weight 0.7 (user range 0.4–1.0).
-**All three style runs trained to 600 steps, with checkpoints evaluated at 150 / 300 / 450 / 600 —
+**All three style runs trained to 600 steps, with checkpoints evaluated at 150 / 300 / 450 / 600,
 but the selected production checkpoints differ:**
 
 | style | experiment | production checkpoint | outcome |
@@ -133,16 +133,16 @@ but the selected production checkpoints differ:**
 | `retro-poster` | EXP-029 | **step 300** | **PARTIAL PASS** |
 
 The longest checkpoint is not automatically the best one; two of the three styles were better at
-step 300. **`retro-poster` is a documented PARTIAL PASS and is neither upgraded nor dropped** —
-[`DR-010`](docs/decisions/DR-010-style-learning-configuration.md).
+step 300. **`retro-poster` is a documented PARTIAL PASS and is neither upgraded nor dropped**
+(see [`DR-010`](docs/decisions/DR-010-style-learning-configuration.md)).
 
 ### Prototype 5 — the integrated MVP
 
 The FastAPI service, the React UI, the 3D preview and the three adapters, as one system.
 
 ![Generation in progress](docs/evidence/prototype-5/screenshots/ui/03-denoising.jpg)
-*Live denoising telemetry — step progress is reported without blocking the GPU
-([`DR-013`](docs/decisions/DR-013-generation-progress-telemetry.md)).*
+Live denoising telemetry: step progress is reported without blocking the GPU
+([`DR-013`](docs/decisions/DR-013-generation-progress-telemetry.md)).
 
 ## 5. Alternatives tested, and what failed
 
@@ -160,9 +160,9 @@ Failure is reported as a result. Full accounts in
 
 **Things that went wrong and are documented rather than smoothed over:**
 
-- **Three data sources became unavailable mid-project** — the dataset plan had to change.
+- **Three data sources became unavailable mid-project**, and the dataset plan had to change.
 - **A measurement was contaminated**, and the first explanation for it was wrong.
-- **Training is not bit-reproducible** on this stack — a real reproducibility limitation.
+- **Training is not bit-reproducible** on this stack: a real reproducibility limitation.
 - **Five defects were only findable by a clean clone**, which is why a clean-clone run is part of
   the evidence ([`docs/evidence/M11/clean-clone.md`](docs/evidence/M11/clean-clone.md)).
 - **CI failed remotely while passing locally**, and the fix cost real time.
@@ -174,7 +174,7 @@ Failure is reported as a result. Full accounts in
 
 **148 images**, hand-assembled for this project.
 
-**Style counts** and **dataset splits** are two independent dimensions over the same 148 images —
+**Style counts** and **dataset splits** are two independent dimensions over the same 148 images:
 every style appears in the training split, and the splits are not per-style.
 
 | style | images |
@@ -192,7 +192,7 @@ every style appears in the training split, and the splits are not per-style.
 | **total** | **148** |
 
 ![Dataset contact sheet, ukiyo-e](docs/evidence/dataset-v1/contact-sheet-ukiyo-e.jpg)
-*Contact sheet for the `ukiyo-e` style — every dataset item is visible and attributable.*
+Contact sheet for the `ukiyo-e` style: every dataset item is visible and attributable.
 
 **Provenance and licensing.** Only three licence classes are permitted into the manifest:
 **public domain**, **CC0**, and **project-original** (self-created, with generator config and seed
@@ -207,7 +207,7 @@ sourcing decision: [`DR-006`](docs/decisions/DR-006-dataset-styles-and-sourcing.
 ## 7. Model and training — what "self-trained" means here
 
 **"Self-trained" means the three style adapters were trained by this project. It does not mean the
-Stable Diffusion foundation model was trained from scratch** — that is not feasible on consumer
+Stable Diffusion foundation model was trained from scratch**: that is not feasible on consumer
 hardware and was never attempted.
 
 | layer | origin |
@@ -219,7 +219,7 @@ hardware and was never attempted.
 Training ran locally on the audited RTX 4060 Laptop GPU across 10 runs. Checkpoints were compared
 at fixed seeds and selected on evidence, not on the last-written file.
 
-**The three production adapters cannot be regenerated** (risk R14) — training is not
+**The three production adapters cannot be regenerated** (risk R14): training is not
 bit-reproducible on this stack. They are authoritative **as files**, verified by SHA-256 on every
 request. Restore procedure:
 [`docs/deployment/weights-manifest.md`](docs/deployment/weights-manifest.md).
@@ -236,7 +236,7 @@ React + Three.js  ──HTTP──>  FastAPI (one worker)  ──>  Resident SD 
 ```
 
 **One API worker is a correctness requirement, not a preference.** The single-flight lock is
-process-local, and a second resident pipeline does not fit — the stack leaves roughly **200 MiB
+process-local, and a second resident pipeline does not fit: the stack leaves roughly **200 MiB
 spare of 8187.5 MiB**. Detail:
 [`docs/03-architecture.md`](docs/03-architecture.md) ·
 [`DR-011`](docs/decisions/DR-011-service-architecture.md).
@@ -257,7 +257,7 @@ spare of 8187.5 MiB**. Detail:
 ## 10. Evidence and outputs
 
 Everything below is **tracked and viewable on GitHub**. Generated images live in `outputs/`, which
-is git-ignored by policy — so the tracked evidence directories are the public record.
+is git-ignored by policy, so the tracked evidence directories are the public record.
 
 | evidence | what it shows |
 |---|---|
@@ -271,7 +271,7 @@ is git-ignored by policy — so the tracked evidence directories are the public 
 | [`experiments/registry.csv`](experiments/registry.csv) | Every experiment with its settings and result |
 
 **31 completed real GPU generations** across the project, plus **1 failed GPU inference attempt**
-(a driver crash that produced no image) — counted separately and recorded in
+(a driver crash that produced no image), counted separately and recorded in
 [`docs/evidence/M12/demo-rehearsal.md`](docs/evidence/M12/demo-rehearsal.md).
 
 ## 11. Testing and validation
@@ -293,7 +293,7 @@ report-validation + 38 deck-validation + 1 added in M12 to keep the failed GPU a
 separately from the completed generations.
 
 > **Historical baseline, not the current figure.** The M11 clean-clone run on **2026-08-15**
-> measured **522 passed / 5 skipped = 527 outcomes** — five tests skip on git-ignored assets a
+> measured **522 passed / 5 skipped = 527 outcomes**: five tests skip on git-ignored assets a
 > fresh clone does not have. That 527 is correct for its date and is deliberately not restated as
 > 528; the M12 test is what accounts for the difference
 > ([`docs/evidence/M11/clean-clone.md`](docs/evidence/M11/clean-clone.md)).
@@ -312,12 +312,12 @@ Measured, not softened:
   multi-object prompts are unreliable.
 - **`retro-poster` is a PARTIAL PASS.** It is weaker than the other two styles. It is reported as
   partial and deliberately neither upgraded nor removed.
-- **The VRAM margin is roughly 200 MiB of 8187.5 MiB — about 2.4%.** That is a ceiling, not
+- **The VRAM margin is roughly 200 MiB of 8187.5 MiB, about 2.4%.** That is a ceiling, not
   comfortable headroom. It forbids a second worker and larger resolutions.
 - **One process, one generation at a time.** No concurrency, no queue, no horizontal scaling.
 - **Training is not bit-reproducible** on this stack; the three adapters cannot be regenerated
   identically and are authoritative as files.
-- **No CPU fallback and no container** — deliberate, justified in [`DR-014`](docs/decisions/DR-014-deployment-and-demo-strategy.md).
+- **No CPU fallback and no container**: deliberate, justified in [`DR-014`](docs/decisions/DR-014-deployment-and-demo-strategy.md).
 - **RQ4's image-count component is inconclusive.** The dataset was too small to separate the effect.
 - **Local deployment only.** There is no public hosted instance.
 
@@ -369,8 +369,8 @@ deliverables/   The submitted PDFs
 ```
 
 `outputs/` is git-ignored: generated images and adapters are never committed. `deliverables/` has
-its contents ignored with three named exceptions — the research report and the two presentation
-PDFs — because the assignment requires them in the GitHub result.
+its contents ignored with three named exceptions (the research report and the two presentation
+PDFs), because the assignment requires them in the GitHub result.
 
 ## 15. Why the process is visible
 
