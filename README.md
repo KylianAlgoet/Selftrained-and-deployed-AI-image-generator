@@ -9,8 +9,8 @@ Kylian Algoet.
 > written research is the PDF linked below.
 >
 > 📄 **[Full research documentation (PDF, 91 pages)](deliverables/DeckForge-AI-research-report.pdf)**
-> · 🎤 **[Defence presentation (PDF, 15 slides)](deliverables/DeckForge-AI-presentation.pdf)**
-> · 🗂 **[Public planning board](https://github.com/users/KylianAlgoet/projects/1)**
+> · 🎤 **[Defence presentation (PDF, 16 slides)](deliverables/DeckForge-AI-presentation.pdf)**
+> · 🗂 **[Public planning board](https://github.com/users/KylianAlgoet/projects/1/views/1)**
 
 ---
 
@@ -73,7 +73,9 @@ Built first, deliberately: it made every later result visible on the actual prod
 *Prototype 0: the first working deck with correct nose–tail orientation.*
 
 ![Prototype 0, inverted UV demonstration](docs/evidence/prototype-0/p0-02-inverted-uv-demonstration.png)
-*The inverted-UV failure, kept as evidence — this is why orientation is asserted by a test.*
+*A controlled inverted-UV demonstration, showing what an incorrect UV orientation would look like.
+Prototype 0's decal orientation was correct on the first real render; this image was produced
+deliberately to make the wrong case visible — which is why orientation is asserted by a test.*
 
 **Learned:** texture orientation is a silent failure — it looks plausible upside-down. → tests
 assert orientation ([`DR-005`](docs/decisions/DR-005-deck-geometry-source.md),
@@ -82,14 +84,19 @@ assert orientation ([`DR-005`](docs/decisions/DR-005-deck-geometry-source.md),
 ### Prototype 1 — base-model benchmark
 
 *Which pretrained model fits 8 GB VRAM and still produces usable decal art?*
-SD 1.5, SD 2.1 and SDXL compared on fixed prompts and seeds.
+**Three candidates were planned — SD 1.5, SD 2.1 and SDXL — but only two were ever measured.**
+SD 1.5 and SDXL were benchmarked on fixed prompts and seeds. **SD 2.1 was blocked by an
+authentication gate and was never successfully benchmarked**, so the measured decision rests on
+two candidates, not three.
 
 ![Cross-model comparison, seed 42](docs/evidence/prototype-1/cross-model-track-A-seed42.jpg)
-*Cross-model comparison at a fixed seed — the same prompt through different base models.*
+*Cross-model comparison at a fixed seed — the same prompt through the two base models that could
+actually be measured.*
 
-**Result:** **SDXL produces better images but does not leave room** for conditioning plus LoRA on
-this GPU. **SD 2.1 was gated** and could not be retrieved. **SD 1.5 selected** (pinned revision
-`451f4fe1…`), with SDXL retained as the quality benchmark rather than the production model —
+**Result: SD 1.5 selected for hardware feasibility, not for image quality.** Under the project's
+rubric, **SDXL scored better at its designed resolution** — but it does not leave room for
+reference conditioning plus a LoRA adapter on this 8 GB GPU. SD 1.5 is pinned at revision
+`451f4fe1…`, with SDXL retained as the quality benchmark rather than the production model —
 [`DR-007`](docs/decisions/DR-007-base-model-selection.md).
 
 ### Prototype 2 — text + reference conditioning
@@ -115,9 +122,19 @@ Checkpoints compared side by side at fixed seeds.
 ![Checkpoint comparison, ukiyo-e](docs/evidence/prototype-4/final-sheets/EXP-028__ukiyo-e__ck00600__512x512.jpg)
 *Checkpoint 600 for the `ukiyo-e` adapter at 512 × 512, fixed seed — one sheet from the comparison.*
 
-**Result:** rank 8, weight 0.7, 600 steps for the per-style adapters. `ukiyo-e` and
-`minimal-geometric` pass; **`retro-poster` is a documented PARTIAL PASS and is neither upgraded nor
-dropped** — [`DR-010`](docs/decisions/DR-010-style-learning-configuration.md).
+**Result:** rank 8, alpha 8, UNet attention, default inference weight 0.7 (user range 0.4–1.0).
+**All three style runs trained to 600 steps, with checkpoints evaluated at 150 / 300 / 450 / 600 —
+but the selected production checkpoints differ:**
+
+| style | experiment | production checkpoint | outcome |
+|---|---|---:|---|
+| `minimal-geometric` | EXP-027 | **step 300** | PASS |
+| `ukiyo-e` | EXP-028 | **step 600** | PASS |
+| `retro-poster` | EXP-029 | **step 300** | **PARTIAL PASS** |
+
+The longest checkpoint is not automatically the best one; two of the three styles were better at
+step 300. **`retro-poster` is a documented PARTIAL PASS and is neither upgraded nor dropped** —
+[`DR-010`](docs/decisions/DR-010-style-learning-configuration.md).
 
 ### Prototype 5 — the integrated MVP
 
@@ -135,7 +152,7 @@ Failure is reported as a result. Full accounts in
 
 | area | alternatives compared | outcome |
 |---|---|---|
-| Base model | SD 1.5 · SD 2.1 · SDXL | SD 1.5 — SDXL better but does not fit; **SD 2.1 gated, unavailable** |
+| Base model | SD 1.5 · SDXL measured; SD 2.1 planned | SD 1.5 on hardware feasibility — **SDXL scored better under the rubric** but does not fit; **SD 2.1 authentication-gated, never benchmarked** |
 | Conditioning | img2img · IP-Adapter · ControlNet | IP-Adapter @ 0.55 |
 | Fine-tuning | full fine-tune · DreamBooth · LoRA | LoRA — **feasible on this GPU, not proven "best"** |
 | Style packaging | one multi-style adapter · per-style adapters | three per-style adapters |
@@ -157,11 +174,22 @@ Failure is reported as a result. Full accounts in
 
 **148 images**, hand-assembled for this project.
 
-| style | images | split | count |
-|---|---:|---|---:|
-| `ukiyo-e` | 55 | train | 124 |
-| `minimal-geometric` | 52 | validation | 17 |
-| `retro-poster` | 41 | holdout | 7 |
+**Style counts** and **dataset splits** are two independent dimensions over the same 148 images —
+every style appears in the training split, and the splits are not per-style.
+
+| style | images |
+|---|---:|
+| `ukiyo-e` | 55 |
+| `minimal-geometric` | 52 |
+| `retro-poster` | 41 |
+| **total** | **148** |
+
+| split | images |
+|---|---:|
+| train | 124 |
+| validation | 17 |
+| holdout | 7 |
+| **total** | **148** |
 
 ![Dataset contact sheet, ukiyo-e](docs/evidence/dataset-v1/contact-sheet-ukiyo-e.jpg)
 *Contact sheet for the `ukiyo-e` style — every dataset item is visible and attributable.*
@@ -186,7 +214,7 @@ hardware and was never attempted.
 |---|---|
 | Base model | **Pretrained** Stable Diffusion 1.5, pinned at revision `451f4fe1…` — not trained here |
 | Reference conditioning | **Pretrained** IP-Adapter (`h94/IP-Adapter`), used at scale 0.55 |
-| **Style adapters** | **Trained by this project** — three LoRA adapters, rank 8, applied at weight 0.7 |
+| **Style adapters** | **Trained by this project** — three LoRA adapters on UNet attention, rank 8, alpha 8, applied at a default inference weight of 0.7 (user range 0.4–1.0) |
 
 Training ran locally on the audited RTX 4060 Laptop GPU across 10 runs. Checkpoints were compared
 at fixed seeds and selected on evidence, not on the last-written file.
@@ -233,7 +261,7 @@ is git-ignored by policy — so the tracked evidence directories are the public 
 
 | evidence | what it shows |
 |---|---|
-| [`docs/evidence/prototype-0/`](docs/evidence/prototype-0/) | 3D viewer, including the inverted-UV failure |
+| [`docs/evidence/prototype-0/`](docs/evidence/prototype-0/) | 3D viewer, including the controlled inverted-UV demonstration |
 | [`docs/evidence/prototype-1/`](docs/evidence/prototype-1/) | Cross-model comparison sheets |
 | [`docs/evidence/prototype-2/`](docs/evidence/prototype-2/) | Conditioning sweeps and copy-risk analysis |
 | [`docs/evidence/prototype-4/`](docs/evidence/prototype-4/) | Checkpoint comparison sheets |
@@ -249,7 +277,7 @@ is git-ignored by policy — so the tracked evidence directories are the public 
 ## 11. Testing and validation
 
 ```powershell
-.venv\Scripts\python.exe -m pytest    # 527
+.venv\Scripts\python.exe -m pytest    # 528
 cd apps\web
 npm run test                          # 183 vitest
 npm run lint
@@ -257,12 +285,18 @@ npm run build
 npx playwright test                   # 38 E2E, no GPU
 ```
 
-**527 pytest** = 473 system tests (API and ML tooling, pipeline stubbed) + 16 report-validation +
-38 deck-validation. **183 vitest** across 12 files. **38 Playwright** scenarios against a live
-WebGL context, `retries: 0`.
+**Latest final validation: 528 pytest passed**, **183 vitest** across 12 files, and **38
+Playwright** scenarios against a live WebGL context with `retries: 0`.
 
-A clean clone reports **522 passed / 5 skipped** — five tests skip on git-ignored assets a fresh
-clone does not have; 522 + 5 = 527.
+The pytest total is 473 system tests (API and ML tooling, pipeline stubbed) + 16
+report-validation + 38 deck-validation + 1 added in M12 to keep the failed GPU attempt counted
+separately from the completed generations.
+
+> **Historical baseline, not the current figure.** The M11 clean-clone run on **2026-08-15**
+> measured **522 passed / 5 skipped = 527 outcomes** — five tests skip on git-ignored assets a
+> fresh clone does not have. That 527 is correct for its date and is deliberately not restated as
+> 528; the M12 test is what accounts for the difference
+> ([`docs/evidence/M11/clean-clone.md`](docs/evidence/M11/clean-clone.md)).
 
 > **No test in any suite loads the model or runs a generation.** A green suite is not evidence that
 > DeckForge AI generates anything, and this project does not present it as such. Real-model

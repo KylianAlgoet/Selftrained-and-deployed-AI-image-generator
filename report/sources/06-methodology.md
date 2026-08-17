@@ -12,7 +12,7 @@ problem -> research question -> alternatives -> criteria -> experiment -> execut
 ```
 
 The rule that gives it force is negative: **do not build the complete result first and invent the
-process afterwards.** Fourteen decision records exist because fourteen decisions went through this
+process afterwards.** Seventeen decision records exist because seventeen decisions went through this
 loop; each states its context, the alternatives, the criteria, the decision, and — the part most
 often missing from such records — what it does **not** claim.
 

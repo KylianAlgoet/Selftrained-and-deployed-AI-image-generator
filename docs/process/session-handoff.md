@@ -1,7 +1,41 @@
 # Session handoff
 
-**Last updated:** 2026-08-16 (M12 — **submission package assembled; deck gate remains**;
-under Opus 5)
+**Last updated:** 2026-08-17 (M13 — **final artifacts installed; submission ready; deck gate
+remains**; under Opus 5)
+
+## M13 (2026-08-17) — FINAL SUBMISSION SYNC — read this first
+
+**The submitted artifacts are externally finalised files, installed verbatim. Do not rebuild them.**
+
+| artifact | pages | bytes | sha256 |
+|---|---:|---:|---|
+| `deliverables/DeckForge-AI-research-report.pdf` | **91** | 1 948 005 | `2cd07def657e4358…` |
+| `deliverables/DeckForge-AI-presentation.pdf` | **16** | 1 540 784 | `3d3f77f00170d5ee…` |
+| `deliverables/DeckForge-AI-presentation-notes.pdf` | 16 | 251 823 | `d9c3275e07293970…` (unchanged) |
+
+### ⚠️ Three things that will bite the next session
+
+1. **`scripts/build_report.py` and `scripts/build_slides.py` would DESTROY the submission.** Both
+   installed PDFs are `%PDF-1.6` (Acrobat Distiller); the pipeline emits `%PDF-1.4` (Skia). Running
+   either build overwrites a submitted artifact with a different document.
+2. **`slides/` authors 15 slides; the submitted deck has 16.** The source cannot reproduce it — the
+   Project Planning slide has no counterpart there. The source is knowingly stale and retained as
+   historical. `validate_slides.py` and the 38 deck-validation tests describe **the source**, not
+   the submitted PDF, and still pass on their own terms.
+3. **Two slide-level corrections remain unapplied**, because they could only be made in a source
+   that does not exist: slide 11 reads **527** where the current figure is **528**, and slide 16
+   has no explicit NEXT STEP. Recorded, not silently accepted.
+
+**Current facts:** 31 completed GPU generations + 1 separate failed attempt · 528 pytest · 183
+vitest · 38 Playwright · 148 dataset images · 40 experiments · 17 decision records · planning
+`https://github.com/users/KylianAlgoet/projects/1/views/1`.
+
+**Historical figures are deliberately preserved and must not be "corrected":** M8 = 27 generations,
+M11 = 28 generations and 527 pytest.
+
+**What Kylian has to do:** open the 16-slide deck, review every slide, and rehearse against a clock.
+That is **defence preparation, not a submission requirement** — requirement 13 is satisfied by the
+supplied PDF. No measured full-presentation duration is claimed anywhere.
 
 ## M12 (2026-08-16) — GPU crash, demo rehearsal, submission package
 

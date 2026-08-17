@@ -43,7 +43,49 @@ reads it back, and the UI keeps only the latest result. Recorded as unknown; **n
 Re-point the lock rather than edit dated M8/M11 records. Do not rebuild the presentation — no slide
 states a generation total.
 
-**Next step.** Human visual gate and a timed rehearsal of the 15-slide deck (requirement 13).
+**Next step.** Human visual gate and a timed rehearsal of the deck (requirement 13).
+
+## 2026-08-17 — M13: final submission sync
+
+**Objective.** Install the externally finalised submission artifacts and remove the last stale
+current-submission facts.
+
+**Completed.** Three supplied artifacts installed **verbatim, byte-identical to the supplied
+copies** — the 91-page research report (`2cd07def657e4358…`), the **16-page** presentation
+(`3d3f77f00170d5ee…`), and `SUBMISSION.md`. README corrected: 16 slides, planning `/views/1`,
+Prototype 0's inverted-UV image reframed as the controlled demonstration it always was, the
+base-model story corrected to **two measured candidates** (SD 2.1 was authentication-gated and never
+benchmarked), production checkpoints given as **300 / 600 / 300**, style counts separated from
+dataset splits, and the current 528 separated from the historical 527. Checklist and report sources
+brought in line; planning URL and the decision-record count (14 → **17**) corrected in
+`report/sources/`.
+
+**Real results.** pytest **528 passed** · vitest **183** · Playwright **38** · eslint clean · build
+succeeds · fact locks resolve · every markdown link and written path resolves.
+
+**Blockers and honest gaps.**
+
+- **The presentation source in `slides/` cannot reproduce the submitted deck.** It authors **15**
+  slides; the submitted PDF has **16**, including a Project Planning slide with no counterpart in
+  the source. Rebuilding would overwrite the submitted artifact with a different, shorter deck.
+  The source is knowingly retained as historical and **must not be rebuilt**. Reconstructing a
+  matching source would have meant authoring slide content, so it was not attempted.
+- **Two slide-level corrections could not be applied** for the same reason: slide 11 still reads
+  527 rather than the current 528, and slide 16 carries no explicit NEXT STEP. Editing the PDF
+  binary was refused. Both are recorded rather than silently accepted.
+- **The submitted report and presentation are no longer repository builds** (`%PDF-1.6`, Acrobat
+  Distiller, against the pipeline's `%PDF-1.4` Skia). `check_report_leaders.py` does not apply to
+  the installed report — it counts a Chrome rasterisation artefact that a different producer
+  legitimately never emits.
+- The speaker notes were **not** replaced; they still correspond one-page-per-slide to the 15-slide
+  deck, so `audit_pdfs.py`'s notes-cover-the-deck cross-check no longer holds.
+
+**Decisions.** Accept the supplied report despite it not stating "16 slides" — an omission, not a
+false claim, and Kylian waived that gate explicitly. Preserve every historical figure: M8 reads 27,
+M11 reads 28 and 527, and none were rewritten.
+
+**Next step.** Human visual gate and a timed rehearsal of the 16-slide deck — defence preparation,
+not a submission requirement.
 
 ## 2026-08-15 (second) — M11: the final GPU validation, byte-identical
 

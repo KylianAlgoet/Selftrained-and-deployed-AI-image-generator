@@ -7,7 +7,7 @@
 | **Programme** | Multimedia & Creative Technologies, Erasmushogeschool Brussel |
 | **Assignment** | Final bachelor resit assignment |
 | **Repository** | `github.com/KylianAlgoet/Selftrained-and-deployed-AI-image-generator` |
-| **Public planning** | `github.com/users/KylianAlgoet/projects/1` |
+| **Public planning** | `github.com/users/KylianAlgoet/projects/1/views/1` |
 | **Submission deadline** | 2026-08-17 06:00 Europe/Brussels |
 
 ## How to read this report
